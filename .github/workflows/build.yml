@@ -1,0 +1,39 @@
+name: build-dashboard
+
+# Weekly refresh. The dashboard is uploaded as a build artifact only.
+# Publishing it publicly (e.g. GitHub Pages) redistributes Yahoo Finance data;
+# check the data providers' terms before enabling the deploy job below.
+on:
+  schedule:
+    - cron: "0 2 * * 1"   # Mondays 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}   # e.g. "industry-radar you@yourmail.com"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore SEC / Yahoo cache
+        uses: actions/cache@v4
+        with:
+          path: data/cache
+          key: radar-cache-${{ github.run_id }}
+          restore-keys: radar-cache-
+      - name: Fetch data and build dashboard
+        run: python -m radar fetch
+      - name: Build Intel deep-dive example
+        run: python deep-dive/intel/build.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashboard
+          path: site/
+          retention-days: 14

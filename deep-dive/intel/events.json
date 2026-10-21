@@ -1,0 +1,244 @@
+{
+  "_readme": "手动维护的数据。react = 市场第一个能反应的交易日（盘后公告取下一交易日）。tier: primary 一手 / authoritative 权威二手 / general 一般媒体。核对日期 2026-10-21。",
+
+  "guidance": [
+    {
+      "quarter": "2026Q3", "issued": "2026-07-23",
+      "rev_low": 15.8e9, "rev_high": 16.8e9, "eps_nongaap": 0.38, "eps_gaap": 0.31, "gm_nongaap_mid": 42.0,
+      "sources": [
+        {"name": "Intel Q2 财报稿", "url": "https://www.intc.com/news-events/press-releases/detail/1776/intel-reports-second-quarter-2026-financial-results", "tier": "primary"},
+        {"name": "Yahoo（毛利率指引）", "url": "https://finance.yahoo.com/technology/articles/intel-raises-2026-capex-outlook-125055520.html", "tier": "general"}
+      ]
+    }
+  ],
+
+  "beats": [
+    {
+      "quarter": "2026Q2", "date": "2026-07-23", "consensus_src": "LSEG",
+      "rev_actual": 16.1e9, "rev_est": 14.42e9, "eps_actual": 0.42, "eps_est": 0.21,
+      "guide_rev_mid": 16.3e9, "guide_rev_est": 15.1e9, "guide_eps": 0.38, "guide_eps_est": 0.27,
+      "after_hours": 5.2,
+      "point": "实际业绩和下季指引都明显高于 LSEG 一致预期，盘后股价涨了 5.2%，但次日收盘反而跌 7.9%。Reuters 同时报道公司上调了未来两年的资本开支计划。",
+      "sources": [
+        {"name": "CNBC（Q2 实际 vs 预期）", "url": "https://www.cnbc.com/2026/07/23/intels-turnaround-under-ceo-lip-bu-tan-gains-steam-with-another-strong-quarter.html", "tier": "authoritative"},
+        {"name": "Reuters（指引 vs 预期、盘后涨幅）", "url": "https://finance.yahoo.com/technology/ai/articles/intel-sales-profit-forecast-beat-200212672.html", "tier": "authoritative"}
+      ]
+    }
+  ],
+
+  "company_events": [
+    {
+      "date": "07-23", "react": "2026-07-24", "timing": "盘后",
+      "category": "财务", "title": "发布 2026 年 Q2 财报",
+      "point": "营收 161 亿美元，同比 +25%。CEO 称这是连续第七个季度超出公司自己的财务预期。",
+      "sources": [
+        {"name": "Business Wire 财报稿", "url": "https://www.businesswire.com/news/home/20260723707213/en/Intel-Reports-Second-Quarter-2026-Financial-Results", "tier": "primary"},
+        {"name": "Intel 财报 Fact Sheet", "url": "https://download.intel.com/newsroom/2026/earnings/Intel-Q22026-Earnings-Call.pdf", "tier": "primary"}
+      ]
+    },
+    {
+      "date": "08-10", "react": "2026-08-11", "timing": "盘后",
+      "category": "资本", "title": "宣布并定价普通股增发，规模由 150 亿上调至 200 亿美元",
+      "point": "发行价 95 美元，较 08-07 收盘折价约 6.5%，约 2.105 亿股；承销商另有 30 天超额配售权。",
+      "sources": [
+        {"name": "Intel 公告 EX-99.2", "url": "https://www.intc.com/filings-reports/all-sec-filings/content/0001193125-26-346806/d117670dex992.htm", "tier": "primary"},
+        {"name": "Yahoo（转彭博）", "url": "https://sg.finance.yahoo.com/news/intel-raises-us-20-bil-004954759.html", "tier": "authoritative"}
+      ],
+      "note": "各家媒体对公告日期的写法不一致（周一晚 / 周二）。根据折价按 08-07 收盘计算、首条报道时间为美东 08-10 晚，按 08-10 盘后处理。"
+    },
+    {
+      "date": "08-11", "react": "2026-08-14", "timing": "按 Form 4 提交日",
+      "category": "内部人", "title": "CEO 以家族信托买入 105,263 股",
+      "point": "买入价 95 美元，与增发价相同，合计约 1,000 万美元。交易日是 08-11，市场 08-14 才看到 Form 4。",
+      "sources": [
+        {"name": "Yahoo Finance", "url": "https://finance.yahoo.com/markets/stocks/articles/intel-ceo-put-10-million-213239962.html", "tier": "general"}
+      ],
+      "note": "Form 4 原件见下方内部人交易表（自动从 EDGAR 解析）。"
+    },
+    {
+      "date": "10-06", "react": "2026-10-06", "timing": "盘前",
+      "category": "合作", "title": "与 Applied Materials 扩大研发合作",
+      "point": "方向是下一代晶体管、互连和先进封装。新闻稿由 AMAT 发布。",
+      "sources": [
+        {"name": "AMAT 新闻稿（Yahoo 转载）", "url": "https://finance.yahoo.com/technology/ai/articles/applied-materials-intel-collaborate-accelerate-130000109.html", "tier": "primary"}
+      ]
+    },
+    {
+      "date": "10-07", "react": "2026-10-07", "timing": "东京白天，即美东前一晚",
+      "category": "战略", "title": "CEO 接受彭博采访：继续参与 Terafab",
+      "point": "同一时间，马斯克确认在和台积电谈 Terafab，但表示台积电可能只是转租部分厂房。",
+      "sources": [
+        {"name": "Bloomberg（Yahoo 转载）", "url": "https://finance.yahoo.com/technology/ai/articles/intel-keep-working-elon-musk-043229831.html", "tier": "authoritative"}
+      ]
+    },
+    {
+      "date": "10-12", "react": "2026-10-13", "timing": "收盘前约 30 分钟",
+      "category": "产品", "title": "OCP 峰会发布面向智能体 AI 的开放基础设施",
+      "point": "披露推理用 GPU D 系列（Crescent Island）的新细节，以及基于至强的机架方案。",
+      "sources": [
+        {"name": "Intel 投资者关系新闻页", "url": "https://www.intc.com/news-events", "tier": "primary"},
+        {"name": "MarketBeat", "url": "https://www.marketbeat.com/articles/intel-bets-on-cheaper-ai-as-foundry-losses-mount/", "tier": "general"}
+      ]
+    },
+    {
+      "date": "≤10-18", "react": "2026-10-19", "timing": "周末前后",
+      "category": "代工客户", "title": "确认 Tesla 为 14A 代工客户",
+      "point": "马斯克 4 月就说过要用 14A，这次是 Intel 方面正式确认。",
+      "sources": [
+        {"name": "Yahoo Finance", "url": "https://finance.yahoo.com/technology/articles/intel-intc-lands-major-customer-151209880.html", "tier": "general"},
+        {"name": "Yahoo（背景：4 月表态）", "url": "https://finance.yahoo.com/markets/stocks/articles/tesla-rises-foundry-agreement-intel-200747274.html", "tier": "general"}
+      ],
+      "note": "同一个交易日 JPMorgan 上调评级，两个事件的影响拆不开。Intel 原始披露未取到。"
+    }
+  ],
+
+  "third_party_events": [
+    {
+      "date": "10-14", "react": "2026-10-14", "timing": "",
+      "category": "券商", "title": "KeyBanc：Intel 已拿到 6 家公司的代工订单",
+      "point": "6 家为博通、谷歌、苹果、AMD、微软、英伟达，依据是券商的亚洲调研。Intel 未确认。",
+      "sources": [{"name": "AInvest", "url": "https://www.ainvest.com/news/intel-foundry-customers-writing-checks-question-cover-bill-2610/", "tier": "general"}]
+    },
+    {
+      "date": "10-19", "react": "2026-10-19", "timing": "盘前",
+      "category": "券商", "title": "JPMorgan 将评级由减持上调至中性，目标价 85 美元",
+      "point": "上调时股价已高于目标价。MarketBeat 同日还报道了 Bernstein 上调评级。",
+      "sources": [{"name": "Yahoo Finance", "url": "https://finance.yahoo.com/markets/stocks/articles/jpmorgan-upgrades-intel-stock-following-121106174.html", "tier": "general"}]
+    }
+  ],
+
+  "industry_events": [
+    {
+      "date": "09-30", "react": "2026-10-01", "timing": "盘后",
+      "category": "同行财报", "title": "美光 FQ4 财报",
+      "point": "营收 542.3 亿美元，同比 +379%。下季（FQ1）营收指引 615 亿 ± 15 亿美元。",
+      "sources": [{"name": "Micron IR", "url": "https://investors.micron.com/news/press-release/2026/Micron-Technology-Inc--Reports-Record-Fiscal-Fourth-Quarter-and-Full-Year-2026-Results/", "tier": "primary"}]
+    },
+    {
+      "date": "10-05", "react": "2026-10-05", "timing": "",
+      "category": "行业数据", "title": "SIA：8 月全球半导体销售额",
+      "point": "1,597 亿美元，环比 +8%，同比 +144.3%。1 到 8 月累计首次超过 1 万亿美元。",
+      "sources": [{"name": "SIA", "url": "https://www.semiconductors.org/year-to-date-global-semiconductor-sales-top-1-trillion-through-august/", "tier": "primary"}]
+    },
+    {
+      "date": "10-08", "react": "2026-10-08", "timing": "台北午后，即美东凌晨",
+      "category": "代工", "title": "台积电 9 月营收",
+      "point": "新台币 5,118.6 亿元，环比 -0.6%，同比 +54.6%。",
+      "sources": [{"name": "TSMC", "url": "https://pr.tsmc.com/japanese/news/3343", "tier": "primary"}],
+      "note": "同日还有三星初步业绩，两者影响拆不开。"
+    },
+    {
+      "date": "10-08", "react": "2026-10-08", "timing": "首尔上午",
+      "category": "同行财报", "title": "三星电子 Q3 初步业绩",
+      "point": "营收约 195 万亿韩元，营业利润约 107.4 万亿韩元，首次超过 100 万亿。",
+      "sources": [{"name": "Samsung Newsroom", "url": "https://news.samsung.com/global/samsung-electronics-announces-earnings-guidance-for-third-quarter-2026", "tier": "primary"}]
+    },
+    {
+      "date": "10-08", "react": "2026-10-09", "timing": "美东收盘后见报",
+      "category": "终端需求", "title": "IDC：Q3 全球 PC 出货",
+      "point": "6,270 万台，同比 -20.1%，环比 -9.1%。",
+      "sources": [{"name": "Ars Technica", "url": "https://arstechnica.com/information-technology/2026/10/pc-shipments-fall-20-1-percent-in-sharpest-decline-since-q1-2023/", "tier": "general"}]
+    },
+    {
+      "date": "10-12", "react": "2026-10-12", "timing": "",
+      "category": "终端需求", "title": "Gartner：Q3 全球 PC 出货",
+      "point": "5,540 万台，同比 -22.4%。Gartner 认为原因是元器件涨价推高了整机均价。",
+      "sources": [{"name": "Gartner", "url": "https://www.gartner.com/en/newsroom/press-releases/2026-10-12-gartner-says-worldwide-pc-shipments-declined-22-point-4-percent-in-third-quarter-of-2026-as-component-cost-inflation-raised-asps", "tier": "primary"}]
+    },
+    {
+      "date": "10-14", "react": "2026-10-14", "timing": "欧洲盘前",
+      "category": "设备", "title": "ASML Q3 财报",
+      "point": "净销售额 117 亿欧元，净利润 50 亿欧元。",
+      "sources": [{"name": "ASML 新闻稿（Yahoo 转载）", "url": "https://finance.yahoo.com/markets/stocks/articles/asml-reports-11-7-billion-050000954.html", "tier": "primary"}]
+    },
+    {
+      "date": "10-15", "react": "2026-10-15", "timing": "台北午后",
+      "category": "代工", "title": "台积电 Q3 财报",
+      "point": "营收新台币 1.494 万亿元，毛利率 66.4%，摊薄 EPS 新台币 29.43 元。",
+      "sources": [{"name": "TSMC", "url": "https://pr.tsmc.com/english/news/3346", "tier": "primary"}]
+    }
+  ],
+
+  "indicators": [
+    {
+      "group": "终端需求", "affects": "客户端 CCG",
+      "name": "Q3 2026 全球 PC 出货",
+      "value": "5,540 万 ~ 6,270 万台", "change": "同比 -20% ~ -22%",
+      "detail": "IDC 6,270 万（-20.1%）；Omdia 5,810 万（-21.2%）；Gartner 5,540 万（-22.4%）。三家统计口径不同，数字不能直接对比。",
+      "as_of": "2026Q3", "published": "10-08 ~ 10-12",
+      "sources": [
+        {"name": "Gartner", "url": "https://www.gartner.com/en/newsroom/press-releases/2026-10-12-gartner-says-worldwide-pc-shipments-declined-22-point-4-percent-in-third-quarter-of-2026-as-component-cost-inflation-raised-asps", "tier": "primary"},
+        {"name": "IDC / Omdia（Ars Technica）", "url": "https://arstechnica.com/information-technology/2026/10/pc-shipments-fall-20-1-percent-in-sharpest-decline-since-q1-2023/", "tier": "general"}
+      ]
+    },
+    {
+      "group": "代工与竞争", "affects": "代工 Foundry",
+      "name": "台积电月营收",
+      "value": "NT$5,118.6 亿", "change": "同比 +54.6%，环比 -0.6%",
+      "detail": "1 到 9 月累计 NT$3.899 万亿元，同比 +41.1%。",
+      "as_of": "2026-09", "published": "10-08",
+      "sources": [{"name": "TSMC", "url": "https://pr.tsmc.com/japanese/news/3343", "tier": "primary"}]
+    },
+    {
+      "group": "代工与竞争", "affects": "代工 Foundry",
+      "name": "台积电 Q3 财报",
+      "value": "NT$1.494 万亿", "change": "毛利率 66.4%",
+      "detail": "按美元计营收约 467 亿美元。电话会给出的 2026 年资本开支为 600 ~ 640 亿美元（来自电话会纪要摘要，属二手来源）。",
+      "as_of": "2026Q3", "published": "10-15",
+      "sources": [
+        {"name": "TSMC", "url": "https://pr.tsmc.com/english/news/3346", "tier": "primary"},
+        {"name": "电话会摘要（stockanalysis）", "url": "https://stockanalysis.com/quote/tpe/2330/transcripts/709077-q3-2026/", "tier": "general"}
+      ]
+    },
+    {
+      "group": "上游设备", "affects": "行业资本开支周期",
+      "name": "ASML Q3 净销售额",
+      "value": "€117 亿", "change": "净利润 €50 亿",
+      "detail": "全年指引 €440 ~ 450 亿（来自电话会摘要，属二手来源）。",
+      "as_of": "2026Q3", "published": "10-14",
+      "sources": [
+        {"name": "ASML 新闻稿", "url": "https://finance.yahoo.com/markets/stocks/articles/asml-reports-11-7-billion-050000954.html", "tier": "primary"},
+        {"name": "电话会摘要（stockanalysis）", "url": "https://stockanalysis.com/quote/ams/ASML/transcripts/651248-q3-2026-investor-call/", "tier": "general"}
+      ]
+    },
+    {
+      "group": "价格与总量", "affects": "全行业",
+      "name": "全球半导体月销售额（SIA）",
+      "value": "$1,597 亿", "change": "同比 +144.3%，环比 +8%",
+      "detail": "1 到 8 月累计首次超过 1 万亿美元。注意：同比增幅很大一部分来自存储涨价。",
+      "as_of": "2026-08", "published": "10-05",
+      "sources": [{"name": "SIA", "url": "https://www.semiconductors.org/year-to-date-global-semiconductor-sales-top-1-trillion-through-august/", "tier": "primary"}]
+    },
+    {
+      "group": "价格与总量", "affects": "PC 整机成本、毛利率",
+      "name": "4Q26 内存合约价预测（TrendForce）",
+      "value": "DRAM +10% ~ 15%", "change": "NAND +15% ~ 20%（环比）",
+      "detail": "存在不同说法：TrendForce 10-20 的新闻称 DRAM 约 +20%，口径可能包含 HBM。这里以 09-30 的正式新闻稿为准。",
+      "as_of": "4Q26 预测", "published": "09-30",
+      "sources": [
+        {"name": "TrendForce 新闻稿", "url": "https://www.trendforce.com/presscenter/news/20260930-13258.html", "tier": "authoritative"},
+        {"name": "TrendForce 10-20 新闻", "url": "https://www.trendforce.com/news/2026/10/20/news-dram-prices-seen-rising-20-qoq-in-4q26-despite-slower-gains-ai-demand-tight-supply-support-outlook/", "tier": "authoritative"}
+      ]
+    },
+    {
+      "group": "同行", "affects": "存储，对照 Intel 指引",
+      "name": "美光 FQ4 营收",
+      "value": "$542.3 亿", "change": "同比 +379%",
+      "detail": "FQ1 营收指引 615 亿 ± 15 亿美元。",
+      "as_of": "FQ4（截至 09-03）", "published": "09-30",
+      "sources": [{"name": "Micron IR", "url": "https://investors.micron.com/news/press-release/2026/Micron-Technology-Inc--Reports-Record-Fiscal-Fourth-Quarter-and-Full-Year-2026-Results/", "tier": "primary"}]
+    }
+  ],
+
+  "calendar": [
+    {"date": "2026-10-21", "what": "Meta Q3 财报（盘后）", "why": "云厂商资本开支", "status": "媒体报道", "url": "https://finance.yahoo.com/markets/stocks/articles/magnificent-7-earnings-preview-meta-173500726.html"},
+    {"date": "2026-10-21", "what": "Tesla Q3 财报（盘后）", "why": "14A 代工客户", "status": "媒体报道", "url": "https://finance.yahoo.com/markets/stocks/articles/magnificent-7-earnings-preview-meta-173500726.html"},
+    {"date": "2026-10-28", "what": "微软 FY27 Q1 财报（盘后）", "why": "云厂商资本开支", "status": "公司公告", "url": "https://news.microsoft.com/source/2026/10/07/microsoft-announces-quarterly-earnings-release-date-69/"},
+    {"date": "2026-10-28", "what": "Alphabet Q3 财报（盘后）", "why": "云厂商资本开支", "status": "公司公告", "url": "https://abc.xyz/investor/news/news-details/2026/Alphabet-Announces-Date-of-Third-Quarter-2026-Financial-Results-Conference-Call-2026-8tpGZsLS6v/default.aspx"},
+    {"date": "2026-10-29", "what": "Intel Q3 财报（盘后）", "why": "本公司", "status": "公司公告", "url": "https://www.intc.com/news-events/press-releases/detail/1782/intel-to-report-third-quarter-2026-financial-results"},
+    {"date": "2026-10-29", "what": "亚马逊 Q3 财报（盘后）", "why": "云厂商资本开支", "status": "估计，公司未确认", "url": "https://www.marketbeat.com/earnings/reports/2026-10-29-amazoncom-inc-stock/"},
+    {"date": "2026-11-03", "what": "AMD Q3 财报（盘后）", "why": "直接竞争对手", "status": "公司公告", "url": "https://newsroom.amd.com/news/earnings-date-3q-2026/"},
+    {"date": "2026-11 上旬", "what": "SIA 9 月全球半导体销售", "why": "行业总量", "status": "按惯例推算，日期未公布", "url": "https://www.semiconductors.org/"},
+    {"date": "2026-11-10 前后", "what": "台积电 10 月营收", "why": "代工景气", "status": "按惯例推算，日期未公布", "url": "https://pr.tsmc.com/english/latest-news"}
+  ]
+}

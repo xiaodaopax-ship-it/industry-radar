@@ -1,0 +1,132 @@
+{
+  "_readme": "行业 → 细分环节定义。美国公司按 SIC 代码 + 名称关键词归类；海外公司按 Yahoo 行业 + 名称关键词归类；overrides 人工指定，优先级最高。leaders 是每个环节手动挑选的龙头（可以跨市场），不参与新兴公司筛选。demand 是需求证据，tier 为来源等级。",
+
+  "sectors": [
+    {
+      "id": "ai", "name": "AI 基础设施与半导体",
+      "benchmark": {"symbol": "SOXX", "name": "半导体 ETF SOXX"},
+      "lynch_note": "这个行业里存储、设备有明显的周期性，增长快不等于是快速增长股。",
+      "thesis": "AI 资本开支仍在高速增长，但需求高度集中在少数云厂商；存储和设备处在涨价与扩产周期，PC 等终端需求在走弱。",
+      "demand": [
+        {"text": "四家云厂商 2026Q2 资本开支合计 1,651 亿美元，同比 +87%（SEC XBRL）", "as_of": "2026Q2", "tier": "primary", "url": "https://www.sec.gov/edgar/search/"},
+        {"text": "Gartner：2026 年全球 AI 支出预计 2.7 万亿美元，同比 +49.5%", "as_of": "2026-09", "tier": "primary", "url": "https://www.gartner.com/en/newsroom/press-releases/2026-09-16-gartner-forecasts-worldwide-ai-spending-to-grow-49-point-5-percent-in-2026"},
+        {"text": "SIA：8 月全球半导体销售 1,597 亿美元，同比 +144%，其中很大一部分是存储涨价", "as_of": "2026-08", "tier": "primary", "url": "https://www.semiconductors.org/year-to-date-global-semiconductor-sales-top-1-trillion-through-august/"},
+        {"text": "Gartner：Q3 全球 PC 出货同比 −22.4%，元器件涨价推高了整机均价", "as_of": "2026Q3", "tier": "primary", "url": "https://www.gartner.com/en/newsroom/press-releases/2026-10-12-gartner-says-worldwide-pc-shipments-declined-22-point-4-percent-in-third-quarter-of-2026-as-component-cost-inflation-raised-asps"}
+      ],
+      "intl": {"regions": ["tw", "jp", "kr"], "industries": ["Semiconductors", "Semiconductor Equipment & Materials", "Electronic Components", "Computer Hardware", "Communication Equipment", "Electrical Equipment & Parts"]},
+      "segments": [
+        {"id": "cooling", "name": "液冷与散热", "sic": [3585], "name_regex": "thermal|cool", "yahoo_industry": [],
+         "leaders": ["VRT", "3017.TW"],
+         "demand": [{"text": "机柜功率上升推动液冷渗透，需求和云厂商资本开支同向", "as_of": "2026Q2", "tier": "general", "url": ""}]},
+        {"id": "power", "name": "数据中心电源", "sic": [3612, 3613, 3621, 3629, 3679], "name_regex": "power|electric|volt", "yahoo_industry": ["Electrical Equipment & Parts"],
+         "leaders": ["ETN", "2308.TW"],
+         "demand": [{"text": "AI 数据中心扩建带动配电与电源需求；EIA 预计 2026 年美国发电量创新高", "as_of": "2026-09", "tier": "primary", "url": "https://www.eia.gov/pressroom/releases/press592.php"}]},
+        {"id": "optical", "name": "光互连与网络", "sic": [3661, 3357, 3576, 3663, 3669, 3674], "name_regex": "photon|optic|lumen|light|fiber|network", "yahoo_industry": ["Communication Equipment"],
+         "leaders": ["ANET", "COHR", "LITE"],
+         "demand": [{"text": "AI 集群扩大带动带宽和光模块需求；陈立武在 GSA 播客中提到看好光学 AI", "as_of": "2026-09", "tier": "general", "url": "https://www.tiktok.com/@abitpersonalpod/video/7690663869689122062"}]},
+        {"id": "memory", "name": "存储", "sic": [3572, 3674], "name_regex": "memory|flash|storage|nand|dram", "yahoo_industry": [], "cyclical": true,
+         "leaders": ["MU", "000660.KS", "005930.KS"],
+         "demand": [{"text": "TrendForce 预测 4Q26 DRAM 合约价环比 +10% ~ 15%；美光 FQ4 营收同比 +379%。增长主要来自涨价，是典型的周期", "as_of": "2026-09", "tier": "authoritative", "url": "https://www.trendforce.com/presscenter/news/20260930-13258.html"}]},
+        {"id": "equipment", "name": "半导体设备、材料与测试", "sic": [3559, 3825, 3829, 3823, 3827], "name_regex": "", "yahoo_industry": ["Semiconductor Equipment & Materials"], "cyclical": true,
+         "leaders": ["ASML", "AMAT", "LRCX", "8035.T", "6857.T"],
+         "demand": [{"text": "台积电 2026 年资本开支 600 ~ 640 亿美元（电话会摘要）；ASML Q3 净销售额创新高。设备跟着晶圆厂资本开支走，有周期性", "as_of": "2026Q3", "tier": "primary", "url": "https://pr.tsmc.com/english/news/3346"}]},
+        {"id": "packaging", "name": "先进封装、基板与 PCB", "sic": [3672], "name_regex": "packag|substrate|interconnect|circuit", "yahoo_industry": ["Electronic Components"],
+         "leaders": ["3711.TW", "AMKR", "3037.TW"],
+         "demand": [{"text": "Intel 与 Applied Materials 扩大先进封装研发合作；台积电持续扩充先进封装产能", "as_of": "2026-10", "tier": "primary", "url": "https://finance.yahoo.com/technology/ai/articles/applied-materials-intel-collaborate-accelerate-130000109.html"}]},
+        {"id": "chips", "name": "芯片设计与制造", "sic": [3674], "name_regex": "", "yahoo_industry": ["Semiconductors"],
+         "leaders": ["NVDA", "AVGO", "TSM", "AMD", "INTC"],
+         "demand": [{"text": "台积电 Q3 营收新台币 1.494 万亿元，毛利率 66.4%", "as_of": "2026Q3", "tier": "primary", "url": "https://pr.tsmc.com/english/news/3346"}]},
+        {"id": "hardware", "name": "服务器与系统", "sic": [3570, 3571, 3575, 3577, 3578], "name_regex": "", "yahoo_industry": ["Computer Hardware"],
+         "leaders": ["DELL", "SMCI", "2382.TW", "2317.TW"],
+         "demand": [{"text": "Gartner：2026 年服务器支出预计 +36.9%，数据中心支出超过 6,500 亿美元", "as_of": "2026-02", "tier": "general", "url": "https://www.cio.com/article/4126847/gartner-it-spending-to-exceed-6-trillion-by-2026.html"}]}
+      ],
+      "overrides": {
+        "KLIC": {"segment": "equipment", "why": "键合与先进封装设备，属于半导体设备，有周期性"},
+        "AXTI": {"segment": "equipment", "why": "化合物半导体衬底，属于材料"},
+        "UCTT": {"segment": "equipment", "why": "半导体设备子系统与零部件"},
+        "ICHR": {"segment": "equipment", "why": "半导体设备流体输送子系统"},
+        "FORM": {"segment": "equipment", "why": "探针卡与测试"},
+        "MRAM": {"segment": "memory", "why": "MRAM 存储芯片"},
+        "PENG": {"segment": "hardware", "why": "内存模块与 AI 基础设施方案，业务混合"},
+        "AAOI": {"segment": "optical", "why": "光模块与光器件"},
+        "3324.TWO": {"segment": "cooling", "why": "散热模组"},
+        "3017.TW": {"segment": "cooling", "why": "散热模组与液冷"},
+        "2408.TW": {"segment": "memory", "why": "DRAM 制造"},
+        "2344.TW": {"segment": "memory", "why": "存储芯片"},
+        "8299.TWO": {"segment": "memory", "why": "存储控制芯片"},
+        "000660.KS": {"segment": "memory", "why": "存储芯片"},
+        "005930.KS": {"segment": "memory", "why": "存储芯片为主"},
+        "3260.TWO": {"segment": "memory", "why": "内存模组与闪存产品"},
+        "4967.TW": {"segment": "memory", "why": "内存模组与闪存产品"},
+        "4973.TWO": {"segment": "memory", "why": "内存模组与闪存产品"},
+        "067310.KQ": {"segment": "packaging", "why": "半导体封装测试（以存储封测为主）"},
+        "253590.KQ": {"segment": "equipment", "why": "存储芯片测试设备"},
+        "252990.KQ": {"segment": "equipment", "why": "探针卡用陶瓷基板，属于测试材料"},
+        "6862.T": {"segment": "memory", "why": "内存模组为主"},
+        "8091.TWO": {"segment": "equipment", "why": "半导体、面板等设备的零部件加工"}
+      },
+      "exclude": {
+        "name_regex": "solar|biofuel|ethanol|renewable fuel",
+        "tickers": {
+          "SHLS": "光伏电站电气配套，归到能源行业", "FTCI": "光伏跟踪支架，归到能源行业", "TE": "光伏电池，归到能源行业",
+          "OWLT": "婴儿监护设备，SIC 误归类", "EVLV": "安检设备，SIC 误归类", "EOSE": "电网储能电池，归到能源行业", "NRGV": "电网储能，归到能源行业",
+          "6625.T": "业务描述为房地产租赁与管理，Yahoo 行业误归类"
+        }
+      }
+    },
+
+    {
+      "id": "health", "name": "医药与医疗",
+      "benchmark": {"symbol": "XLV", "name": "医疗保健 ETF XLV"},
+      "lynch_note": "这套筛选要求有营收，所以只覆盖已经商业化的公司。还在临床阶段、靠管线估值的生物技术公司要看临床数据和审批进度，不适合用这个方法。",
+      "thesis": "减重药（GLP-1）仍是增长最快的药物类别；新药审批节奏正常。器械和诊断的需求证据待补充。",
+      "demand": [
+        {"text": "礼来 2026 上半年两款 GLP-1 药物合计销售 277 亿美元，同比约 +88%", "as_of": "2026H1", "tier": "general", "url": "https://finance.yahoo.com/healthcare/articles/eli-lillys-glp-1-portfolio-131500626.html"},
+        {"text": "FDA 药品评价与研究中心 2026 年新药审批追踪页；据第三方统计截至 10-09 已批准 46 个新药（2025 全年 46 个）", "as_of": "2026-10", "tier": "general", "url": "https://www.fda.gov/drugs/novel-drug-approvals-fda/novel-drug-approvals-2026"}
+      ],
+      "segments": [
+        {"id": "biotech", "name": "生物技术与创新药", "sic": [2834, 2836, 8731], "name_regex": "", "leaders": ["LLY", "VRTX", "REGN"], "demand": []},
+        {"id": "devices", "name": "医疗器械", "sic": [3841, 3842, 3843, 3844, 3845, 3851], "name_regex": "", "leaders": ["ISRG", "BSX", "SYK"], "demand": []},
+        {"id": "dx_tools", "name": "诊断与生命科学工具", "sic": [2835, 3826, 8071, 8734], "name_regex": "", "leaders": ["TMO", "DHR", "IDXX"], "demand": []},
+        {"id": "services", "name": "医疗服务与数字医疗", "sic": [8000, 8011, 8050, 8051, 8060, 8062, 8082, 8090, 8093], "name_regex": "", "leaders": ["UNH", "HCA"], "demand": []}
+      ],
+      "overrides": {}, "exclude": {"name_regex": "", "tickers": {}}
+    },
+
+    {
+      "id": "energy", "name": "能源与电力",
+      "benchmark": {"symbol": "XLU", "name": "公用事业 ETF XLU"},
+      "lynch_note": "公用事业在林奇的分类里多数是缓慢增长或稳定增长股，所以发电与公用事业的增长门槛降到 10%，判断时不能用快速增长股的标准。光伏和储能只看数据，不做政策解读。",
+      "thesis": "数据中心负荷正成为美国用电增长的主要驱动，批发电价上涨；电网设备和发电是直接受益环节。",
+      "demand": [
+        {"text": "EIA：预计 2026 年美国发电量增长 2.2%，达到创纪录的 4.368 万亿千瓦时", "as_of": "2026-09", "tier": "primary", "url": "https://www.eia.gov/pressroom/releases/press592.php"},
+        {"text": "EIA 年度展望：数据中心负荷正成为美国长期用电增长的主要驱动", "as_of": "2026-04", "tier": "primary", "url": "https://www.eia.gov/pressroom/releases/press587.php"},
+        {"text": "EIA：预计 2026 年 11 个批发电力枢纽均价 52 美元/兆瓦时，比 2025 年高 11%", "as_of": "2026", "tier": "primary", "url": "https://www.eia.gov/outlooks/steo/report/elec_coal_renew.php"}
+      ],
+      "segments": [
+        {"id": "utility", "name": "发电与公用事业", "sic": [4911, 4931, 4932, 4939, 4991], "name_regex": "", "screen": {"yoy_growth_min": 10, "ttm_revenue_max": 10000000000}, "leaders": ["NEE", "CEG", "VST"], "demand": []},
+        {"id": "grid", "name": "电网与电气设备", "sic": [3612, 3613, 3621, 3623, 3625, 3629, 3640, 3643, 3644], "name_regex": "", "leaders": ["GEV", "ETN", "PWR"], "demand": []},
+        {"id": "solar_storage", "name": "光伏与储能", "sic": [3674, 3690, 3679, 3433, 3612, 3629, 4991], "name_regex": "solar|battery|storage|energy|tracker|shoals|sun", "leaders": ["FSLR", "ENPH", "FLNC"], "demand": []},
+        {"id": "nuclear_fuel", "name": "核能与替代燃料", "sic": [], "name_regex": "nuclear|uranium|centrus|oklo|nuscale|fuel|ethanol|renewable", "leaders": ["LEU"], "demand": []}
+      ],
+      "overrides": {}, "exclude": {"name_regex": "", "tickers": {"OWLT": "婴儿监护设备，不属于能源", "AEIS": "半导体与数据中心电源，名称里的 energy 造成误匹配，已归入 AI 行业"}}
+    },
+
+    {
+      "id": "software", "name": "软件与网络安全",
+      "benchmark": {"symbol": "IGV", "name": "软件 ETF IGV"},
+      "lynch_note": "软件公司毛利率普遍很高，所以毛利率区分度不大，更要看增速是否持续、是否开始盈利，以及股权激励造成的稀释。",
+      "thesis": "IT 支出增速上调，AI 软件和安全是增长最快的方向；传统 SaaS 增速分化。",
+      "demand": [
+        {"text": "Gartner：2026 年全球 IT 支出预计 6.37 万亿美元，同比 +14.2%", "as_of": "2026-07", "tier": "primary", "url": "https://www.gartner.com/en/newsroom/press-releases/2026-07-27-gartner-forecasts-worldwide-it-spending-to-grow-14-point-2-percent-in-2026-totaling-6-point-37-trillion"},
+        {"text": "Gartner：2026 年信息安全支出预计增长 12.2%（2Q26 更新）", "as_of": "2026Q2", "tier": "primary", "url": "https://www.gartner.com/en/documents/8068065"}
+      ],
+      "segments": [
+        {"id": "security", "name": "网络安全", "sic": [7370, 7371, 7372, 7373, 7374], "name_regex": "secur|cyber|identity|crowdstrike|zscaler|sentinel|okta|rapid7|varonis|tenable|qualys|fortinet|cloudflare|netskope", "leaders": ["CRWD", "PANW", "ZS", "FTNT"], "demand": []},
+        {"id": "data_ai", "name": "数据与 AI 软件", "sic": [7370, 7371, 7372, 7373, 7374], "name_regex": "data|\\bai\\b|intelligen|analytic|snowflake|palantir|mongo|elastic|confluent", "leaders": ["PLTR", "SNOW", "MDB"], "demand": []},
+        {"id": "saas", "name": "企业软件与 SaaS", "sic": [7370, 7371, 7372, 7373, 7374], "name_regex": "", "leaders": ["CRM", "NOW", "ADBE"], "demand": []}
+      ],
+      "overrides": {}, "exclude": {"name_regex": "", "tickers": {}}
+    }
+  ]
+}

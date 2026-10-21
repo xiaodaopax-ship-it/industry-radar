@@ -1,0 +1,19 @@
+# fetched data: snapshots and caches are rebuilt locally, never committed
+data/
+deep-dive/*/data/
+
+# generated site
+site/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

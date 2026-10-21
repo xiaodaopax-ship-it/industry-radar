@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intel 分析结论看板</title>
+<style>
+  :root { --bg:#0f1216; --panel:#171b21; --line:#2a3038; --text:#e6e9ee; --muted:#9aa3ae;
+          --cyan:#37c6e0; --blue:#4f8cff; --orange:#f0a030; --green:#3fbf7f; --red:#e5534b; --gray:#8a939e; --violet:#a78bfa; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.65 "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+  main { max-width:1200px; margin:0 auto; padding:24px; }
+  header { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:16px; }
+  h1 { font-size:22px; margin:0; } h2 { font-size:17px; margin:0 0 4px; } h3 { font-size:14px; margin:14px 0 6px; color:var(--muted); font-weight:500; }
+  .sub, .muted, .small { color:var(--muted); font-size:13px; } .small { font-size:12px; }
+  .chips span { display:inline-block; border:1px solid var(--line); border-radius:4px; padding:2px 8px; margin-left:6px; font-size:12px; color:var(--muted); }
+  .warn { display:none; border:1px solid var(--orange); color:var(--orange); border-radius:6px; padding:8px 12px; margin-bottom:14px; font-size:13px; }
+  .grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:14px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .card, section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+  section { margin-bottom:14px; }
+  .concl .num { display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--cyan); color:#0f1216; text-align:center; font-weight:700; font-size:13px; line-height:22px; margin-right:6px; }
+  .concl .head { font-weight:600; font-size:15px; margin:6px 0; }
+  .concl .metric { font-size:26px; font-weight:600; color:var(--cyan); line-height:1.2; margin-top:8px; }
+  .concl .metric small { font-size:13px; color:var(--muted); font-weight:400; }
+  .lead { color:var(--muted); margin:0 0 12px; }
+  .neg { color:var(--red); } .pos { color:var(--green); }
+  svg text { fill:var(--muted); font-size:11px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:7px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:500; white-space:nowrap; }
+  td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  a { color:var(--cyan); text-decoration:none; } a:hover, a:focus { text-decoration:underline; }
+  .col-strong { border-top:3px solid var(--green); } .col-weak { border-top:3px solid var(--red); }
+  .kv { display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px solid var(--line); }
+  .kv:last-child { border-bottom:none; } .kv b { font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .tag { display:inline-block; padding:1px 7px; border-radius:3px; font-size:12px; white-space:nowrap; background:rgba(138,147,158,.18); color:var(--gray); }
+  .t-ok { background:rgba(63,191,127,.15); color:var(--green); } .t-no { background:rgba(240,160,48,.15); color:var(--orange); } .t-gap { background:rgba(229,83,75,.15); color:var(--red); }
+  .note { border-left:3px solid var(--line); padding:4px 0 4px 12px; color:var(--muted); font-size:13px; margin:8px 0; }
+  footer { color:var(--muted); font-size:12px; margin-top:8px; }
+  @media (max-width:960px) { .grid4 { grid-template-columns:repeat(2,1fr); } .grid2 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Intel 分析结论看板</h1>
+      <div class="sub">基于公司层和行业层信号的综合判断 · 明细数据见 <a href="index.html">信号跟踪看板</a></div>
+    </div>
+    <div class="chips" id="chips"></div>
+  </header>
+  <div class="warn" id="warn"></div>
+
+  <div class="grid4" id="conclusions"></div>
+
+  <section>
+    <h2>① 股价：先于板块转弱，近一个月主要是自身因素</h2>
+    <p class="lead" id="s1lead"></p>
+    <div class="grid2">
+      <div>
+        <svg id="pxChart" viewBox="0 0 560 260" width="100%" role="img" aria-label="INTC 与 SOX 归一化走势，分两个阶段着色"></svg>
+        <div class="small">INTC（青色）与 SOX（灰色），07-20 = 100。阴影是 INTC 高点之后的阶段。</div>
+      </div>
+      <div>
+        <table><thead><tr><th scope="col">阶段</th><th scope="col" class="n">INTC</th><th scope="col" class="n">SOX</th><th scope="col" class="n">差</th></tr></thead><tbody id="phaseTbl"></tbody></table>
+        <h3>INTC 高点以来的跌幅拆解</h3>
+        <svg id="decomp" viewBox="0 0 520 120" width="100%" role="img" aria-label="跌幅拆解为板块贡献和公司自身因素"></svg>
+        <div class="small" id="decompNote"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>② 基本面在改善，但市场预期更高</h2>
+    <p class="lead" id="s2lead"></p>
+    <div class="grid2">
+      <div>
+        <svg id="finChart" viewBox="0 0 560 250" width="100%" role="img" aria-label="Intel 近 8 个季度营收柱状图与 GAAP 毛利率折线"></svg>
+        <div class="small">柱：营收（亿美元）；线：GAAP 毛利率。来源：SEC XBRL。</div>
+      </div>
+      <div>
+        <h3>Q2 财报后的市场反应</h3>
+        <div id="q2react"></div>
+        <h3>资本动作的价格参照</h3>
+        <svg id="priceRef" viewBox="0 0 520 90" width="100%" role="img" aria-label="现价与增发价、CEO 买入价、窗口高低点的位置"></svg>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>② 续：10-29 财报的门槛已经被抬高了</h2>
+    <p class="lead" id="barLead"></p>
+    <div class="grid2">
+      <div>
+        <h3>Q3 营收：公司指引 vs 分析师预期（亿美元）</h3>
+        <svg id="barChart" viewBox="0 0 560 150" width="100%" role="img" aria-label="Q3 营收指引区间与分析师预期区间、均值的对比"></svg>
+        <h3>Q2：实际与指引 vs 一致预期</h3>
+        <table><thead><tr><th scope="col">项目</th><th scope="col" class="n">实际 / 指引</th><th scope="col" class="n">预期</th><th scope="col" class="n">超出</th></tr></thead><tbody id="beatTbl"></tbody></table>
+      </div>
+      <div>
+        <h3>机构怎么看</h3>
+        <div id="streetKv"></div>
+        <h3>目标价变动（窗口内）</h3>
+        <svg id="ptChart" viewBox="0 0 520 170" width="100%" role="img" aria-label="窗口内各机构目标价变动与股价对比"></svg>
+        <div class="small" id="ptNote"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>③ 行业分化：AI 端很强，PC 端很弱，Intel 两边都有敞口</h2>
+    <p class="lead">数据中心业务（DCAI）可能从 AI 资本开支受益。客户端业务（CCG）则要承受 PC 出货下滑和内存涨价，这一块影响有多大还要看财报。</p>
+    <div class="grid2">
+      <div class="card col-strong">
+        <h3 style="margin-top:0">强：AI / 数据中心 / 存储 / 先进代工</h3>
+        <svg id="hyperChart" viewBox="0 0 520 170" width="100%" role="img" aria-label="四家云厂商季度资本开支合计"></svg>
+        <div class="small" style="margin-bottom:8px">四家云厂商季度资本开支合计（亿美元，SEC XBRL，不含融资租赁）</div>
+        <div id="strongList"></div>
+      </div>
+      <div class="card col-weak">
+        <h3 style="margin-top:0">弱：PC 终端与整机成本</h3>
+        <div id="weakList"></div>
+        <p class="note">陈立武 09-15 在 AI Infra Summit 上说，内存价格已经涨了 5 到 7 倍。这同时说明 AI 需求很强，也说明 PC 的成本压力很大。</p>
+      </div>
+    </div>
+    <h3>行业事件当天 Intel 的超额收益</h3>
+    <p class="small" id="spillNote"></p>
+  </section>
+
+  <section>
+    <h2>④ 代工：叙事在推进，收入还没跟上</h2>
+    <table><thead><tr><th scope="col">事项</th><th scope="col">状态</th><th scope="col">依据</th></tr></thead><tbody>
+      <tr><td>Tesla 采用 14A</td><td><span class="tag t-ok">Intel 已确认</span></td><td>马斯克 4 月就说过要用 14A，10 月 Intel 方面确认。<a href="https://finance.yahoo.com/technology/articles/intel-intc-lands-major-customer-151209880.html" target="_blank" rel="noopener noreferrer">Yahoo</a></td></tr>
+      <tr><td>继续参与 Terafab</td><td><span class="tag t-ok">CEO 表态</span></td><td>10-07 接受彭博采访时表示会继续参与。台积电可能只转租部分厂房。<a href="https://finance.yahoo.com/technology/ai/articles/intel-keep-working-elon-musk-043229831.html" target="_blank" rel="noopener noreferrer">Bloomberg</a></td></tr>
+      <tr><td>博通、谷歌、苹果、AMD、微软、英伟达的代工订单</td><td><span class="tag t-no">券商说法，未确认</span></td><td>KeyBanc 10-14 发布的亚洲调研。<a href="https://www.ainvest.com/news/intel-foundry-customers-writing-checks-question-cover-bill-2610/" target="_blank" rel="noopener noreferrer">AInvest</a></td></tr>
+      <tr><td>外部代工收入</td><td><span class="tag t-gap">规模很小</span></td><td>据 JPMorgan，2026 年上半年外部客户销售额不到 10 亿美元。<a href="https://finance.yahoo.com/markets/stocks/articles/intel-stock-rises-jpmorgan-upgrades-142327338.html" target="_blank" rel="noopener noreferrer">Yahoo</a></td></tr>
+    </tbody></table>
+  </section>
+
+  <section>
+    <h2>10-29 Q3 财报检验清单</h2>
+    <p class="lead">上面的判断可以用财报来验证。前一天（10-28）微软和 Alphabet 会先公布资本开支指引，可以拿来对照第 3 项。</p>
+    <table><thead><tr><th scope="col">#</th><th scope="col">看什么</th><th scope="col">对应结论</th><th scope="col">参照</th></tr></thead><tbody id="checkTbl"></tbody></table>
+  </section>
+
+  <section>
+    <h2>局限</h2>
+    <p class="note">一致预期来自 Yahoo 的汇总，只有均值、区间和分析师人数，没有分券商的营收和 EPS 预测明细（这部分需要 FactSet、LSEG 等付费数据）。上一季的超预期幅度用的是新闻里的 LSEG 口径，两种口径可能有细微差异。</p>
+    <p class="note">Q2 财报后盘后上涨、次日下跌的原因，现有数据解释不了。上调资本开支计划只是一个没有经过验证的可能原因。</p>
+    <p class="note">"公司自身因素"是用窗口内的 beta 估算的，beta 本身会随区间变化。这只是一个量级上的拆解，不是精确的归因。</p>
+    <p class="note">同一天有多个事件时，影响拆不开。所有数字只说明同时发生，不能证明因果。部分行业数据来自新闻稿或二手摘要，已在信号看板里标了来源等级。</p>
+  </section>
+
+  <footer id="foot"></footer>
+</main>
+
+<script>
+const D = /*__DATA__*/null;
+const WRITTEN_FOR = "2026-10-20";  // 文字结论对应的数据截止日
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sgn = (v, d = 1) => `${v > 0 ? "+" : ""}${v.toFixed(d)}%`;
+const pc = (v, d = 1) => v == null ? "—" : `<span class="${v < 0 ? "neg" : v > 0 ? "pos" : ""}">${sgn(v, d)}</span>`;
+const yi = v => (v / 1e8).toLocaleString("zh-CN", {maximumFractionDigits: 0});
+const md = d => d.slice(5);
+
+// ---------- 计算
+const days = D.px.map(p => p[0]), c = D.px.map(p => p[1]);
+const bmap = Object.fromEntries(D.bench), b = days.map(d => bmap[d]);
+const lastDay = days.at(-1), last = c.at(-1);
+const peakI = c.indexOf(Math.max(...c)), lowI = c.indexOf(Math.min(...c));
+const ret = (arr, i0, i1) => (arr[i1] / arr[i0] - 1) * 100;
+const p1I = ret(c, 0, peakI), p1S = ret(b, 0, peakI), p2I = ret(c, peakI, c.length - 1), p2S = ret(b, peakI, b.length - 1);
+const allI = ret(c, 0, c.length - 1), allS = ret(b, 0, b.length - 1);
+const rI = c.slice(1).map((v, i) => v / c[i] - 1), rS = b.slice(1).map((v, i) => v / b[i] - 1);
+const mean = a => a.reduce((s, x) => s + x, 0) / a.length;
+const mI = mean(rI), mS = mean(rS);
+const cov = rI.reduce((s, x, i) => s + (x - mI) * (rS[i] - mS), 0);
+const varS = rS.reduce((s, y) => s + (y - mS) ** 2, 0), varI = rI.reduce((s, x) => s + (x - mI) ** 2, 0);
+const beta = cov / varS, corr = cov / Math.sqrt(varS * varI);
+const expected = beta * p2S, idio = p2I - expected;
+const soxPeakI = b.indexOf(Math.max(...b));
+const Q = D.quarters, q = Q.at(-1), qPrev = Q.find(x => x.q === `${+q.q.slice(0, 4) - 1}${q.q.slice(4)}`);
+const qYoY = qPrev ? (q.rev / qPrev.rev - 1) * 100 : null;
+const gmMaxQ = Q.reduce((m, x) => x.gm > m.gm ? x : m, Q[0]);
+const earn = D.company.find(e => e.category === "财务");
+const H = D.hyper, h = H.at(-1), hPrev = H.find(x => x.q === `${+h.q.slice(0, 4) - 1}${h.q.slice(4)}`);
+const hYoY = hPrev ? (h.total / hPrev.total - 1) * 100 : null;
+const indX = D.industry.map(e => e.x1).filter(v => v != null), coX = D.company.map(e => e.x1).filter(v => v != null);
+const OFFER = 95;
+const E = D.estimates, beat = (D.beats || [])[0], guide = (D.guidance || [])[0];
+const q0 = E ? E.quarters.find(x => x.period === "0q") : null;
+const guideMid = guide ? (guide.rev_low + guide.rev_high) / 2 : null;
+
+// ---------- 顶部
+$("chips").innerHTML = [`数据截至 ${lastDay} 收盘`, `结论撰写于 2026-10-21`, `构建于 ${D.built_at}`].map(t => `<span>${esc(t)}</span>`).join("");
+if (lastDay !== WRITTEN_FOR) {
+  $("warn").style.display = "block";
+  $("warn").textContent = `数据已经更新到 ${lastDay}，但文字结论是基于 ${WRITTEN_FOR} 的数据写的。图表和数字会自动更新，文字判断需要重新人工复核。`;
+}
+
+const CONCL = [
+  {head: "近一个月下跌主要是自身因素", metric: `${sgn(idio)}`, unit: "扣除板块后的部分",
+   body: `高点（${md(days[peakI])}）以来 INTC ${sgn(p2I)}，SOX ${sgn(p2S)}。按 beta ${beta.toFixed(2)} 计算，板块大约只能解释 ${sgn(expected)}。`},
+  {head: "大幅超预期，股价却下跌；Q3 预期已高于指引", metric: beat ? `${sgn((beat.rev_actual / beat.rev_est - 1) * 100)}` : `${sgn(qYoY)}`, unit: beat ? `Q2 营收超出 ${beat.consensus_src} 预期` : `${q.q} 营收同比`,
+   body: beat ? `Q2 营收和下季指引都高于预期，盘后涨 ${beat.after_hours}%，次日收盘却 ${sgn(earn.r1)}。${q0 && guide ? `现在 Q3 营收一致预期 ${(q0.rev.avg / 1e8).toFixed(1)} 亿美元，高于指引中值 ${(guideMid / 1e8).toFixed(0)} 亿。` : ""}` : `GAAP 毛利率 ${q.gm}%。`},
+  {head: "行业分化，两边都有敞口", metric: `${sgn(hYoY, 0)}`, unit: "云厂商资本开支同比",
+   body: "AI 和数据中心链条很强；PC 出货同比 −20% 到 −22%，内存还在涨价。"},
+  {head: "代工叙事在推进，收入没跟上", metric: "< 10 亿", unit: "美元，上半年外部代工收入",
+   body: "Tesla 14A 已获确认；KeyBanc 说的 6 家客户 Intel 未确认。"},
+];
+$("conclusions").innerHTML = CONCL.map((x, i) => `<div class="card concl"><span class="num">${i + 1}</span><div class="head">${esc(x.head)}</div>
+  <div class="small">${esc(x.body)}</div><div class="metric">${esc(x.metric)} <small>${esc(x.unit)}</small></div></div>`).join("");
+
+// ---------- ① 股价
+$("s1lead").textContent = `两者日收益相关系数 ${corr.toFixed(2)}，INTC 基本是放大版的板块。但 INTC 在 ${md(days[peakI])} 就见顶了，SOX 到 ${md(days[soxPeakI])} 才见顶，INTC 先转弱。`;
+(function pxChart() {
+  const W = 560, H0 = 260, L = 36, R = 10, T = 12, B = 28, n = days.length;
+  const nI = c.map(v => v / c[0] * 100), nS = b.map(v => v / b[0] * 100), all = nI.concat(nS);
+  const lo = Math.floor(Math.min(...all) / 10) * 10, hi = Math.ceil(Math.max(...all) / 10) * 10;
+  const x = i => L + (W - L - R) * i / (n - 1), y = v => T + (H0 - T - B) * (1 - (v - lo) / (hi - lo));
+  let s = `<rect x="${x(peakI)}" y="${T}" width="${x(n - 1) - x(peakI)}" height="${H0 - T - B}" fill="rgba(229,83,75,.07)"/>`;
+  for (let v = lo; v <= hi; v += 10) s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#2a3038"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  days.forEach((d, i) => { if (i === 0 || d.slice(5, 7) !== days[i - 1].slice(5, 7)) s += `<text x="${x(i)}" y="${H0 - 8}" text-anchor="middle">${d.slice(5)}</text>`; });
+  const pl = (a, col, w) => `<polyline fill="none" stroke="${col}" stroke-width="${w}" points="${a.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}"/>`;
+  s += pl(nS, "#8a939e", 1.5) + pl(nI, "#37c6e0", 2);
+  s += `<circle cx="${x(peakI)}" cy="${y(nI[peakI])}" r="4" fill="#e5534b"/><text x="${x(peakI) - 6}" y="${y(nI[peakI]) - 8}" text-anchor="end">INTC 高点 ${md(days[peakI])}</text>`;
+  s += `<circle cx="${x(soxPeakI)}" cy="${y(nS[soxPeakI])}" r="4" fill="#8a939e"/><text x="${x(soxPeakI) + 6}" y="${y(nS[soxPeakI]) - 8}">SOX 高点 ${md(days[soxPeakI])}</text>`;
+  $("pxChart").innerHTML = s;
+})();
+$("phaseTbl").innerHTML = [[`${md(days[0])} → ${md(days[peakI])}`, p1I, p1S], [`${md(days[peakI])} → ${md(lastDay)}`, p2I, p2S], ["全窗口", allI, allS]]
+  .map(([t, i, s]) => `<tr><td>${t}</td><td class="n">${pc(i)}</td><td class="n">${pc(s)}</td><td class="n">${pc(i - s)}</td></tr>`).join("");
+(function decomp() {
+  const W = 520, L = 110, R = 50, sc = (W - L - R) / Math.abs(Math.min(p2I, expected, -1));
+  const row = (yy, label, v, col) => `<text x="${L - 8}" y="${yy + 13}" text-anchor="end">${label}</text>
+    <rect x="${L}" y="${yy}" width="${Math.abs(v) * sc}" height="18" fill="${col}"/><text x="${L + Math.abs(v) * sc + 6}" y="${yy + 13}">${sgn(v)}</text>`;
+  $("decomp").innerHTML = row(8, "实际跌幅", p2I, "#37c6e0") + row(46, "板块可解释", expected, "#8a939e") + row(84, "公司自身因素", idio, "#e5534b");
+  $("decompNote").textContent = `板块可解释 = beta ${beta.toFixed(2)} × SOX 同期 ${sgn(p2S)}。beta 用窗口内 ${rI.length} 个交易日的日收益估算。`;
+})();
+
+// ---------- ② 基本面
+$("s2lead").textContent = `${q.q} 营收 ${yi(q.rev)} 亿美元，同比 ${sgn(qYoY)}，GAAP 毛利率 ${q.gm}%。但财报后股价下跌，而且现价已经低于增发价和 CEO 的买入价。`;
+(function finChart() {
+  const W = 560, H0 = 250, L = 40, R = 40, T = 14, B = 30, n = Q.length, bw = (W - L - R) / n;
+  const maxR = Math.ceil(Math.max(...Q.map(x => x.rev)) / 1e8 / 50) * 50;
+  const yR = v => T + (H0 - T - B) * (1 - v / 1e8 / maxR), yG = g => T + (H0 - T - B) * (1 - g / 50);
+  let s = "";
+  [0, 10, 20, 30, 40, 50].forEach(g => s += `<line x1="${L}" x2="${W - R}" y1="${yG(g)}" y2="${yG(g)}" stroke="#2a3038"/><text x="${W - R + 6}" y="${yG(g) + 4}">${g}%</text>`);
+  Q.forEach((x, i) => {
+    const cx = L + bw * i + bw / 2;
+    s += `<rect x="${cx - bw * .32}" y="${yR(x.rev)}" width="${bw * .64}" height="${yR(0) - yR(x.rev)}" fill="${i === n - 1 ? "#37c6e0" : "#2f5f6b"}"><title>${x.q} 营收 ${yi(x.rev)} 亿美元</title></rect>`;
+    s += `<text x="${cx}" y="${yR(x.rev) - 4}" text-anchor="middle">${yi(x.rev)}</text><text x="${cx}" y="${H0 - 10}" text-anchor="middle">${x.q.slice(2)}</text>`;
+  });
+  const pts = Q.map((x, i) => `${L + bw * i + bw / 2},${yG(x.gm)}`).join(" ");
+  s += `<polyline fill="none" stroke="#f0a030" stroke-width="2" points="${pts}"/>`;
+  Q.forEach((x, i) => s += `<circle cx="${L + bw * i + bw / 2}" cy="${yG(x.gm)}" r="3" fill="#f0a030"><title>${x.q} 毛利率 ${x.gm}%</title></circle>`);
+  $("finChart").innerHTML = s;
+})();
+$("q2react").innerHTML = [
+  ["反应日", md(earn.react_day)], ["INTC 当日", pc(earn.r1)], ["SOX 当日", pc(earn.b1)],
+  ["超额 1 日 / 3 日", `${pc(earn.x1)} / ${pc(earn.x3)}`],
+  ["窗口内公司事件超额均值", `${pc(mean(coX), 2)}（${coX.filter(v => v < 0).length}/${coX.length} 个为负）`],
+].map(([k, v]) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`).join("");
+(function priceRef() {
+  const W = 520, L = 20, R = 20, lo = Math.floor(c[lowI] / 5) * 5, hi = Math.ceil(c[peakI] / 5) * 5;
+  const x = v => L + (W - L - R) * (v - lo) / (hi - lo);
+  const pts = [[c[lowI], `低 ${c[lowI]}`, "#8a939e", 22], [last, `现价 ${last}`, "#37c6e0", 76], [OFFER, `增发价 / CEO 买入 ${OFFER}`, "#f0a030", 22], [c[peakI], `高 ${c[peakI]}`, "#8a939e", 76]];
+  let s = `<line x1="${L}" x2="${W - R}" y1="45" y2="45" stroke="#2a3038" stroke-width="6" stroke-linecap="round"/>`;
+  pts.forEach(([v, t, col, ty]) => s += `<circle cx="${x(v)}" cy="45" r="6" fill="${col}"/><text x="${x(v)}" y="${ty}" text-anchor="middle" style="fill:${col}">${t}</text>`);
+  $("priceRef").innerHTML = s;
+})();
+
+// ---------- ② 续：预期
+(function expectations() {
+  if (!E || !q0 || !guide) { $("barLead").textContent = "本次构建没有取到预期数据。"; return; }
+  const gap = (q0.rev.avg / guideMid - 1) * 100;
+  $("barLead").textContent = `Q3 营收一致预期均值 ${(q0.rev.avg / 1e8).toFixed(1)} 亿美元（${q0.rev.numberOfAnalysts} 位分析师），比公司指引中值高 ${gap.toFixed(1)}%。最低的预期 ${(q0.rev.low / 1e8).toFixed(1)} 亿也基本在指引中值附近。差距不大，但方向很清楚：只做到指引中值，大概率会被看作略低于预期。前几个季度 Intel 都明显超过了自己的指引，市场已经把"超指引"计入预期了。EPS 也一样：预期均值 ${q0.eps.avg.toFixed(3)}，公司指引 ${guide.eps_nongaap}。`;
+  // 区间条
+  const W = 560, L = 110, R = 20, lo = Math.floor(Math.min(guide.rev_low, q0.rev.low) / 1e9 * 2) / 2 * 1e9, hi = Math.ceil(Math.max(guide.rev_high, q0.rev.high) / 1e9 * 2) / 2 * 1e9;
+  const x = v => L + (W - L - R) * (v - lo) / (hi - lo);
+  let s = "";
+  for (let v = lo; v <= hi + 1; v += 0.5e9) s += `<line x1="${x(v)}" x2="${x(v)}" y1="10" y2="120" stroke="#2a3038"/><text x="${x(v)}" y="138" text-anchor="middle">${(v / 1e8).toFixed(0)}</text>`;
+  const band = (yy, a, b2, col, label) => `<text x="${L - 8}" y="${yy + 13}" text-anchor="end">${label}</text><rect x="${x(a)}" y="${yy}" width="${x(b2) - x(a)}" height="18" fill="${col}" fill-opacity=".45"/>`;
+  s += band(20, guide.rev_low, guide.rev_high, "#8a939e", "公司指引");
+  s += `<line x1="${x(guideMid)}" x2="${x(guideMid)}" y1="16" y2="42" stroke="#e6e9ee" stroke-width="2"/><text x="${x(guideMid)}" y="58" text-anchor="middle">中值 ${(guideMid / 1e8).toFixed(0)}</text>`;
+  s += band(76, q0.rev.low, q0.rev.high, "#37c6e0", "分析师预期");
+  s += `<line x1="${x(q0.rev.avg)}" x2="${x(q0.rev.avg)}" y1="72" y2="98" stroke="#37c6e0" stroke-width="3"/><text x="${x(q0.rev.avg)}" y="114" text-anchor="middle" style="fill:#37c6e0">均值 ${(q0.rev.avg / 1e8).toFixed(1)}</text>`;
+  $("barChart").innerHTML = s;
+  if (beat) {
+    const p = (a, e2) => pc((a / e2 - 1) * 100, 0);
+    $("beatTbl").innerHTML = [["Q2 营收（亿美元）", beat.rev_actual / 1e8, beat.rev_est / 1e8, 0], ["Q2 非 GAAP EPS", beat.eps_actual, beat.eps_est, 2],
+      ["Q3 营收指引中值（亿美元）", beat.guide_rev_mid / 1e8, beat.guide_rev_est / 1e8, 0], ["Q3 EPS 指引", beat.guide_eps, beat.guide_eps_est, 2]]
+      .map(([k, a, e2, d]) => `<tr><td>${k}</td><td class="n">${a.toFixed(d)}</td><td class="n">${e2.toFixed(d)}</td><td class="n">${p(a, e2)}</td></tr>`).join("") +
+      `<tr><td colspan="4" class="small">${esc(beat.consensus_src)} 口径。盘后 +${beat.after_hours}%，次日收盘 ${sgn(earn.r1)}。市场先涨后跌，现有数据解释不了这个反转。Reuters 同时报道公司上调了未来两年的资本开支计划，这可能是原因之一，但没有经过验证。</td></tr>`;
+  }
+  const t = E.target, r = E.rec, tot = ["strongBuy", "buy", "hold", "sell", "strongSell"].reduce((a, k) => a + (r[k] || 0), 0);
+  const ups = E.ratings.filter(x => x.pt_action === "Raises").length, downs = E.ratings.filter(x => x.pt_action === "Lowers").length;
+  $("streetKv").innerHTML = [
+    ["目标价中位数 / 均值", `${t.targetMedianPrice} / ${t.targetMeanPrice.toFixed(1)}`],
+    ["目标价区间", `${t.targetLowPrice} ~ ${t.targetHighPrice}`],
+    ["中位数较现价", pc((t.targetMedianPrice / last - 1) * 100)],
+    ["评级分布", `买入类 ${r.strongBuy + r.buy} · 持有 ${r.hold} · 卖出类 ${r.sell + r.strongSell}（共 ${tot}）`],
+    ["窗口内目标价变动", `上调 ${ups} 次 · 下调 ${downs} 次`],
+  ].map(([k, v]) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`).join("");
+  // 目标价变动散点：横轴日期，纵轴价格，箭头从旧目标价指向新目标价
+  const W2 = 520, L2 = 36, R2 = 10, T2 = 10, B2 = 22, H2 = 170, n = days.length;
+  const pts = E.ratings.filter(x => x.pt);
+  const vals = pts.flatMap(x => [x.pt, x.pt_prior || x.pt]).concat(c);
+  const lo2 = Math.floor(Math.min(...vals) / 20) * 20, hi2 = Math.ceil(Math.max(...vals) / 20) * 20;
+  const xd = d => { const i = days.findIndex(dd => dd >= d); return L2 + (W2 - L2 - R2) * (i < 0 ? n - 1 : i) / (n - 1); };
+  const y2 = v => T2 + (H2 - T2 - B2) * (1 - (v - lo2) / (hi2 - lo2));
+  let s2 = "";
+  for (let v = lo2; v <= hi2; v += 20) s2 += `<line x1="${L2}" x2="${W2 - R2}" y1="${y2(v)}" y2="${y2(v)}" stroke="#2a3038"/><text x="${L2 - 6}" y="${y2(v) + 4}" text-anchor="end">${v}</text>`;
+  s2 += `<polyline fill="none" stroke="#37c6e0" stroke-width="1.5" points="${days.map((d, i) => `${xd(d).toFixed(1)},${y2(c[i]).toFixed(1)}`).join(" ")}"/>`;
+  pts.forEach(p => {
+    const xx = xd(p.date), col = p.pt_action === "Raises" ? "#3fbf7f" : p.pt_action === "Lowers" ? "#e5534b" : "#8a939e";
+    if (p.pt_prior) s2 += `<line x1="${xx}" x2="${xx}" y1="${y2(p.pt_prior)}" y2="${y2(p.pt)}" stroke="${col}" stroke-opacity=".7"/>`;
+    s2 += `<circle cx="${xx}" cy="${y2(p.pt)}" r="3.5" fill="${col}"><title>${p.date} ${p.firm}：${p.pt_prior || "—"} → ${p.pt}</title></circle>`;
+  });
+  $("ptChart").innerHTML = s2;
+  $("ptNote").textContent = `圆点是新目标价，竖线从旧目标价连到新目标价（绿色上调、红色下调、灰色维持），青线是股价。07-24 Q2 财报后多家上调；09 月之后，股价已经跌到多数目标价下方。来源：${E.source}。`;
+})();
+
+// ---------- ③ 行业
+(function hyperChart() {
+  const W = 520, H0 = 170, L = 10, R = 10, T = 18, B = 22, n = H.length, bw = (W - L - R) / n, max = Math.max(...H.map(r => r.total));
+  let s = "";
+  H.forEach((r, i) => {
+    const hh = (H0 - T - B) * r.total / max, cx = L + bw * i + bw / 2;
+    s += `<rect x="${cx - bw * .3}" y="${H0 - B - hh}" width="${bw * .6}" height="${hh}" fill="${i === n - 1 ? "#3fbf7f" : "#2c5a43"}"><title>${r.q} 合计 ${yi(r.total)} 亿美元</title></rect>`;
+    s += `<text x="${cx}" y="${H0 - B - hh - 4}" text-anchor="middle">${yi(r.total)}</text><text x="${cx}" y="${H0 - 6}" text-anchor="middle">${r.q}</text>`;
+  });
+  $("hyperChart").innerHTML = s;
+})();
+const ind = name => D.indicators.find(i => i.name.includes(name));
+const kvInd = (i, label) => i ? `<div class="kv"><span>${esc(label || i.name)}<div class="small">${esc(i.as_of)} · ${esc(i.affects)}</div></span><b>${esc(i.value)}<div class="small" style="text-align:right">${esc(i.change)}</div></b></div>` : "";
+$("strongList").innerHTML = kvInd(ind("台积电 Q3"), "台积电 Q3 营收") + kvInd(ind("SIA"), "全球半导体月销售（SIA）") + kvInd(ind("美光"), "美光 FQ4 营收");
+$("weakList").innerHTML = kvInd(ind("PC 出货"), "Q3 全球 PC 出货") + kvInd(ind("内存合约价"), "4Q26 内存合约价（TrendForce）");
+$("spillNote").innerHTML = `${indX.length} 个行业事件当天，INTC 的超额收益 ${indX.filter(v => v < 0).length} 个为负，平均 ${pc(mean(indX), 2)}。但这些事件集中在 INTC 单边下跌的阶段（${md(days[peakI])} 之后），更可能反映的是趋势，<b>不能当作行业利好伤害 Intel 的证据</b>。逐条数据见信号看板。`;
+
+// ---------- 检验清单
+const CHECK = [
+  ["Q3 营收和 EPS 要对比的是一致预期，不是公司指引", "②", q0 && guide ? `营收预期均值 ${(q0.rev.avg / 1e8).toFixed(1)} 亿（指引 ${(guide.rev_low / 1e8).toFixed(0)} ~ ${(guide.rev_high / 1e8).toFixed(0)} 亿）；EPS 预期 ${q0.eps.avg.toFixed(3)}（指引 ${guide.eps_nongaap}）` : "—"],
+  ["Q4 指引能否高于现在的 Q4 预期", "②", E ? `Q4 营收预期均值 ${(E.quarters.find(x => x.period === "+1q").rev.avg / 1e8).toFixed(1)} 亿，区间 ${(E.quarters.find(x => x.period === "+1q").rev.low / 1e8).toFixed(0)} ~ ${(E.quarters.find(x => x.period === "+1q").rev.high / 1e8).toFixed(0)} 亿` : "—"],
+  ["Q3 毛利率是否达到指引", "②", guide ? `非 GAAP 毛利率指引中值约 ${guide.gm_nongaap_mid}%（二手报道）` : "—"],
+  ["客户端（CCG）收入受 PC 下滑影响多大，管理层怎么谈内存成本对 OEM 的影响", "③", "Q3 PC 出货同比 −20% 到 −22%"],
+  ["数据中心（DCAI）增速能否跟上云厂商资本开支", "③", `云厂商资本开支 ${h.q} 同比 ${hYoY != null ? sgn(hYoY, 0) : "—"}`],
+  ["代工外部收入，新客户是否正式披露", "④", "上半年外部收入不到 10 亿美元；KeyBanc 的 6 家待确认"],
+  ["增发 200 亿之后，资本开支指引怎么调整", "②④", `${q.q} 单季资本开支 ${q.capex ? yi(q.capex) : "—"} 亿美元`],
+  ["财报后的超额收益方向", "①", `当前高点以来的自身因素 ${sgn(idio)}`],
+];
+$("checkTbl").innerHTML = CHECK.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r[0])}</td><td>${r[1]}</td><td class="small">${esc(r[2])}</td></tr>`).join("");
+
+$("foot").textContent = `行情：Yahoo Finance（${D.ticker}、^SOX）。财务和申报：SEC EDGAR。行业数据来源见信号看板。本页仅供研究参考，不构成投资建议。`;
+</script>
+</body>
+</html>

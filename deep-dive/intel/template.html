@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intel 公司信号跟踪 · 公司层 + 行业层</title>
+<style>
+  :root { --bg:#0f1216; --panel:#171b21; --line:#2a3038; --text:#e6e9ee; --muted:#9aa3ae;
+          --cyan:#37c6e0; --blue:#4f8cff; --orange:#f0a030; --green:#3fbf7f; --red:#e5534b; --gray:#8a939e; --violet:#a78bfa; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.6 "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+  main { max-width:1200px; margin:0 auto; padding:24px; }
+  header { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:18px; }
+  h1 { font-size:22px; margin:0; } h2 { font-size:16px; margin:0 0 12px; } h3 { font-size:14px; margin:18px 0 8px; color:var(--muted); font-weight:500; }
+  .layer { font-size:12px; letter-spacing:.1em; color:var(--muted); margin:26px 0 8px; border-bottom:1px solid var(--line); padding-bottom:4px; }
+  .sub, .muted { color:var(--muted); font-size:13px; }
+  .chips span { display:inline-block; border:1px solid var(--line); border-radius:4px; padding:2px 8px; margin-left:6px; font-size:12px; color:var(--muted); }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:14px; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .card, section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+  section { margin-bottom:14px; overflow-x:auto; }
+  .kpi { font-size:30px; font-weight:600; color:var(--cyan); line-height:1.25; }
+  .kpi small { font-size:14px; color:var(--muted); font-weight:400; }
+  .label { color:var(--muted); font-size:13px; margin-bottom:4px; }
+  .neg { color:var(--red); } .pos { color:var(--green); }
+  svg text { fill:var(--muted); font-size:11px; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:6px; }
+  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+  .bar { display:inline-block; width:14px; height:3px; margin-right:5px; vertical-align:middle; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:7px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:500; white-space:nowrap; }
+  td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  td.date { white-space:nowrap; font-variant-numeric:tabular-nums; }
+  a { color:var(--cyan); text-decoration:none; } a:hover, a:focus { text-decoration:underline; }
+  .tag { display:inline-block; padding:1px 7px; border-radius:3px; font-size:12px; white-space:nowrap; background:rgba(138,147,158,.18); color:var(--gray); }
+  .t-co { background:rgba(79,140,255,.15); color:var(--blue); }
+  .t-in { background:rgba(167,139,250,.15); color:var(--violet); }
+  .t-3p { background:rgba(240,160,48,.15); color:var(--orange); }
+  .tier { font-size:11px; color:var(--muted); margin-left:4px; }
+  .ind .name { font-weight:600; margin:2px 0; } .ind .val { font-size:20px; color:var(--cyan); font-weight:600; }
+  .ind .aff { float:right; }
+  .note { border-left:3px solid var(--line); padding:4px 0 4px 12px; color:var(--muted); font-size:13px; margin:8px 0; }
+  .small { font-size:12px; color:var(--muted); }
+  footer { color:var(--muted); font-size:12px; margin-top:8px; }
+  @media (max-width:960px) { .grid { grid-template-columns:repeat(2,1fr); } .grid3 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Intel 公司信号跟踪</h1>
+      <div class="sub">公司层 + 行业层 · 只收有来源的事件 · 不打分，只看市场实际反应 · <a href="analysis.html">分析结论看板</a></div>
+    </div>
+    <div class="chips" id="chips"></div>
+  </header>
+
+  <div class="grid" id="kpis"></div>
+
+  <section>
+    <h2>INTC × SOX（窗口起点 = 100）与事件轨道</h2>
+    <svg id="chart" viewBox="0 0 1150 380" width="100%" role="img" aria-label="INTC 与 SOX 指数归一化走势，下方为公司事件和行业事件轨道"></svg>
+    <div class="legend">
+      <span><i class="bar" style="background:var(--cyan)"></i>INTC</span>
+      <span><i class="bar" style="background:var(--gray)"></i>SOX</span>
+      <span><i class="dot" style="background:var(--blue)"></i>公司事件</span>
+      <span><i class="dot" style="background:var(--orange)"></i>第三方（券商）</span>
+      <span><i class="dot" style="background:var(--violet)"></i>行业事件</span>
+      <span>标注点在"反应日"；鼠标悬停可以看事件内容和超额收益</span>
+    </div>
+  </section>
+
+  <div class="layer">公司层</div>
+  <section>
+    <h2>公司事件与市场反应</h2>
+    <table><thead><tr>
+      <th scope="col">日期</th><th scope="col">类别</th><th scope="col">事件</th><th scope="col">反应日</th>
+      <th scope="col" class="n">INTC 当日</th><th scope="col" class="n">SOX 当日</th><th scope="col" class="n">超额 1 日</th><th scope="col" class="n">超额 3 日</th><th scope="col">来源</th>
+    </tr></thead><tbody id="tCompany"></tbody></table>
+    <h3>第三方观点（不属于公司披露，单独列）</h3>
+    <table><tbody id="tThird"></tbody></table>
+  </section>
+
+  <section>
+    <h2>市场预期（自动 · Yahoo Finance 汇总的分析师预期）</h2>
+    <div id="estWrap"></div>
+  </section>
+
+  <section>
+    <h2>季度财务（自动 · SEC XBRL）</h2>
+    <table><thead><tr><th scope="col">季度</th><th scope="col">截止日</th><th scope="col" class="n">营收（亿美元）</th><th scope="col" class="n">同比</th><th scope="col" class="n">毛利率（GAAP）</th><th scope="col" class="n">资本开支（亿美元）</th></tr></thead>
+    <tbody id="tFin"></tbody></table>
+    <p class="small">来源：10-Q / 10-K 的 XBRL 数据，口径为 GAAP。资本开支对应现金流量表中的"购置物业、厂房及设备"，单季值由累计值相减得出。Q4 来自 10-K，在年报发布前会缺失。</p>
+  </section>
+
+  <div class="grid3" style="grid-template-columns:1.3fr 1fr">
+    <section>
+      <h2>内部人交易（自动 · Form 4）</h2>
+      <table><thead><tr><th scope="col">提交日</th><th scope="col">人员</th><th scope="col">类型</th><th scope="col" class="n">股数</th><th scope="col" class="n">价格</th></tr></thead><tbody id="tF4"></tbody></table>
+      <p class="small">只有"公开市场买入 / 卖出"（代码 P / S）是本人主动交易。授予、扣股缴税、归属属于例行操作，信息量很低。</p>
+    </section>
+    <section>
+      <h2>SEC 申报流水（自动 · EDGAR）</h2>
+      <table><thead><tr><th scope="col">日期</th><th scope="col">表格</th><th scope="col">内容</th></tr></thead><tbody id="tFilings"></tbody></table>
+    </section>
+  </div>
+
+  <div class="layer">行业层</div>
+  <section>
+    <h2>行业指标</h2>
+    <div class="grid3" id="indicators"></div>
+    <h3>云厂商资本开支（自动 · SEC XBRL，单位：亿美元）</h3>
+    <table><thead id="hHyper"></thead><tbody id="tHyper"></tbody></table>
+    <p class="small">取四家公司现金流量表中的"购置物业和设备"（亚马逊用"购置生产性资产"），按自然季度对齐。微软财年和自然年不同，这里按季度截止月份归类。这个口径不含融资租赁，所以会低于部分公司在电话会上口头公布的资本开支。</p>
+  </section>
+
+  <section>
+    <h2>行业事件与 Intel 的反应（溢出效应）</h2>
+    <table><thead><tr>
+      <th scope="col">日期</th><th scope="col">类别</th><th scope="col">事件</th><th scope="col">反应日</th>
+      <th scope="col" class="n">INTC 当日</th><th scope="col" class="n">SOX 当日</th><th scope="col" class="n">超额 1 日</th><th scope="col" class="n">超额 3 日</th><th scope="col">来源</th>
+    </tr></thead><tbody id="tIndustry"></tbody></table>
+  </section>
+
+  <section>
+    <h2>接下来的日历</h2>
+    <table><thead><tr><th scope="col">日期</th><th scope="col">事件</th><th scope="col">和 Intel 的关系</th><th scope="col">日期依据</th></tr></thead><tbody id="tCal"></tbody></table>
+  </section>
+
+  <section>
+    <h2>口径说明</h2>
+    <p class="note">超额收益 = INTC 涨跌幅 − SOX 涨跌幅，是简单差值，没有做 beta 调整。3 日指反应日前一天收盘到反应日后第二个交易日收盘。</p>
+    <p class="note">同一个反应日如果有多个事件（例如 10-08、10-19），超额收益是它们的合计效果，无法拆开归到某一件事上。表里的数字只说明"同时发生"，不代表因果。</p>
+    <p class="note">来源等级：一手 = 公司、监管或机构的原始发布；权威 = 主流通讯社、专业机构；一般 = 常规媒体。券商观点单独列出，不混进公司事件。政策和地缘类新闻不做收录和解读。</p>
+    <p class="note">没有覆盖的数据：分券商的 EPS 和营收预测明细、PC 出货明细、内存现货价都需要付费数据源，这一版没有接入。一致预期汇总和评级变动来自 Yahoo 的免费接口，接口不稳定时这一块会显示为空。</p>
+  </section>
+
+  <footer id="foot"></footer>
+</main>
+
+<script>
+const D = /*__DATA__*/null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pct = v => v == null ? "—" : `<span class="${v < 0 ? "neg" : v > 0 ? "pos" : ""}">${v > 0 ? "+" : ""}${v.toFixed(2)}%</span>`;
+const yi = v => v == null ? "—" : (v / 1e8).toLocaleString("zh-CN", {maximumFractionDigits: 0});
+const TIER = {primary: "一手", authoritative: "权威", general: "一般"};
+const srcLinks = s => (s || []).map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.name)}</a><span class="tier">${TIER[x.tier] || ""}</span>`).join("<br>");
+const md = d => d ? d.slice(5) : "—";
+
+// ---- 顶部
+$("chips").innerHTML = [`行情截至 ${md(D.px.at(-1)[0])} 收盘`, `构建于 ${D.built_at}`].map(t => `<span>${esc(t)}</span>`).join("");
+(function kpis() {
+  const c = D.px.map(p => p[1]), b = D.bench.map(p => p[1]);
+  const last = c.at(-1), chg = (last / c.at(-2) - 1) * 100;
+  const rI = (last / c[0] - 1) * 100, rS = (b.at(-1) / b[0] - 1) * 100;
+  const q = D.quarters.at(-1);
+  const next = D.calendar.find(x => /^\d{4}-\d{2}-\d{2}$/.test(x.date) && x.why === "本公司" && x.date >= D.px.at(-1)[0]);
+  $("kpis").innerHTML = `
+    <div class="card"><div class="label">INTC 收盘 · ${md(D.px.at(-1)[0])}</div><div class="kpi">${last.toFixed(2)} <small>${pct(chg)}</small></div></div>
+    <div class="card"><div class="label">窗口内 INTC 对比 SOX</div><div class="kpi">${pct(rI - rS)}</div><div class="muted">INTC ${pct(rI)} · SOX ${pct(rS)}，自 ${md(D.px[0][0])} 起</div></div>
+    <div class="card"><div class="label">最近一季 · ${esc(q ? q.q : "—")}</div><div class="kpi">${q ? yi(q.rev) : "—"} <small>亿美元营收</small></div><div class="muted">GAAP 毛利率 ${q && q.gm != null ? q.gm + "%" : "—"}</div></div>
+    <div class="card"><div class="label">下一个节点</div><div class="kpi">${next ? md(next.date) : "—"} <small>${esc(next ? next.what : "")}</small></div><div class="muted">${esc(next ? next.status : "")}</div></div>`;
+})();
+
+// ---- 图表
+(function chart() {
+  const W = 1150, L = 48, R = 16, T = 16, PH = 250, TR1 = 292, TR2 = 330, H = 380;
+  const days = D.px.map(p => p[0]), n = days.length;
+  const bmap = Object.fromEntries(D.bench);
+  const nI = D.px.map(p => p[1] / D.px[0][1] * 100);
+  const nS = days.map(d => bmap[d] != null ? bmap[d] / bmap[days[0]] * 100 : null);
+  const all = nI.concat(nS.filter(v => v != null));
+  const lo = Math.floor(Math.min(...all) / 10) * 10, hi = Math.ceil(Math.max(...all) / 10) * 10;
+  const x = i => L + (W - L - R) * i / (n - 1), y = v => T + PH * (1 - (v - lo) / (hi - lo));
+  let s = "";
+  for (let v = lo; v <= hi; v += 10) s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#2a3038"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  days.forEach((d, i) => { if (i === 0 || d.slice(5, 7) !== days[i - 1].slice(5, 7)) s += `<text x="${x(i)}" y="${T + PH + 16}" text-anchor="middle">${d.slice(5)}</text>`; });
+  const line = (arr, col, w) => `<polyline fill="none" stroke="${col}" stroke-width="${w}" points="${arr.map((v, i) => v == null ? "" : `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}"/>`;
+  s += line(nS, "#8a939e", 1.5) + line(nI, "#37c6e0", 2);
+  s += `<text x="${L}" y="${TR1 + 4}" text-anchor="end" dx="-8">公司</text><text x="${L}" y="${TR2 + 4}" text-anchor="end" dx="-8">行业</text>`;
+  s += `<line x1="${L}" x2="${W - R}" y1="${TR1}" y2="${TR1}" stroke="#2a3038"/><line x1="${L}" x2="${W - R}" y1="${TR2}" y2="${TR2}" stroke="#2a3038"/>`;
+  const mark = (list, cy, col) => {
+    const stack = {};
+    list.forEach(e => {
+      const i = days.indexOf(e.react_day); if (i < 0) return;
+      const k = stack[i] = (stack[i] || 0) + 1, yy = cy - (k - 1) * 9;
+      s += `<line x1="${x(i)}" x2="${x(i)}" y1="${y(nI[i])}" y2="${cy}" stroke="${col}" stroke-opacity=".25" stroke-dasharray="2 3"/>`;
+      s += `<circle cx="${x(i)}" cy="${yy}" r="5" fill="${col}" stroke="#0f1216" stroke-width="1.5" tabindex="0"><title>${esc(`${e.date} ${e.title}\n反应日 ${e.react_day}｜INTC ${e.r1 ?? "—"}%｜超额 1 日 ${e.x1 ?? "—"}%`)}</title></circle>`;
+    });
+  };
+  mark(D.company, TR1, "#4f8cff"); mark(D.third, TR1, "#f0a030"); mark(D.industry, TR2, "#a78bfa");
+  $("chart").innerHTML = s;
+})();
+
+// ---- 事件表
+const evRows = (list, cls) => list.map(e => `<tr>
+  <td class="date">${esc(e.date)}</td><td><span class="tag ${cls}">${esc(e.category)}</span></td>
+  <td>${esc(e.title)}<div class="small">${esc(e.point)}</div>${e.note ? `<div class="small">注：${esc(e.note)}</div>` : ""}</td>
+  <td class="date">${md(e.react_day)}<div class="small">${esc(e.timing)}</div></td>
+  <td class="n">${pct(e.r1)}</td><td class="n">${pct(e.b1)}</td><td class="n">${pct(e.x1)}</td><td class="n">${pct(e.x3)}</td>
+  <td>${srcLinks(e.sources)}</td></tr>`).join("");
+$("tCompany").innerHTML = evRows(D.company, "t-co");
+$("tThird").innerHTML = evRows(D.third, "t-3p");
+$("tIndustry").innerHTML = evRows(D.industry, "t-in");
+
+// ---- 财务
+$("tFin").innerHTML = D.quarters.slice().reverse().map(q => {
+  const prev = D.quarters.find(p => p.q === `${+q.q.slice(0, 4) - 1}${q.q.slice(4)}`);
+  const yoy = prev ? (q.rev / prev.rev - 1) * 100 : null;
+  return `<tr><td>${q.q}</td><td class="date">${q.end}</td><td class="n">${yi(q.rev)}</td><td class="n">${pct(yoy)}</td><td class="n">${q.gm != null ? q.gm.toFixed(1) + "%" : "—"}</td><td class="n">${yi(q.capex)}</td></tr>`;
+}).join("");
+
+// ---- Form 4 & filings
+$("tF4").innerHTML = D.form4.length ? D.form4.map(r => `<tr><td class="date"><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${md(r.filed)}</a></td>
+  <td>${esc(r.owner)}<div class="small">${esc(r.title)}</div></td>
+  <td>${["P", "S"].includes(r.code) ? `<b class="${r.code === "P" ? "pos" : "neg"}">${esc(r.code_cn)}</b>` : esc(r.code_cn)}<div class="small">交易日 ${md(r.trade)}</div></td>
+  <td class="n">${r.shares != null ? Math.round(r.shares).toLocaleString() : "—"}</td><td class="n">${r.price ? "$" + r.price.toFixed(2) : "—"}</td></tr>`).join("")
+  : `<tr><td colspan="5" class="muted">窗口内没有 Form 4</td></tr>`;
+const ITEMS = {"1.01":"签订重大协议","1.02":"终止重大协议","1.05":"网络安全事件","2.02":"经营业绩","2.03":"新增直接财务义务","2.05":"退出或处置成本","2.06":"重大减值","3.02":"未登记的股权出售","5.02":"董事 / 高管变动","5.03":"章程修订","5.07":"股东投票","7.01":"Reg FD 披露","8.01":"其他事项","9.01":"财务报表与附件"};
+const FORMS = {"10-Q":"季度报告","10-K":"年度报告","S-3ASR":"自动生效的储架注册（为增发做准备）","424B5":"招股说明书补充（增发条款）","SC 13G":"5% 以上被动持股申报","SC 13G/A":"5% 以上被动持股申报修订","SC 13D":"5% 以上主动持股申报","SC 13D/A":"5% 以上主动持股申报修订"};
+$("tFilings").innerHTML = D.filings.map(f => {
+  const desc = f.form === "8-K" ? f.items.split(",").filter(i => i !== "9.01").map(i => `${i} ${ITEMS[i] || ""}`).join("；") : (FORMS[f.form] || "");
+  return `<tr><td class="date">${md(f.date)}</td><td><a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${esc(f.form)}</a></td><td>${esc(desc)}</td></tr>`;
+}).join("");
+
+// ---- 行业指标
+$("indicators").innerHTML = D.indicators.map(i => `<div class="card ind">
+  <span class="tag aff">${esc(i.affects)}</span><div class="small">${esc(i.group)}</div>
+  <div class="name">${esc(i.name)}</div><div class="val">${esc(i.value)}</div><div class="small">${esc(i.change)}</div>
+  <p class="small">${esc(i.detail)}</p>
+  <div class="small">数据期 ${esc(i.as_of)} · 公布 ${esc(i.published)}</div><div class="small">${srcLinks(i.sources)}</div></div>`).join("");
+$("hHyper").innerHTML = `<tr><th scope="col">季度</th>${D.hyper_names.map(n => `<th scope="col" class="n">${esc(n)}</th>`).join("")}<th scope="col" class="n">合计</th><th scope="col" class="n">合计同比</th></tr>`;
+$("tHyper").innerHTML = D.hyper.slice().reverse().map(r => {
+  const prev = D.hyper.find(p => p.q === `${+r.q.slice(0, 4) - 1}${r.q.slice(4)}`);
+  return `<tr><td>${r.q}</td>${D.hyper_names.map(n => `<td class="n">${yi(r.by[n])}</td>`).join("")}<td class="n"><b>${yi(r.total)}</b></td><td class="n">${prev ? pct((r.total / prev.total - 1) * 100) : "—"}</td></tr>`;
+}).join("");
+
+// ---- 日历：只显示最新交易日之后的项目，日期不固定的项目始终显示
+const lastDay = D.px.at(-1)[0];
+$("tCal").innerHTML = D.calendar.filter(c => !/^\d{4}-\d{2}-\d{2}$/.test(c.date) || c.date >= lastDay).map(c =>
+  `<tr><td class="date">${esc(c.date)}</td><td>${esc(c.what)}</td><td>${esc(c.why)}</td><td><a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.status)}</a></td></tr>`).join("");
+
+// ---- 市场预期
+(function estimates() {
+  const E = D.estimates;
+  if (!E) { $("estWrap").innerHTML = `<p class="muted">本次构建没有取到预期数据（Yahoo 接口失败），其他部分不受影响。</p>`; return; }
+  const b = v => v == null ? "—" : (v / 1e9).toFixed(2);
+  const g = (D.guidance || [])[0];
+  const q0 = E.quarters.find(x => x.period === "0q"), q1 = E.quarters.find(x => x.period === "+1q");
+  const qRow = (q, label, guide) => q ? `<tr><td>${label}<div class="small">截止 ${q.end}</div></td>
+    <td class="n">${guide && guide.rev_low ? `${b(guide.rev_low)} ~ ${b(guide.rev_high)}` : "—"}</td>
+    <td class="n"><b>${b(q.rev.avg)}</b></td><td class="n">${b(q.rev.low)} ~ ${b(q.rev.high)}</td>
+    <td class="n">${guide && guide.eps_nongaap != null ? guide.eps_nongaap.toFixed(2) : "—"}</td>
+    <td class="n"><b>${q.eps.avg != null ? q.eps.avg.toFixed(3) : "—"}</b></td><td class="n">${q.eps.low} ~ ${q.eps.high}</td>
+    <td class="n">${q.rev.numberOfAnalysts ?? "—"}</td></tr>` : "";
+  const t = E.target, r = E.rec, tot = ["strongBuy", "buy", "hold", "sell", "strongSell"].reduce((s, k) => s + (r[k] || 0), 0);
+  const last = D.px.at(-1)[1];
+  const recBar = [["strongBuy", "强烈买入", "#2e9e66"], ["buy", "买入", "#3fbf7f"], ["hold", "持有", "#8a939e"], ["sell", "卖出", "#e5534b"], ["strongSell", "强烈卖出", "#a33a33"]]
+    .filter(([k]) => r[k]).map(([k, n, col]) => `<div title="${n} ${r[k]}" style="width:${r[k] / tot * 100}%;background:${col};height:16px;display:inline-block"></div>`).join("");
+  const beat = (D.beats || [])[0];
+  const pctOf = (a, e) => ((a / e - 1) * 100);
+  const PT = {Raises: "上调", Lowers: "下调", Maintains: "维持", Announces: "首次给出"};
+  const ACT = {up: "上调评级", down: "下调评级", init: "首次覆盖", main: "维持评级", reit: "重申"};
+  $("estWrap").innerHTML = `
+    <table><thead><tr><th scope="col">季度</th><th scope="col" class="n">公司营收指引（十亿美元）</th><th scope="col" class="n">一致预期均值</th><th scope="col" class="n">预期区间</th>
+      <th scope="col" class="n">公司 EPS 指引（非 GAAP）</th><th scope="col" class="n">EPS 预期均值</th><th scope="col" class="n">EPS 区间</th><th scope="col" class="n">分析师数</th></tr></thead>
+      <tbody>${qRow(q0, "Q3（10-29 公布）", g)}${qRow(q1, "Q4", null)}</tbody></table>
+    ${g ? `<p class="small">公司指引：营收 ${b(g.rev_low)} ~ ${b(g.rev_high)}（中值 ${b((g.rev_low + g.rev_high) / 2)}），非 GAAP EPS ${g.eps_nongaap}，非 GAAP 毛利率中值约 ${g.gm_nongaap_mid}%，${g.issued} 发布。一致预期均值比指引中值高 ${pctOf(q0.rev.avg, (g.rev_low + g.rev_high) / 2).toFixed(1)}%，最低的预期（${b(q0.rev.low)}）也基本在指引中值附近。</p>` : ""}
+    <div class="grid3" style="margin-top:10px">
+      <div class="card"><div class="label">机构目标价（${t.numberOfAnalystOpinions} 家）</div>
+        <div class="kpi" style="font-size:24px">${t.targetMedianPrice?.toFixed(0)} <small>中位数</small></div>
+        <div class="small">均值 ${t.targetMeanPrice?.toFixed(1)} · 区间 ${t.targetLowPrice} ~ ${t.targetHighPrice} · 现价 ${last}</div></div>
+      <div class="card"><div class="label">当前评级分布（${tot} 家）</div><div style="margin:8px 0">${recBar}</div>
+        <div class="small">强烈买入 ${r.strongBuy} · 买入 ${r.buy} · 持有 ${r.hold} · 卖出 ${r.sell} · 强烈卖出 ${r.strongSell}</div></div>
+      <div class="card"><div class="label">EPS 实际 vs 预期（近 4 季）</div>
+        ${E.history.map(h => `<div class="small">${esc(h.end)}：实际 ${h.actual} / 预期 ${h.estimate?.toFixed(2)}</div>`).join("")}
+        <div class="small">早期季度预期接近 0，所以"超预期百分比"没有参考意义，这里不显示。</div></div>
+    </div>
+    ${beat ? `<h3>上一季（${beat.quarter}）实际 vs 预期（${esc(beat.consensus_src)}）</h3>
+      <table><thead><tr><th scope="col">项目</th><th scope="col" class="n">实际 / 指引</th><th scope="col" class="n">一致预期</th><th scope="col" class="n">差</th></tr></thead><tbody>
+      <tr><td>Q2 营收</td><td class="n">${b(beat.rev_actual)}</td><td class="n">${b(beat.rev_est)}</td><td class="n">${pct(pctOf(beat.rev_actual, beat.rev_est))}</td></tr>
+      <tr><td>Q2 非 GAAP EPS</td><td class="n">${beat.eps_actual}</td><td class="n">${beat.eps_est}</td><td class="n">${pct(pctOf(beat.eps_actual, beat.eps_est))}</td></tr>
+      <tr><td>Q3 营收指引中值</td><td class="n">${b(beat.guide_rev_mid)}</td><td class="n">${b(beat.guide_rev_est)}</td><td class="n">${pct(pctOf(beat.guide_rev_mid, beat.guide_rev_est))}</td></tr>
+      <tr><td>Q3 EPS 指引</td><td class="n">${beat.guide_eps}</td><td class="n">${beat.guide_eps_est}</td><td class="n">${pct(pctOf(beat.guide_eps, beat.guide_eps_est))}</td></tr>
+      </tbody></table><p class="small">${esc(beat.point)} ${srcLinks(beat.sources).replace(/<br>/g, " · ")}</p>` : ""}
+    <h3>窗口内评级与目标价变动（${E.ratings.length} 次）</h3>
+    <table><thead><tr><th scope="col">日期</th><th scope="col">机构</th><th scope="col">评级</th><th scope="col" class="n">目标价</th></tr></thead><tbody>
+      ${E.ratings.map(x => `<tr><td class="date">${md(x.date)}</td><td>${esc(x.firm)}</td>
+        <td>${esc(ACT[x.action] || x.action)}：${x.from && x.from !== x.to ? `${esc(x.from)} → ` : ""}${esc(x.to)}</td>
+        <td class="n">${PT[x.pt_action] || esc(x.pt_action)} ${x.pt_prior ? `${x.pt_prior} → ` : ""}${x.pt ?? "—"}</td></tr>`).join("")}
+    </tbody></table>
+    <p class="small">来源：${esc(E.source)}，汇总了多家券商的预期，Yahoo 没有公开数据商名称，也没有分券商的 EPS 明细。上一季的实际 vs 预期用的是 LSEG 口径（来自新闻报道），和 Yahoo 口径可能略有差异。MarketBeat 报道 10-19 Bernstein 上调评级，这里的列表中没有，存在不同说法。</p>`;
+})();
+
+$("foot").textContent = `行情：Yahoo Finance 日线（${D.ticker}、^SOX）。申报和财务：SEC EDGAR。抓取时间 ${D.fetched_at} UTC。本页基于公开信息整理，仅供研究参考，不构成投资建议。`;
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "_readme": "全局配置。SEC 要求请求头里带联系方式：优先读环境变量 SEC_USER_AGENT，这里的值只作为兜底。",
+  "sec_user_agent": "industry-radar (you@example.com)",
+  "current_quarter": "CY2026Q2",
+  "revenue_tags": ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "RevenueFromContractWithCustomerIncludingAssessedTax"],
+  "market_benchmark": {"symbol": "SPY", "name": "标普 500 ETF"},
+  "deep_dives": {"INTC": "deep-dive/intel/index.html"},
+
+  "screen": {
+    "_readme": "新兴公司的默认门槛（美元），行业或环节可以在 sectors.json 里覆盖。",
+    "ttm_revenue_min": 50000000,
+    "ttm_revenue_max": 3000000000,
+    "prior_quarter_revenue_min": 5000000,
+    "yoy_growth_min": 20,
+    "yoy_growth_max_sanity": 1000,
+    "market_cap_max": 15000000000,
+    "market_cap_min_intl": 200000000,
+    "exchanges": ["Nasdaq", "NYSE", "NYSE American"]
+  },
+
+  "intl": {
+    "_readme": "海外市场通过 Yahoo 筛选器取股票池、用 Yahoo 财务时间序列取季度数据。日本只有年度数据，按年度同比计算并标注。",
+    "fx": {"TWD": "TWD=X", "JPY": "JPY=X", "KRW": "KRW=X", "HKD": "HKD=X", "EUR": "EURUSD=X"},
+    "max_per_query": 250
+  },
+
+  "flags": {
+    "few_analysts_max": 3, "many_analysts_min": 10, "dilution_warn_pct": 10, "gm_jump_warn_pp": 15,
+    "runway_warn_quarters": 6, "peg_good_max": 1.0, "low_gm_pct": 25, "high_gm_pct": 50, "rich_ps": 15, "eps_beat_pct": 10
+  },
+
+  "pool": {
+    "_readme": "研究优先池：先过门槛，再按各因子在本行业候选中的百分位排名取平均。权重相同，没有回测，只用来排研究顺序。",
+    "size": 5,
+    "gates": {"exclude_cyclical": true, "require_market_data": true, "max_dilution_pct": 50, "min_runway_quarters": 6, "max_yoy_pct": 300, "min_mcap": 200000000},
+    "anomaly": {"opm_jump_pp": 40, "surprise_small_base_pct": 100},
+    "factors": ["growth", "accel", "gm", "gm_trend", "op_margin", "value", "dilution", "insider", "coverage", "surprise"]
+  },
+
+  "form4": {"lookback_days": 180, "max_filings_per_company": 8},
+  "cache_days": {"submissions": 7, "yahoo": 1}
+}

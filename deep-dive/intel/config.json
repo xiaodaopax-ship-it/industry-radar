@@ -1,0 +1,18 @@
+{
+  "ticker": "INTC",
+  "benchmark": "^SOX",
+  "benchmark_name": "费城半导体指数 SOX",
+  "cik": "0000050863",
+  "window_start": "2026-07-20",
+  "sec_user_agent": "industry-radar deep-dive (you@example.com)",
+  "sec_forms": ["8-K", "10-Q", "10-K", "4", "S-3ASR", "424B5", "SC 13G", "SC 13G/A", "SC 13D", "SC 13D/A"],
+  "financial_quarters": 8,
+  "hyperscalers": [
+    {"name": "微软", "cik": "0000789019"},
+    {"name": "谷歌 Alphabet", "cik": "0001652044"},
+    {"name": "亚马逊", "cik": "0001018724"},
+    {"name": "Meta", "cik": "0001326801"}
+  ],
+  "capex_tags": ["PaymentsToAcquirePropertyPlantAndEquipment", "PaymentsToAcquireProductiveAssets"],
+  "revenue_tags": ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues"]
+}
