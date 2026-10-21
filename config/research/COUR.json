@@ -1,0 +1,113 @@
+{
+  "ticker": "COUR",
+  "name": "Coursera, Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "2026年Q2收入+60%与加权股数+43.6%均主要由2026年5月11日完成的与Udemy全股票合并（每股Udemy换0.800股Coursera，原Udemy股东约占41%）解释，按合并口径的标准化收入同比-1%；合并后毛利率与协同效应改善，但企业净留存率下滑、消费者交易型收入承压，有机增长尚未证明。",
+  "dimensions": {
+    "business": {
+      "rating": "neutral",
+      "view": "合并后同时运营Coursera（大学与企业合作内容、证书与学位）和Udemy（讲师市场与Udemy Business），按企业与消费者两个分部收费，正转向订阅优先。报表增速主要来自并表，标准化收入同比-1%，规模扩大但有机增长动能偏弱。",
+      "evidence": [
+        "2026年Q2收入2.986亿美元，同比+60%（含Udemy自5月11日起的业绩）；按含Udemy合并前业绩的标准化口径同比-1%",
+        "2026年Q2企业分部收入1.400亿美元（标准化+3%），消费者分部1.586亿美元（标准化-5%），消费者订阅收入1.217亿美元、占消费者分部超75%",
+        "2026年Q2非GAAP毛利率62.2%（+620个基点），全年收入指引上调至12.20–12.45亿美元",
+        "合并前Coursera 2025全年收入7.57亿美元，同比+9%"
+      ],
+      "sources": [
+        {"title": "Coursera Reports Second Quarter 2026 Financial Results", "url": "https://www.nasdaq.com/press-release/coursera-reports-second-quarter-2026-financial-results-2026-07-29", "date": "2026-07-29", "tier": "primary"},
+        {"title": "Coursera (COUR) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/07/coursera-cour-q2-2026-earnings-call-transcript/", "date": "2026-08-07", "tier": "general"},
+        {"title": "Coursera (COUR) Q4 2025 Earnings Call Transcript", "url": "https://stockanalysis.com/stocks/cour/transcripts/393549-q4-2025/", "date": "2026-02-05", "tier": "general"}
+      ]
+    },
+    "customers": {
+      "rating": "neutral",
+      "view": "客户以大量个人订阅者与企业客户构成，未见单一客户占比超10%的披露，但本草稿未能从10-K原文核实；企业净留存率从95%降至91%，反映企业培训预算承压。Udemy日本业务依赖与Benesse的合作，其收入占比未查到。",
+      "evidence": [
+        "截至2026年6月30日企业客户12,107家（统一口径，同比-2%），企业净留存率91%（上年同期95%）",
+        "付费订阅用户165.5万，同比+44%（合并口径）",
+        "2026年Q2电话会提到Udemy在日本通过与Benesse的合作开展业务，管理层表示合作关系良好",
+        "最大客户或渠道收入占比（%及财年）：unknown"
+      ],
+      "sources": [
+        {"title": "Coursera Reports Second Quarter 2026 Financial Results", "url": "https://www.nasdaq.com/press-release/coursera-reports-second-quarter-2026-financial-results-2026-07-29", "date": "2026-07-29", "tier": "primary"},
+        {"title": "Coursera (COUR) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/07/coursera-cour-q2-2026-earnings-call-transcript/", "date": "2026-08-07", "tier": "general"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "CEO Greg Hart 2025年2月上任（前亚马逊高管），任内完成Udemy合并与回购；CFO Mike Foley 2025年11月以临时身份上任，是否转正未确认。投资董事长Andrew Ng创办的LearnVector属关联交易。",
+      "evidence": [
+        "Greg Hart 自2025年2月3日起任总裁兼CEO，接替退休的Jeff Maggioncalda；此前在亚马逊任职23年，2020–2023年任Compass首席产品官及COO",
+        "Mike Foley 2025年11月被任命为临时CFO（曾任Unity Technologies CFO），公司当时称仍在寻找正式CFO；合并完成后媒体报道其继续任CFO",
+        "合并后董事会9人，6人来自原Coursera、3人来自原Udemy，吴恩达续任董事长",
+        "2026年7月宣布向吴恩达创办的LearnVector投资1亿美元、持股约三分之一，管理层称由董事会特别委员会决定、属关联交易"
+      ],
+      "sources": [
+        {"title": "Coursera Announces Leadership Transition", "url": "https://investor.coursera.com/news/news-details/2025/Coursera-Announces-Leadership-Transition/default.aspx", "date": "2025-01-29", "tier": "primary"},
+        {"title": "Coursera Announces Appointment of Interim CFO", "url": "https://investor.coursera.com/news/news-details/2025/Coursera-Announces-Appointment-of-Interim-CFO/default.aspx", "date": "2025-11-17", "tier": "primary"},
+        {"title": "Coursera Completes Combination With Udemy To Create Massive Skills Platform", "url": "https://pulse2.com/coursera-completes-combination-with-udemy-to-create-massive-skills-platform/", "date": "2026-05-12", "tier": "general"},
+        {"title": "Coursera (COUR) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/07/coursera-cour-q2-2026-earnings-call-transcript/", "date": "2026-08-07", "tier": "general"}
+      ]
+    },
+    "industry": {
+      "rating": "negative",
+      "view": "AI带来技能重塑需求（GenAI课程报名提速），但企业培训（L&D）预算持续承压、个人单项付费与Udemy交易型业务下滑；两家头部平台合并本身也反映行业增长放缓、需靠规模与成本协同改善利润。生成式AI既是需求来源也可能替代部分课程学习。",
+      "evidence": [
+        "2026年Q2电话会CFO称企业培训预算压力“一直是相对持续的主题”，导致企业净留存率下降",
+        "2026年Q2消费者分部标准化收入同比-5%，个人项目订阅与Udemy交易型产品承压",
+        "GenAI课程报名速率2026年为每分钟45次，上年为每分钟25次（公司口径）"
+      ],
+      "sources": [
+        {"title": "Coursera (COUR) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/07/coursera-cour-q2-2026-earnings-call-transcript/", "date": "2026-08-07", "tier": "general"},
+        {"title": "Coursera Q2 Earnings Call Highlights", "url": "https://finance.yahoo.com/technology/ai/articles/coursera-q2-earnings-call-highlights-020350917.html", "date": "2026-07-30", "tier": "general"}
+      ]
+    },
+    "product": {
+      "rating": "neutral",
+      "view": "研发投入占收入约15%，产品路线是把两个平台整合为统一的AI原生学习平台（计划2027年上半年开始推出），并通过LearnVector加速AI导师能力；目前多为规划与早期产品（Ollie应用、MCP连接），对收入的贡献尚未体现。",
+      "evidence": [
+        "2026年Q2研发费用4,370万美元，约占收入14.6%；2026年上半年7,500万美元，约占15.2%",
+        "计划2027年上半年开始推出统一的AI原生平台，含基于超200万数据点的技能与职业图谱（公司口径）",
+        "推出面向Coursera Plus订阅者的独立移动应用Ollie，并扩展Model Context Protocol能力；两平台GenAI课程近1万门"
+      ],
+      "sources": [
+        {"title": "Coursera Reports Second Quarter 2026 Financial Results", "url": "https://www.nasdaq.com/press-release/coursera-reports-second-quarter-2026-financial-results-2026-07-29", "date": "2026-07-29", "tier": "primary"},
+        {"title": "Coursera (COUR) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/07/coursera-cour-q2-2026-earnings-call-transcript/", "date": "2026-08-07", "tier": "general"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "主要风险是整合与协同兑现、有机增长为负及股本扩张：Q2加权股数+43.6%源自向Udemy股东发新股，回购仅部分抵消；Q2因合并费用GAAP亏损、自由现金流为负。现金约9.82亿美元、无负债。10-K风险因素原文未核对。",
+      "evidence": [
+        "2026年Q2基本加权股数2.334亿股，上年同期1.625亿股（+43.6%）；非GAAP稀释加权股数2.387亿 vs 1.673亿（+42.7%）。因Udemy仅自5月11日并表，Q3全季股数影响或更大",
+        "合并条款：每股Udemy换0.800股Coursera，完成后原Coursera股东约59%、原Udemy股东约41%（完全稀释口径）",
+        "2026年Q2合并、整合与重组费用7,980万美元，GAAP净亏损8,040万美元，自由现金流-3,260万美元",
+        "Q2回购约1,650万股、9,030万美元，均价5.45美元；截至7月28日累计约1.4亿美元（5亿美元授权）"
+      ],
+      "sources": [
+        {"title": "Coursera Reports Second Quarter 2026 Financial Results", "url": "https://www.nasdaq.com/press-release/coursera-reports-second-quarter-2026-financial-results-2026-07-29", "date": "2026-07-29", "tier": "primary"},
+        {"title": "Coursera Completes Combination With Udemy To Create Massive Skills Platform", "url": "https://pulse2.com/coursera-completes-combination-with-udemy-to-create-massive-skills-platform/", "date": "2026-05-12", "tier": "general"},
+        {"title": "Coursera (COUR) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/07/coursera-cour-q2-2026-earnings-call-transcript/", "date": "2026-08-07", "tier": "general"}
+      ]
+    }
+  },
+  "bull": [
+    "合并带来规模与成本协同：年化净协同目标上调至至少8,500万美元（2026年底），Q4调整后EBITDA利润率目标超16%",
+    "向订阅优先转型，付费订阅用户同比+44%，订阅收入占消费者分部超75%，收入可预测性提高",
+    "AI带来的技能重塑需求（GenAI课程报名提速）与大学、科技公司内容合作（如2026年5月上线的Anthropic课程）可能支撑长期需求"
+  ],
+  "bear": [
+    "按合并口径标准化收入同比-1%，企业净留存率降至91%，报表高增长不代表有机增长",
+    "两套平台、讲师与合作方体系的整合存在执行风险，统一平台要到2027年上半年才开始推出",
+    "生成式AI工具可能替代部分付费课程学习；LearnVector关联交易使治理与资本配置受关注"
+  ],
+  "open_questions": [
+    "2025年10-K及合并后10-Q中是否披露单一客户/渠道（如应用商店、Benesse）收入占比",
+    "Mike Foley是否已转为正式CFO，合并后高管与董事持股比例（需查DEF 14A与8-K 5.02）",
+    "Q2现金流量表中股权激励5,990万美元（上半年）与EBITDA调节表中4,410万美元的差异，是否有部分归入合并相关费用",
+    "Q3全季并表后的股数与标准化收入增速，以及1.15亿美元（24个月）与8,500万美元（2026年底）协同目标的口径关系"
+  ]
+}

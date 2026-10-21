@@ -1,0 +1,111 @@
+{
+  "ticker": "LYTS",
+  "name": "LSI Industries Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "FY2026 第四季度营收 +51% 主要由 2026 年 3 月并购的 Royston 带来（当季并表 $66.9M），内生增长约 8%；全年调整后利润率改善，但 GAAP EPS 下降、负债和股本明显扩大，后续取决于 Royston 整合与零售终端项目周期。",
+  "dimensions": {
+    "business": {
+      "rating": "neutral",
+      "view": "高增长主要来自并购而非内生：Q4 增长 51% 中约 43 个百分点来自 Royston。业务为照明加零售门店显示/标识/展柜的一体化方案，毛利率约 24–25%，属中低毛利的定制制造，壁垒主要在多品类打包与项目管理能力。",
+      "evidence": [
+        "FY2026 Q4（截至 2026-06-30）营收 $234.6M，同比 +51%；剔除 Royston（$66.9M）后内生增长 8%",
+        "FY2026 全年营收 $689.4M，同比 +20%；10-K 披露 Royston 并表期（3/24–6/30）贡献 $73.5M，营业利润 $2.4M",
+        "毛利率（按损益表计算）：Q4 为 24.5%（上年同期 26.1%），全年 25.1%（FY2025 为 24.7%）",
+        "调整后 EBITDA 全年 $69.7M，占营收 10.1%；GAAP 净利润 $22.6M，同比 -7%"
+      ],
+      "sources": [
+        {"title": "LSI Industries Reports Fiscal 2026 Fourth Quarter and Full-Year Results", "url": "https://investors.lsicorp.com/news/news-details/2026/LSI-Industries-Reports-Fiscal-2026-Fourth-Quarter-and-Full-Year-Results-and-Declares-Quarterly-Cash-Dividend/default.aspx", "date": "2026-08-20", "tier": "primary"},
+        {"title": "LSI Industries Form 10-K for fiscal year ended June 30, 2026", "url": "https://www.sec.gov/Archives/edgar/data/763532/000143774926029621/lyts20260630d_10k.htm", "date": "2026-09-03", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "neutral",
+      "view": "单一客户集中度低：FY2024–2026 无客户或客户项目达营收 10%。但行业集中度高，10-K 将加油站/便利店和杂货零售列为两大垂直市场并作为单列风险，项目节奏受大客户预算与改造周期影响。",
+      "evidence": [
+        "10-K：FY2026、FY2025、FY2024 均无客户或客户项目占净销售额 10% 及以上，应收账款亦无集中",
+        "10-K 风险因素：refueling/c-store 与 grocery 是两大垂直市场，相关市场的重大变化可能产生不利影响",
+        "FY2026 Q4 获得一家大型石油公司约 2,500 个站点的多年翻新项目（新客户，约 $30M，未计入当季订单）",
+        "Q4 杂货展柜销售同比 +21%，加油站/便利店垂直市场同比 +16%"
+      ],
+      "sources": [
+        {"title": "LSI Industries Form 10-K for fiscal year ended June 30, 2026", "url": "https://www.sec.gov/Archives/edgar/data/763532/000143774926029621/lyts20260630d_10k.htm", "date": "2026-09-03", "tier": "primary"},
+        {"title": "LSI Industries Reports Fiscal 2026 Fourth Quarter and Full-Year Results", "url": "https://investors.lsicorp.com/news/news-details/2026/LSI-Industries-Reports-Fiscal-2026-Fourth-Quarter-and-Full-Year-Results-and-Declares-Quarterly-Cash-Dividend/default.aspx", "date": "2026-08-20", "tier": "primary"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "CEO James A. Clark 自 2018 年任职，主导 EMI、CBH、Royston 连续并购；CFO James E. Galeese 将于 2027-08-31 退休，交接与整合期重叠。管理层持股未能核实。",
+      "evidence": [
+        "10-K 附件显示 Clark 雇佣协议于 2018-10-17 以 8-K 披露；Galeese 入职函于 2017-06-13 披露",
+        "8-K（2026-08-20，Item 5.02）：Galeese 于 2026-08-19 通知董事会将于 2027-08-31 退休，期间继续任职以便寻找继任者，并称与公司无分歧",
+        "8-K（2026-08-25）：FY2027 长期激励计划中 CEO 目标授予额 $2.5M，CFO $0.54M，以 RSU 和 PSU 形式发放"
+      ],
+      "sources": [
+        {"title": "LSI Industries Form 8-K (Item 5.02, CFO retirement)", "url": "https://www.sec.gov/Archives/edgar/data/763532/000143774926028591/lyts20260817_8k.htm", "date": "2026-08-20", "tier": "primary"},
+        {"title": "LSI Industries Form 8-K (Item 5.02, FY2027 LTIP)", "url": "https://www.sec.gov/Archives/edgar/data/763532/000143774926028937/lyts20260821_8k.htm", "date": "2026-08-25", "tier": "primary"},
+        {"title": "LSI Industries Form 10-K for fiscal year ended June 30, 2026", "url": "https://www.sec.gov/Archives/edgar/data/763532/000143774926029621/lyts20260630d_10k.htm", "date": "2026-09-03", "tier": "primary"}
+      ]
+    },
+    "industry": {
+      "rating": "neutral",
+      "view": "需求由零售终端（加油站/便利店、杂货、快餐）的新店与翻新周期驱动，公司称杂货行业在大型并购暂停后恢复、Royston 主要便利店客户进入多年翻新周期；照明业务受非住宅建筑周期影响，Q4 同比下滑，且竞争对手规模更大。",
+      "evidence": [
+        "FY2026 照明分部营收 $266.2M（+7%），但 Q4 同比 -3%，公司归因于汽车经销商与快餐垂直市场项目偏弱",
+        "显示方案分部 FY2026 营收 $423.2M（+30%），Q4 内生增长 18%，订单出货比约 1.0",
+        "10-K：照明分部部分竞争对手销售规模和财务资源更大；业务存在季节性，11–12 月杂货与快餐客户限制改造施工",
+        "公司表示项目节奏非线性，受选址排期、许可和采购流程影响"
+      ],
+      "sources": [
+        {"title": "LSI Industries Reports Fiscal 2026 Fourth Quarter and Full-Year Results", "url": "https://investors.lsicorp.com/news/news-details/2026/LSI-Industries-Reports-Fiscal-2026-Fourth-Quarter-and-Full-Year-Results-and-Declares-Quarterly-Cash-Dividend/default.aspx", "date": "2026-08-20", "tier": "primary"},
+        {"title": "LSI Industries Form 10-K for fiscal year ended June 30, 2026", "url": "https://www.sec.gov/Archives/edgar/data/763532/000143774926029621/lyts20260630d_10k.htm", "date": "2026-09-03", "tier": "primary"}
+      ]
+    },
+    "product": {
+      "rating": "neutral",
+      "view": "研发投入很低（FY2026 约 $3.1M，约占营收 0.45%），产品创新以照明产品线迭代为主（V-LOCITY 户外照明、Velocity Flood 待发布），差异化更多依赖“照明+标识+展柜+项目管理”的打包能力而非技术领先。",
+      "evidence": [
+        "10-K：产品与软件研发费用 FY2026 $3.1M、FY2025 $3.3M、FY2024 $3.5M，逐年下降",
+        "V-LOCITY 户外区域照明系列已上市；Velocity Flood 灯具首批规格计划于 2026 年第四季度（自然年）推出",
+        "Royston 带来定制门店装置、室内外标识及冷藏/加热展柜产品，并入显示方案分部"
+      ],
+      "sources": [
+        {"title": "LSI Industries Form 10-K for fiscal year ended June 30, 2026", "url": "https://www.sec.gov/Archives/edgar/data/763532/000143774926029621/lyts20260630d_10k.htm", "date": "2026-09-03", "tier": "primary"},
+        {"title": "LSI Industries Reports Fiscal 2026 Fourth Quarter and Full-Year Results", "url": "https://investors.lsicorp.com/news/news-details/2026/LSI-Industries-Reports-Fiscal-2026-Fourth-Quarter-and-Full-Year-Results-and-Declares-Quarterly-Cash-Dividend/default.aspx", "date": "2026-08-20", "tier": "primary"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "Royston 并购后杠杆上升并伴随股本稀释：总债务由 $48.6M 升至 $255.9M，净债务/备考 EBITDA 2.7x；新增无形资产 $179.9M 有减值可能。10-K 专列整合风险，另有关税与原材料成本风险。",
+      "evidence": [
+        "Royston 总对价 $338.2M，新增无形资产 $179.9M（审计师列为关键审计事项）",
+        "截至 2026-06-30 总债务 $255.9M（上年 $48.6M），净债务 $241.7M，信贷额度 $350M 中剩余可用约 $95M",
+        "2026-02 增发 460 万股（另授予承销商 69 万股超额配售选择权），发行价 $19.75；Q4 稀释股数 3,769 万股，上年同期 3,097 万股",
+        "Q4 GAAP 稀释 EPS $0.18（上年 $0.26），含 $3.0M 并购费用；全年 GAAP EPS $0.67（上年 $0.79）"
+      ],
+      "sources": [
+        {"title": "LSI Industries Form 10-K for fiscal year ended June 30, 2026", "url": "https://www.sec.gov/Archives/edgar/data/763532/000143774926029621/lyts20260630d_10k.htm", "date": "2026-09-03", "tier": "primary"},
+        {"title": "LSI Industries Form 8-K (underwriting agreement, February 2026 offering)", "url": "https://www.sec.gov/Archives/edgar/data/763532/000143774926006372/lyts20260226_8k.htm", "date": "2026-03-02", "tier": "primary"},
+        {"title": "LSI Industries Reports Fiscal 2026 Fourth Quarter and Full-Year Results", "url": "https://investors.lsicorp.com/news/news-details/2026/LSI-Industries-Reports-Fiscal-2026-Fourth-Quarter-and-Full-Year-Results-and-Declares-Quarterly-Cash-Dividend/default.aspx", "date": "2026-08-20", "tier": "primary"}
+      ]
+    }
+  },
+  "bull": [
+    "Royston 补齐门店装置与展柜能力，若交叉销售落地，可提升单客户钱包份额",
+    "公司称 Royston 主要便利店客户自 FY2027 起进入多年翻新与新建周期，并新获约 2,500 站点的翻新项目",
+    "单一客户集中度低（无客户超过 10%），全年自由现金流 $39.0M 可用于降杠杆"
+  ],
+  "bear": [
+    "增长主要靠并购，内生增长约 7–8%；Royston Q4 销售同比小幅下降，协同效应尚未得到验证",
+    "杠杆上升、股本稀释，GAAP EPS 连续下滑，调整后口径与 GAAP 差距扩大",
+    "需求集中在加油站/便利店与杂货两大垂直市场，项目节奏非线性；照明业务竞争对手规模更大"
+  ],
+  "open_questions": [
+    "FY2026 内生增长口径是否也剔除了 2025-03 并购的 CBH 在前三季度的贡献？公司仅给出 Q4 的 8% 内生增长",
+    "Q4 毛利率同比下降约 1.6 个百分点，是 Royston 产品组合、价格还是成本因素所致？",
+    "管理层与董事持股比例、CFO 继任人选：本次未能从 2026 年 DEF 14A 中提取到数据",
+    "Royston 并表后的有机增长与利润率目标，以及去杠杆路径"
+  ]
+}

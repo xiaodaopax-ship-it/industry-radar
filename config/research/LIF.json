@@ -1,0 +1,113 @@
+{
+  "ticker": "LIF",
+  "name": "Life360, Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "家庭定位与安全订阅平台，MAU 约 1.02 亿、付费圈 320 万，2026 Q2 营收同比 +38%、毛利率 80%；增长中有一部分来自 2026 年 1 月并购 Nativo 带来的广告收入，GAAP 经营利润接近零，且约七成收入经 Apple 与 Google 应用商店处理，平台依赖与隐私监管是核心风险。",
+  "dimensions": {
+    "business": {
+      "rating": "positive",
+      "view": "以免费 App 获客、订阅变现为主（Q2 订阅占营收 73%），叠加广告与 Tile 硬件。网络效应来自家庭圈互相邀请；但 Q2 营收增速中广告（含 Nativo 并购）贡献明显，有机增速低于 38%。",
+      "evidence": [
+        "2026 Q2 营收 1.590 亿美元（+38%），其中订阅 1.156 亿美元（+31%）、广告 2,197 万美元（+315%）、硬件 981 万美元（-20%）",
+        "2026 Q2 GAAP 毛利率约 80%（上年同期 78%）；GAAP 经营亏损 5.7 万美元，上年同期经营利润 199 万美元",
+        "Nativo（广告技术公司）收购于 2026-01-02 完成，商誉因此增加 3,900 万美元",
+        "2025 财年营收 4.895 亿美元，GAAP 经营利润 1,883 万美元"
+      ],
+      "sources": [
+        {"title": "Life360 Form 10-Q for quarter ended 2026-06-30", "url": "https://www.sec.gov/Archives/edgar/data/1581760/000158176026000141/lifx-20260630.htm", "date": "2026-08-10", "tier": "primary"},
+        {"title": "Life360 Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1581760/000158176026000016/lifx-20251231.htm", "date": "2026-03-02", "tier": "primary"},
+        {"title": "Life360 Reports Record Q2 2026 Results", "url": "https://www.nasdaq.com/press-release/life360-reports-record-q2-2026-results-2026-08-10", "date": "2026-08-10", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "neutral",
+      "view": "终端是数千万个人消费者，单一付费用户风险分散；但收款渠道高度集中：Apple 渠道约占营收一半，Google 约两成，平台政策或分成变化会直接影响收入与利润。",
+      "evidence": [
+        "2025 财年经 Apple 渠道处理的收入占 52%（2024 年 53%），Google 占 19%（2024 年 18%）",
+        "2026 Q2 Apple 渠道占 50%（上年同期 54%），Google（渠道与广告）占 19%",
+        "2025 财年国际用户约占 MAU 的 47%，但仅贡献约 15% 营收",
+        "硬件由单一合同制造商生产"
+      ],
+      "sources": [
+        {"title": "Life360 Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1581760/000158176026000016/lifx-20251231.htm", "date": "2026-03-02", "tier": "primary"},
+        {"title": "Life360 Form 10-Q for quarter ended 2026-06-30", "url": "https://www.sec.gov/Archives/edgar/data/1581760/000158176026000141/lifx-20260630.htm", "date": "2026-08-10", "tier": "primary"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "2025 年 8 月 CEO 交接：联合创始人 Chris Hulls 转任执行董事长，原 COO Lauren Antonoff 接任，任期约 14 个月、执行记录尚短。CFO 自 2020 年任职，董监高合计持股 6.8%。",
+      "evidence": [
+        "Lauren Antonoff 自 2025 年 8 月任 CEO，2023 年 5 月至 2025 年 8 月任 COO，曾任 GoDaddy 高管",
+        "Chris Hulls 2007 年联合创立公司并任 CEO 至 2025 年 8 月，现任执行董事长，持股约 3.1%",
+        "CFO Russell Burke 自 2020 年 5 月任职；截至 2026-03-31 董监高合计持股 6.8%",
+        "2026 年 5 月董事会授权最多 2.25 亿美元回购，Q2 回购 31.5 万股、1,320 万美元"
+      ],
+      "sources": [
+        {"title": "Life360 DEF 14A Proxy Statement 2026", "url": "https://www.sec.gov/Archives/edgar/data/1581760/000158176026000063/lif-20260416.htm", "date": "2026-04-16", "tier": "primary"},
+        {"title": "Life360 Form 10-Q for quarter ended 2026-06-30", "url": "https://www.sec.gov/Archives/edgar/data/1581760/000158176026000141/lifx-20260630.htm", "date": "2026-08-10", "tier": "primary"}
+      ]
+    },
+    "industry": {
+      "rating": "neutral",
+      "view": "家庭安全与定位共享需求稳定，国际市场渗透率仍低；但手机操作系统厂商自带定位共享与物品追踪功能，公司 10-K 承认大型竞争者资源更多。未找到可靠的第三方市场规模数据。",
+      "evidence": [
+        "10-K 将竞争者分为家庭定位直接竞品、非家庭定位共享平台、物品追踪、宠物追踪及道路救援等相关服务",
+        "2026 Q2 国际 MAU 4,840 万，同比 +20%；美国 MAU 5,400 万，同比 +14%",
+        "电话会称巴西、墨西哥渗透率约 3%，品牌认知度上升（管理层口径，general 来源转述）"
+      ],
+      "sources": [
+        {"title": "Life360 Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1581760/000158176026000016/lifx-20251231.htm", "date": "2026-03-02", "tier": "primary"},
+        {"title": "Life360 Reports Record Q2 2026 Results", "url": "https://www.nasdaq.com/press-release/life360-reports-record-q2-2026-results-2026-08-10", "date": "2026-08-10", "tier": "primary"},
+        {"title": "Life360 Q2 Earnings Call Highlights", "url": "https://finance.yahoo.com/markets/stocks/articles/life360-q2-earnings-call-highlights-000406468.html", "date": "2026-08-10", "tier": "general"}
+      ]
+    },
+    "product": {
+      "rating": "positive",
+      "view": "研发投入约占营收 26%–30%；产品线从定位扩展到广告平台、宠物追踪、长者照护，并与 Hubble Network 合作探索卫星定位，但新业务成效尚待验证，硬件持续萎缩。",
+      "evidence": [
+        "2025 财年 GAAP 研发费用 1.284 亿美元，约占营收 26.2%；2026 Q2 为 4,740 万美元，约占 30%",
+        "2026 Q2 付费圈 320 万（+27%），ARPPC 142.56 美元（+5%），Q2 新增付费圈 18.5 万为同期最高",
+        "公司称 Life360 广告平台整合基本完成；Q3 推进宠物、儿童与长者等全生命周期产品",
+        "10-K 披露与 Hubble Network 合作，取决于开发与整合是否成功"
+      ],
+      "sources": [
+        {"title": "Life360 Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1581760/000158176026000016/lifx-20251231.htm", "date": "2026-03-02", "tier": "primary"},
+        {"title": "Life360 Form 10-Q for quarter ended 2026-06-30", "url": "https://www.sec.gov/Archives/edgar/data/1581760/000158176026000141/lifx-20260630.htm", "date": "2026-08-10", "tier": "primary"},
+        {"title": "Life360 Reports Record Q2 2026 Results", "url": "https://www.nasdaq.com/press-release/life360-reports-record-q2-2026-results-2026-08-10", "date": "2026-08-10", "tier": "primary"}
+      ]
+    },
+    "risks": {
+      "rating": "neutral",
+      "view": "主要风险是应用商店平台依赖、精确位置与儿童数据相关的隐私监管、Tile 追踪器被滥用的诉讼。Tile 集体诉讼已被转入仲裁。另有 3.2 亿美元可转债。Q2 净利润主要依赖所得税收益。",
+      "evidence": [
+        "10-K 披露受数据隐私、精确地理位置（含儿童）、物品追踪、消费者保护等法律约束",
+        "Tile 追踪器相关集体诉讼（2023-08 起诉）：2026-03-03 第九巡回法院裁定剩余诉求全部转入仲裁，截至 2026-06-30 未计提诉讼准备",
+        "2025 年 6 月发行 3.2 亿美元 0% 可转换票据（2030 年到期，转股价约 80.97 美元）",
+        "2026 Q2 税前利润 108 万美元，所得税收益 398 万美元，净利润 506 万美元"
+      ],
+      "sources": [
+        {"title": "Life360 Form 10-Q for quarter ended 2026-06-30", "url": "https://www.sec.gov/Archives/edgar/data/1581760/000158176026000141/lifx-20260630.htm", "date": "2026-08-10", "tier": "primary"},
+        {"title": "Life360 Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1581760/000158176026000016/lifx-20251231.htm", "date": "2026-03-02", "tier": "primary"}
+      ]
+    }
+  },
+  "bull": [
+    "MAU 突破 1 亿、付费圈 +27%，家庭圈邀请机制形成低成本获客，国际市场付费转化仍有较大空间",
+    "广告平台（Nativo）为庞大免费用户群提供第二变现渠道，订阅之外增加收入来源",
+    "产品向宠物、长者照护与卫星定位延伸，可提高单个家庭的付费价值与留存"
+  ],
+  "bear": [
+    "Apple/Google 既是约七成收入的收款渠道，也提供自带定位共享功能，平台规则或功能变化会同时冲击获客与变现",
+    "位置与儿童数据处于隐私监管重点，规则收紧或数据事件可能限制广告变现、增加合规成本",
+    "广告业务 Q2 毛利率约 57%，低于订阅约 87%，扩张会摊薄整体毛利；GAAP 经营利润 Q2 接近零，盈利改善尚不稳固"
+  ],
+  "open_questions": [
+    "剔除 Nativo 后的有机营收增速是多少？公司未在本次查阅的文件中单独披露",
+    "核心订阅收入 +34%（新闻稿口径）与订阅收入 +31%（10-Q 口径）差异来自哪些项目？",
+    "全年指引（营收 6.5–6.85 亿美元、调整后 EBITDA 1.3–1.4 亿美元）来自 general 来源转述，需对照原始新闻稿核实",
+    "近 180 天内部人交易情况本次未核实"
+  ]
+}

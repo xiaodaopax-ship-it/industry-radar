@@ -1,0 +1,108 @@
+{
+  "ticker": "CORT",
+  "name": "Corcept Therapeutics Incorporated",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "皮质醇调节剂公司，2026Q2营收+32%，增长来自Korlym系列与3月获批的卵巢癌新药Lifyorli(首季4760万美元)；关键看点是relacorilant库欣综合征NDA(PDUFA 2026-12-17)与EU审批，主要风险是Korlym仿制药竞争、反垄断与证券集体诉讼。",
+  "dimensions": {
+    "business": {
+      "rating": "positive",
+      "view": "以糖皮质激素受体(GR)拮抗为核心平台，Korlym及其授权仿制药贡献主要收入，2026年起Lifyorli把业务延伸至肿瘤，收入来源开始多元化。公司持续盈利、无借款列示，但上市推广使销售管理费用大幅上升。",
+      "evidence": [
+        "2026Q2营收2.561亿美元(+32%)：Korlym及授权仿制药2.086亿美元(+7%)，Lifyorli 4760万美元(首个季度)",
+        "2026Q2营业利润4130万美元(营业利润率约16%)，SG&A 1.569亿美元(上年同期1.039亿美元)；净利润4300万美元",
+        "2025财年营收7.614亿美元(2024年6.750亿美元)；2026全年营收指引上调至11–12亿美元",
+        "2026-06-30现金及投资5.446亿美元"
+      ],
+      "sources": [
+        {"title": "Corcept Therapeutics Announces Second Quarter Financial Results and Provides Corporate Update", "url": "https://ir.corcept.com/news-releases/news-release-details/corcept-therapeutics-announces-second-quarter-financial-4", "date": "2026-07-29", "tier": "primary"},
+        {"title": "Corcept Therapeutics Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1088856/000162828026011091/cort-20251231.htm", "date": "2026-02-24", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "neutral",
+      "view": "终端是美国库欣综合征与卵巢癌患者，渠道高度集中于单一专科药房：2025年起由Curant替代Optime，Curant代收的保险款项占收入99%以上。2025年曾因原专科药房供应不足影响交付。医保/商业保险结构未披露具体比例。",
+      "evidence": [
+        "10-K：新专科药房Curant负责配药并代为向保险方收款，相关款项占公司收入99%以上",
+        "2017–2025年独家使用Optime；2025-10发出终止通知(2026-01-08生效)，2025Q4大部分服务已转至Curant",
+        "10-K披露2025年原主要专科药房未能完全满足需求，问题预计在2026Q1完成迁移后解决"
+      ],
+      "sources": [
+        {"title": "Corcept Therapeutics Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1088856/000162828026011091/cort-20251231.htm", "date": "2026-02-24", "tier": "primary"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "联合创始人Joseph K. Belanoff自1999年起任CEO，团队稳定，Lifyorli获批体现研发执行力；但库欣适应症收到CRL后公司及部分高管被提起证券集体诉讼。CFO为Atabak Mokari(任职起始年份未核实)。",
+      "evidence": [
+        "公司官网：Belanoff为联合创始人，1999年起任CEO，2014年兼任总裁",
+        "10-K签署：CFO Atabak Mokari；Mokari于2025-12-12采纳10b5-1计划拟售最多20万股，Corcept Endocrinology总裁Sean Maduck拟售最多60万股",
+        "2026-02-20有证券集体诉讼起诉公司及部分高管(N.D. Cal.)"
+      ],
+      "sources": [
+        {"title": "Joseph Belanoff - Corcept Therapeutics", "url": "https://corcept.com/about/teams/joseph-belanoff/", "date": "2025-02-25", "tier": "primary"},
+        {"title": "Corcept Therapeutics Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1088856/000162828026011091/cort-20251231.htm", "date": "2026-02-24", "tier": "primary"}
+      ]
+    },
+    "industry": {
+      "rating": "neutral",
+      "view": "公司通过CATALYST、MOMENTUM研究主张高皮质醇症在难控糖尿病/顽固高血压人群中被低估，若临床筛查增加将扩大需求；但库欣领域已有Recordati、Xeris的获批药物，且Teva仿制药自2024年1月上市。",
+      "evidence": [
+        "CATALYST：1,057名难控2型糖尿病患者中23.8%检出高皮质醇症；随机阶段Korlym组HbA1c下降1.47%对安慰剂0.15%",
+        "竞争产品：Signifor、Isturisa(Recordati)、Recorlev(Xeris)及超适应症使用的酮康唑、美替拉酮",
+        "Teva的Korlym仿制药自2024年1月上市；公司2024年6月推出授权仿制药"
+      ],
+      "sources": [
+        {"title": "Corcept Therapeutics Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1088856/000162828026011091/cort-20251231.htm", "date": "2026-02-24", "tier": "primary"}
+      ]
+    },
+    "product": {
+      "rating": "positive",
+      "view": "relacorilant已在美国获批卵巢癌(Lifyorli)，EU CHMP给出正面意见，库欣适应症已重新提交NDA；另有多项肿瘤、MASH、ALS中后期试验。研发占营收约三分之一，管线催化剂集中在2026年底至2027年底。",
+      "evidence": [
+        "2026-03 FDA批准Lifyorli联合白蛋白紫杉醇治疗铂耐药卵巢癌；ROSELLA III期PFS与OS双主要终点达成",
+        "2026-09-18 CHMP建议EU批准relacorilant(卵巢癌)，EC预计2026Q4作出决定",
+        "库欣综合征NDA收到CRL后于2026-06重新提交，PDUFA日期2026-12-17；MONARCH(MASH)IIb结果预计2026年底",
+        "2025财年研发费用2.549亿美元，约占营收7.614亿美元的33%"
+      ],
+      "sources": [
+        {"title": "Corcept Therapeutics Announces Second Quarter Financial Results and Provides Corporate Update", "url": "https://ir.corcept.com/news-releases/news-release-details/corcept-therapeutics-announces-second-quarter-financial-4", "date": "2026-07-29", "tier": "primary"},
+        {"title": "Corcept Announces CHMP Opinion Recommending EU Marketing Authorization for Lifyorli (Relacorilant)", "url": "https://finance.yahoo.com/healthcare/articles/corcept-announces-chmp-opinion-recommending-120000333.html", "date": "2026-09-18", "tier": "primary"},
+        {"title": "Corcept to Resubmit its New Drug Application for Relacorilant as a Treatment for Patients with Cushing's Syndrome", "url": "https://www.biospace.com/press-releases/corcept-to-resubmit-its-new-drug-application-for-relacorilant-as-a-treatment-for-patients-with-cushings-syndrome", "date": "2026-05-27", "tier": "primary"},
+        {"title": "Corcept Therapeutics Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1088856/000162828026011091/cort-20251231.htm", "date": "2026-02-24", "tier": "primary"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "Korlym对Teva仿制药的专利主张已败诉：联邦巡回上诉法院2026-02维持Teva不侵权判决；Teva反垄断诉讼大部分请求未被驳回，2027年3月开庭；另有证券集体诉讼。库欣适应症NDA曾被拒，再审结果存在不确定性。",
+      "evidence": [
+        "2023-12-29地区法院裁定Teva仿制药不侵权，2026-02-19联邦巡回上诉法院维持原判",
+        "Teva起诉Corcept与Optime涉嫌违反反垄断法(N.D. Cal. 5:24-cv-03567)，10-K称案件定于2027年3月审理",
+        "2026-02-20证券集体诉讼(Allegheny County Employees' Retirement System v. Corcept)；截至2025-12-31未计提或有损失",
+        "FDA对库欣适应症NDA发出CRL，公司在FDA要求下补充分析后重新提交"
+      ],
+      "sources": [
+        {"title": "Corcept Therapeutics Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1088856/000162828026011091/cort-20251231.htm", "date": "2026-02-24", "tier": "primary"},
+        {"title": "Corcept to Resubmit its New Drug Application for Relacorilant as a Treatment for Patients with Cushing's Syndrome", "url": "https://www.biospace.com/press-releases/corcept-to-resubmit-its-new-drug-application-for-relacorilant-as-a-treatment-for-patients-with-cushings-syndrome", "date": "2026-05-27", "tier": "primary"}
+      ]
+    }
+  },
+  "bull": [
+    "Lifyorli首季收入4760万美元且被NCCN列为优选方案，肿瘤业务可能显著降低对Korlym的依赖",
+    "若库欣适应症relacorilant于2026-12-17前获批，可在Korlym仿制药压力下实现产品升级",
+    "高皮质醇症筛查扩大(CATALYST/MOMENTUM)可能持续推动新处方增长，公司称Q2新处方数创纪录"
+  ],
+  "bear": [
+    "Korlym无有效专利屏障，Teva仿制药已上市，价格下行压力在10-K中已有体现(2025年平均售价下降)",
+    "反垄断与证券集体诉讼结果不确定，且销售管理费用随新品上市快速攀升",
+    "收款与配药高度依赖单一专科药房Curant，2025年已出现供应中断先例"
+  ],
+  "open_questions": [
+    "relacorilant库欣适应症的再审结论(PDUFA 2026-12-17)与EC卵巢癌最终决定",
+    "Lifyorli的长期市场空间、定价与EU上市后的商业化安排",
+    "任务给出的P/S约15倍未在一手来源核实；按2026指引11–12亿美元营收计算的估值需另行确认市值",
+    "Teva反垄断案若败诉的潜在赔偿规模（10-K未量化）"
+  ]
+}

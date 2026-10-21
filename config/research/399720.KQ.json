@@ -1,0 +1,106 @@
+{
+  "ticker": "399720.KQ",
+  "name": "Gaonchips Co., Ltd.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核，海外资料有限）",
+  "reviewed_by": "",
+  "summary": "Samsung Foundry 设计合作伙伴（design house），2026 Q2 营收同比 +133%、毛利率回到约 14%、营业利润微幅转正，增长依赖 2nm 日本 AI 芯片等项目从开发转入量产；本稿未查阅 DART 原文，客户集中度与管理层细节缺失，覆盖有限。",
+  "dimensions": {
+    "business": {
+      "rating": "neutral",
+      "view": "为 fabless 客户提供 SoC/ASIC 设计、turnkey 量产管理、IP 与 MPW 服务。Q2 营收从低基数大增，但毛利率约 14%、营业利润率仅 1.5%，上半年整体仍亏损，盈利能力尚未稳定。",
+      "evidence": [
+        "2026 Q2 营收约 213.1 亿韩元，同比 +133.2%；毛利率 14.3%（上年同期 -22.5%），营业利润约 3.3 亿韩元，营业利润率 1.5%",
+        "2026 Q1 营收约 205.7 亿韩元，毛利率 -4.5%，营业亏损约 39.1 亿；上半年合计营业亏损约 35.8 亿",
+        "2025 年营收约 685.1 亿韩元，同比 -29.0%；截至 2026-06-30 TTM 营收约 860.5 亿",
+        "成立于 2012 年，总部城南市，员工 262 人"
+      ],
+      "sources": [
+        {"title": "Gaonchips (KOSDAQ:399720) Financials – Quarterly", "url": "https://stockanalysis.com/quote/kosdaq/399720/financials/?p=quarterly", "date": "2026-10-21", "tier": "authoritative"},
+        {"title": "Gaonchips (KOSDAQ:399720) Company Profile & Description", "url": "https://stockanalysis.com/quote/kosdaq/399720/company/", "date": "2026-10-21", "tier": "authoritative"}
+      ]
+    },
+    "customers": {
+      "rating": "neutral",
+      "view": "业务绑定 Samsung Foundry 生态，海外订单以日本 AI 客户为主。未找到单一客户营收占比披露；按地区看 Q2 国内约 75%、海外约 25%。",
+      "evidence": [
+        "2026 Q2 韩国营收约 160.1 亿韩元（约 75%），海外约 53.0 亿（约 25%）",
+        "日本大型 AI 公司授予的 557 亿韩元 AI 加速器项目预计下半年开始贡献营收（朝鲜日报英文版）",
+        "首个 2nm 项目为日本 PFN（Preferred Networks）的 AI 芯片，预计 2026 下半年量产（同上，援引 FnGuide）"
+      ],
+      "sources": [
+        {"title": "Gaonchips (KOSDAQ:399720) Financials – Quarterly", "url": "https://stockanalysis.com/quote/kosdaq/399720/financials/?p=quarterly", "date": "2026-10-21", "tier": "authoritative"},
+        {"title": "K-fabless ride ASIC boom as investments rise and mass production accelerates", "url": "https://biz.chosun.com/en/en-it/2026/02/24/CD4YYM3MHJG6NIS6OJPQROWIEA/", "date": "2026-02-24", "tier": "general"},
+        {"title": "Samsung foundry ecosystem rebounds as Korea design houses restart mass production", "url": "https://biz.chosun.com/en/en-it/2026/01/28/5Q5PCIYLAZCFZAW4MZX7MRYJW4/", "date": "2026-01-28", "tier": "general"}
+      ]
+    },
+    "management": {
+      "rating": "unknown",
+      "view": "只确认 CEO 为 Gyudong Jung（정규동）及一名副社长姓名；任期、持股、执行记录与近期人事变动均未查到。",
+      "evidence": [
+        "CEO：Gyudong Jung（stockanalysis 公司资料）",
+        "执行副社长 Woo Jung-ho 在 2026 年 10 月项目公告中代表公司发言"
+      ],
+      "sources": [
+        {"title": "Gaonchips (KOSDAQ:399720) Company Profile & Description", "url": "https://stockanalysis.com/quote/kosdaq/399720/company/", "date": "2026-10-21", "tier": "authoritative"},
+        {"title": "Gaonchips to Develop AI Chip for Next-Generation Drones Using Samsung 8nm Process", "url": "https://www.thelec.net/news/articleView.html?idxno=14732", "date": "2026-10-20", "tier": "general"}
+      ]
+    },
+    "industry": {
+      "rating": "positive",
+      "view": "AI ASIC 需求带动 Samsung Foundry 设计合作伙伴的量产项目回升，但媒体也指出 design house 单价与利润率有限、客户扩张慢，竞争对手包括 ADTechnology、Semifive 等。",
+      "evidence": [
+        "FnGuide 一致预期：Gaonchips 2026 年营收约 1,078 亿韩元（+78.2%）、营业利润约 87 亿韩元，扭亏为盈（2026-01 报道）",
+        "ADTechnology、Gaonchips、Semifive 三家 2026 年预期平均营收增速 70.4%",
+        "媒体指出 design house 业务单价与利润率有限、客户基础难以快速扩大"
+      ],
+      "sources": [
+        {"title": "Samsung foundry ecosystem rebounds as Korea design houses restart mass production", "url": "https://biz.chosun.com/en/en-it/2026/01/28/5Q5PCIYLAZCFZAW4MZX7MRYJW4/", "date": "2026-01-28", "tier": "general"},
+        {"title": "Korea design houses win overseas ASIC orders as AI boom lifts Samsung foundry", "url": "https://biz.chosun.com/en/en-it/2026/03/13/EMVJDSQT4BC7REBRWGVGGJ6C2U/", "date": "2026-03-13", "tier": "general"}
+      ]
+    },
+    "product": {
+      "rating": "positive",
+      "view": "已有 5nm on-device AI 芯片开发与量产经验，并参与 2nm GAA 加 2.5D 封装的 AI 加速器设计；研发投入金额未查到。",
+      "evidence": [
+        "公司有 5nm on-device AI 芯片开发与量产经验，并为日本客户承担 2nm GAA 工艺加 2.5D 封装的 AI 加速器设计",
+        "2026 年 10 月参与韩国 K-On-Device AI 半导体技术开发项目，基于 Samsung 8nm 工艺负责整芯片物理设计与最终验证",
+        "2026 年初设立全球战略组织并招聘定制芯片专家，以拓展海外订单"
+      ],
+      "sources": [
+        {"title": "Gaonchips to Develop AI Chip for Next-Generation Drones Using Samsung 8nm Process", "url": "https://www.thelec.net/news/articleView.html?idxno=14732", "date": "2026-10-20", "tier": "general"},
+        {"title": "Korea design houses win overseas ASIC orders as AI boom lifts Samsung foundry", "url": "https://biz.chosun.com/en/en-it/2026/03/13/EMVJDSQT4BC7REBRWGVGGJ6C2U/", "date": "2026-03-13", "tier": "general"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "季度业绩波动大，2025 年曾多季负毛利；全年预期需要下半年大幅放量才能实现。项目集中于单一代工生态与少数海外客户。公司披露的风险与诉讼未查阅。",
+      "evidence": [
+        "2025 Q1–Q3 毛利率分别为 -22.3%、-22.5%、-42.2%，营业利润率最低 -65.8%（2025 Q3）",
+        "2026 上半年营收约 418.8 亿韩元；若达成 FnGuide 全年约 1,078 亿预期，下半年需约 659 亿",
+        "2026-06-30 现金及投资约 591.6 亿韩元、总债务约 215.5 亿，净现金约 376.1 亿"
+      ],
+      "sources": [
+        {"title": "Gaonchips (KOSDAQ:399720) Financials – Quarterly", "url": "https://stockanalysis.com/quote/kosdaq/399720/financials/?p=quarterly", "date": "2026-10-21", "tier": "authoritative"},
+        {"title": "Samsung foundry ecosystem rebounds as Korea design houses restart mass production", "url": "https://biz.chosun.com/en/en-it/2026/01/28/5Q5PCIYLAZCFZAW4MZX7MRYJW4/", "date": "2026-01-28", "tier": "general"}
+      ]
+    }
+  },
+  "bull": [
+    "2nm 日本 AI 芯片等项目由开发转入量产，可能提高量产营收占比和收入可见度",
+    "AI ASIC 需求扩大与 Samsung Foundry 先进制程订单回升，带动设计合作伙伴业务",
+    "资产负债表为净现金，财务压力较小"
+  ],
+  "bear": [
+    "毛利率约 14%、营业利润率约 1.5%，design house 模式利润空间有限",
+    "上半年仍为营业亏损，全年预期依赖下半年项目按时放量",
+    "依赖 Samsung Foundry 生态与少数大项目，项目延期会造成业绩大幅波动"
+  ],
+  "open_questions": [
+    "单一客户（含 Samsung 相关项目、PFN）的营收占比，需查 DART 半年报",
+    "557 亿韩元日本项目与 PFN 2nm 项目是否为同一项目，量产时间是否如期",
+    "2026 Q2 毛利率回升来自量产营收占比提升还是一次性项目结算",
+    "2026-10-01 DART 更正公告（合约截止日由 2026-10-01 延至 2027-10-01）涉及的合约内容，本次未能打开原文"
+  ]
+}

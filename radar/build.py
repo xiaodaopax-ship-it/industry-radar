@@ -5,6 +5,7 @@ import json
 import os
 import statistics as st
 
+from . import research
 from . import score as S
 from .yh import first_sentence
 from .classify import memberships, sectors
@@ -49,6 +50,19 @@ def _oneliner(ticker, m, notes, zh):
         return zh[ticker], "zh"
     # snapshots taken before first_sentence() existed still hold the long text; normalise here too
     return first_sentence(((m or {}).get("profile") or {}).get("summary") or ""), "en"
+
+
+DIMS = ["business", "customers", "management", "industry", "product", "risks"]
+
+
+def _qual(rs):
+    """Summarise the six qualitative ratings into one label (counts only, no weighting)."""
+    if not rs:
+        return {"label": "待研究", "pos": 0, "neg": 0, "unknown": len(DIMS)}
+    rt = [((rs.get("dimensions") or {}).get(k) or {}).get("rating", "unknown") for k in DIMS]
+    pos, neg, unk = rt.count("positive"), rt.count("negative"), rt.count("unknown")
+    label = ("资料不足" if unk >= 3 else "偏正面" if pos - neg >= 2 else "偏负面" if neg - pos >= 2 else "中性")
+    return {"label": label, "pos": pos, "neg": neg, "unknown": unk}
 
 
 def build(raw):
@@ -109,6 +123,15 @@ def build(raw):
         e["warn"] = sum(1 for i in e["checks"] if i["status"] == "warn")
         r["name"] = " ".join(str(r.get("name") or r["ticker"]).replace("\xa0", " ").split())
         out.append({**{k: v for k, v in r.items() if k not in ("mem", "_form4")}, **e})
+
+    # ---- qualitative layer: sourced research files + automatically extracted filing evidence
+    R, A = research.manual(), research.latest_auto()
+    for e in out:
+        rs = R.get(e["ticker"])
+        e["research"], e["auto"] = rs, A.get(e["ticker"])
+        e["qual"] = _qual(rs)
+        e["final"] = (f"数据面：{e['level']}；综合面：{e['qual']['label']}"
+                      + (f"（{'已人工审核' if rs.get('status') == 'reviewed' else '调研草稿，待人工审核'}，{rs.get('as_of', '')}）。{rs.get('summary', '')}" if rs else "。还没有综合调研，业务、管理层、行业和产品维度待研究。"))
 
     # ---- sector and segment aggregates
     overview = {}

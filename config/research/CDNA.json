@@ -1,0 +1,107 @@
+{
+  "ticker": "CDNA",
+  "name": "CareDx, Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "移植无创分子检测龙头，2026Q2营收+52%并已盈利，但约+99pp的营业利润率跃升主要来自出售Lab Products的1.13亿美元一次性收益（不是诉讼计提/冲回），且营收含1600万美元前期补收；Medicare依赖度高、与Natera专利诉讼未了结。",
+  "dimensions": {
+    "business": {
+      "rating": "positive",
+      "view": "核心是AlloSure/AlloMap等移植后监测检测服务，2026年剥离Lab Products、收购Naveris(NavDx)，转向移植+专科肿瘤+细胞治疗检测。Q2营收含1600万美元前期补收，剔除后检测服务收入+28%。",
+      "evidence": [
+        "2026Q2总营收1.319亿美元(+52%)，检测服务1.0亿美元(+61%)，检测量约5.8万(+17%)；剔除前期补收后检测服务收入+28%",
+        "2026Q2 GAAP营业利润1.132亿美元(营业利润率约86%)，其中出售Lab Products收益1.130亿美元；剔除后营业利润约26万美元(约0.2%)，2025Q2为-1110万美元(约-12.8%)",
+        "2026Q2调整后EBITDA 2480万美元(利润率19%)，2025Q2为530万美元；2026全年营收指引上调至4.9–5.0亿美元",
+        "2026-04宣布以1.6亿美元首付+最高1亿美元里程碑收购Naveris，其2025年未审计收入3400万美元；Q2已完成交割"
+      ],
+      "sources": [
+        {"title": "CareDx Announces Second Quarter 2026 Financial Results", "url": "https://www.caredx.com/newsroom/press-releases/caredx-announces-second-quarter-2026-financial-results", "date": "2026-07-30", "tier": "primary"},
+        {"title": "CareDx Announces Agreement to Acquire Naveris", "url": "https://investors.caredx.com/news/news-details/2026/CareDx-Announces-Agreement-to-Acquire-Naveris-A-Leader-in-Viral-Mediated-Cancer-MRD-Surveillance-Testing/default.aspx", "date": "2026-04-28", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "neutral",
+      "view": "收入集中于付费方而非单一企业客户：Medicare约占检测服务收入的近一半，比例逐年下降。2026年CMS已最终确定AlloSure/AlloMap的Medicare覆盖政策，短期不确定性下降，但对单一付费方的依赖仍是结构性特征。",
+      "evidence": [
+        "2025财年Medicare贡献检测服务收入约46%(2024年50%，2023年53%)；Medicare患者检测量占25%",
+        "2026Q2检测服务收入占总营收约76%(1.0亿/1.32亿美元)；Lab Products已于2026-06-30出售，未来收入结构更集中于检测服务",
+        "2026Q2财报称CMS已最终确定AlloSure与AlloMap的Medicare覆盖政策(新闻稿未披露具体费率影响)"
+      ],
+      "sources": [
+        {"title": "CareDx Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1217234/000121723426000018/cdna-20251231.htm", "date": "2026-02-25", "tier": "primary"},
+        {"title": "CareDx Announces Second Quarter 2026 Financial Results", "url": "https://www.caredx.com/newsroom/press-releases/caredx-announces-second-quarter-2026-financial-results", "date": "2026-07-30", "tier": "primary"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "CEO John W. Hanna于2024年4月上任后推动剥离与并购并实现盈利改善，执行记录目前偏正面；但CFO岗位一年内更替，现由COO Keith Kennedy兼任。高管持股比例未查到（需看DEF 14A）。",
+      "evidence": [
+        "John W. Hanna的聘用信日期为2024-03-24(10-K附件，8-K披露于2024-04-16)，现任总裁兼CEO",
+        "2026-02-24公告：COO Keith Kennedy自2026-02-26兼任CFO，前任CFO Nathan Smith卸任；Kennedy曾任Veracyte COO/CFO",
+        "Hanna于2025-12-12采纳10b5-1计划，拟出售最多242,434股，计划至2027-03-26"
+      ],
+      "sources": [
+        {"title": "CareDx Announces Appointment of Keith Kennedy as Chief Operating Officer and Chief Financial Officer", "url": "https://investors.caredx.com/news/news-details/2026/CareDx-Announces-Appointment-of-Keith-Kennedy-as-Chief-Operating-Officer-and-Chief-Financial-Officer/default.aspx", "date": "2026-02-24", "tier": "primary"},
+        {"title": "CareDx Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1217234/000121723426000018/cdna-20251231.htm", "date": "2026-02-25", "tier": "primary"}
+      ]
+    },
+    "industry": {
+      "rating": "neutral",
+      "view": "移植后无创监测（dd-cfDNA等）渗透仍在提升，需求由移植中心采用和医保覆盖驱动；但竞争者多，Natera等已有商业化产品，多家企业计划推出试剂盒产品，价格与份额压力需持续跟踪。",
+      "evidence": [
+        "10-K列出移植后监测领域已商业化的竞争者：Natera、Eurofins Transplant Genomics、Devyser、iMDx、Verici等",
+        "10-K称Thermo Fisher、Bio-Rad、EuroBio等拟进入移植后监测试剂盒市场",
+        "2026Q2检测量约5.8万次，同比+17%"
+      ],
+      "sources": [
+        {"title": "CareDx Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1217234/000121723426000018/cdna-20251231.htm", "date": "2026-02-25", "tier": "primary"},
+        {"title": "CareDx Announces Second Quarter 2026 Financial Results", "url": "https://www.caredx.com/newsroom/press-releases/caredx-announces-second-quarter-2026-financial-results", "date": "2026-07-30", "tier": "primary"}
+      ]
+    },
+    "product": {
+      "rating": "positive",
+      "view": "产品线从移植向专科肿瘤(NavDx)与细胞治疗(AlloHeme)延伸，并持续积累临床证据以支撑医保覆盖。研发投入约占营收两成，2025年绝对额基本持平。",
+      "evidence": [
+        "2025财年研发费用7140万美元，约占营收3.798亿美元的18.8%(2024年7250万美元)",
+        "2026Q2：AlloHeme提交临床验证论文并推进CLIA准备；HistoMap Kidney数据发表于Transplantation",
+        "NavDx为HPV相关癌症MRD监测检测，2023年获Medicare覆盖，累计商业检测超13万次(收购公告口径)"
+      ],
+      "sources": [
+        {"title": "CareDx Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1217234/000121723426000018/cdna-20251231.htm", "date": "2026-02-25", "tier": "primary"},
+        {"title": "CareDx Announces Second Quarter 2026 Financial Results", "url": "https://www.caredx.com/newsroom/press-releases/caredx-announces-second-quarter-2026-financial-results", "date": "2026-07-30", "tier": "primary"},
+        {"title": "CareDx Announces Agreement to Acquire Naveris", "url": "https://investors.caredx.com/news/news-details/2026/CareDx-Announces-Agreement-to-Acquire-Naveris-A-Leader-in-Viral-Mediated-Cancer-MRD-Surveillance-Testing/default.aspx", "date": "2026-04-28", "tier": "primary"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "主要风险为诉讼与报销：Natera专利案9630万美元陪审团裁决虽被推翻但仍可能上诉；前员工qui tam诉讼仍在进行；收入对Medicare费率和覆盖政策敏感。利润率口径受一次性项目扰动大（2024年诉讼冲回、2026年出售收益）。",
+      "evidence": [
+        "2024-01陪审团裁定侵犯Natera专利并判赔约9630万美元，2023年计提、2024年因法院推翻裁决而冲回；10-K称若Natera上诉成功，损失最高可达该金额加利息",
+        "DOJ已于2024-10拒绝介入并据公司理解关闭调查；但原告人(Relator)于2025-04提交修订诉状，案件仍在动议阶段(截至10-K)",
+        "2024年利润表中诉讼费用为-9630万美元(冲回)，2025年为570万美元；2026Q2含1.13亿美元出售收益——跨期利润率比较需剔除这些项目"
+      ],
+      "sources": [
+        {"title": "CareDx Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1217234/000121723426000018/cdna-20251231.htm", "date": "2026-02-25", "tier": "primary"},
+        {"title": "CareDx Announces Second Quarter 2026 Financial Results", "url": "https://www.caredx.com/newsroom/press-releases/caredx-announces-second-quarter-2026-financial-results", "date": "2026-07-30", "tier": "primary"}
+      ]
+    }
+  },
+  "bull": [
+    "剔除一次性收益后经营层面已接近盈亏平衡并转正，调整后EBITDA利润率从6%升至19%，全年指引两次上调",
+    "剥离低增长Lab Products、收购NavDx，转向高重复检测频次的专科检测服务，2026-06-30现金及等价物3.74亿美元且未列示借款（Naveris 1.6亿美元首付是否已反映在内待核实）",
+    "CMS已最终确定AlloSure/AlloMap的Medicare覆盖政策，报销层面的短期不确定性下降"
+  ],
+  "bear": [
+    "52%的营收增速包含1600万美元前期补收，剔除后检测服务增速约28%，后续季度存在高基数",
+    "Natera专利纠纷与qui tam诉讼仍未终结，潜在赔付上限约9630万美元加利息",
+    "移植监测市场竞争者增多(含试剂盒路线)，可能压低单价；Medicare约占检测服务收入46%"
+  ],
+  "open_questions": [
+    "Natera是否已就推翻裁决的判决提起上诉、当前进展如何？（10-K后未查到更新）",
+    "剔除前期补收后的可持续每次检测平均收入是多少？2026Q3财报(10-29发布)是否延续？",
+    "NavDx整合后肿瘤业务的增速与毛利率，以及1亿美元收入里程碑的触发条件",
+    "管理层与董事持股比例及薪酬结构（未查阅DEF 14A）"
+  ]
+}

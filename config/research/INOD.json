@@ -1,0 +1,114 @@
+{
+  "ticker": "INOD",
+  "name": "Innodata Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "为大型科技公司与前沿 AI 实验室提供训练数据、评测与数据工程服务，2026 Q2 营收同比 +58%、GAAP 毛利率 46%；客户集中度极高（两家客户合计约 71%）、合同以项目制为主，同时正处于 CEO 交接期，且创始人 2026 年 5–6 月大额减持、公司开设 3 亿美元 ATM，需人工重点复核。",
+  "dimensions": {
+    "business": {
+      "rating": "neutral",
+      "view": "以人力加平台交付 AI 训练/评测数据，收入随大客户项目扩张而快速增长，毛利率因自有数据集与预训练项目提升；但本质仍为项目制服务，进入门槛和差异化需持续验证。",
+      "evidence": [
+        "2026 Q2 营收 9,214 万美元，同比 +58%；GAAP 毛利率 46%（上年同期 39%），调整后毛利率 49%",
+        "2026 Q2 净利润 1,441 万美元，上年同期 722 万美元；调整后 EBITDA 2,540 万美元",
+        "2025 财年营收 2.517 亿美元，其中 DDS 分部 2.208 亿美元（约 88%）",
+        "截至 2026-06-30 现金及短期投资 2.504 亿美元，其中含客户预付的代付成本，扣除后约 1.34 亿美元（公司口径）"
+      ],
+      "sources": [
+        {"title": "Innodata Reports Record Second Quarter 2026 Results", "url": "https://investor.innodata.com/news/news-details/2026/Innodata-Reports-Record-Second-Quarter-2026-Results/default.aspx", "date": "2026-08-06", "tier": "primary"},
+        {"title": "Innodata Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/903651/000110465926020655/inod-20251231x10k.htm", "date": "2026-02-26", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "negative",
+      "view": "单一客户依赖从 2025 年的 58% 降至 Q2 的 37%，但第二大客户升至 34%，两家合计仍约 71%；合同多为可随时终止的项目制，任一客户调整计划都会显著影响营收。",
+      "evidence": [
+        "2025 财年最大客户（DDS 分部）占营收约 58%（2024 年 48%），无其他客户超过 10%",
+        "2026 Q2 最大客户占约 37%（上年同期 58%），另一客户占约 34%；2026 上半年分别约 46% 与 26%",
+        "截至 2025-12-31，63%（2,920 万美元）的应收账款来自单一客户",
+        "公司称客户包括五家 “Magnificent Seven” 公司及多家 AI 实验室；Q2 新增一家前沿实验室客户"
+      ],
+      "sources": [
+        {"title": "Innodata Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/903651/000110465926020655/inod-20251231x10k.htm", "date": "2026-02-26", "tier": "primary"},
+        {"title": "Innodata Form 10-Q for quarter ended 2026-06-30", "url": "https://www.sec.gov/Archives/edgar/data/903651/000110465926092021/inod-20260630x10q.htm", "date": "2026-08-06", "tier": "primary"},
+        {"title": "Innodata Reports Record Second Quarter 2026 Results", "url": "https://investor.innodata.com/news/news-details/2026/Innodata-Reports-Record-Second-Quarter-2026-Results/default.aspx", "date": "2026-08-06", "tier": "primary"}
+      ]
+    },
+    "management": {
+      "rating": "negative",
+      "view": "创始人 Abuhoff 自 1997 年任 CEO，2026-09-30 起由 Rahul Singhal 接任、本人转任执行董事长；CFO 刚于 7 月到任。交接为计划内安排，但同期多名内部人大额减持，管理层变动集中。",
+      "evidence": [
+        "Jack Abuhoff 1997 年起任 CEO，2026-09-30 转任执行董事长；Rahul Singhal（原总裁兼首席营收官）接任总裁兼 CEO",
+        "Jayant Chauhan 于 2026-07-06 起任 CFO（此前为 Mphasis 并购高级副总裁），原临时 CFO Marissa Espineli 转任首席会计官",
+        "2026 年委托书：Abuhoff 实益持股约 324 万股（9.4%），董监高合计 11.8%",
+        "MarketBeat 汇总的 Form 4 数据显示 Abuhoff 于 2026-05-12 至 06-16 卖出约 108 万股、约 1.08 亿美元；COO 及多名董事同期亦有卖出"
+      ],
+      "sources": [
+        {"title": "Innodata Reports Record Second Quarter 2026 Results", "url": "https://investor.innodata.com/news/news-details/2026/Innodata-Reports-Record-Second-Quarter-2026-Results/default.aspx", "date": "2026-08-06", "tier": "primary"},
+        {"title": "Innodata Form 8-K (Item 5.02, CFO appointment)", "url": "https://www.sec.gov/Archives/edgar/data/903651/000110465926075184/tm2617967d1_8k.htm", "date": "2026-06-17", "tier": "primary"},
+        {"title": "Innodata DEF 14A Proxy Statement 2026", "url": "https://www.sec.gov/Archives/edgar/data/903651/000110465926048201/tm261509d1_def14a.htm", "date": "2026-04-24", "tier": "primary"},
+        {"title": "Innodata (INOD) Insider Buying and Selling Activity", "url": "https://www.marketbeat.com/stocks/NASDAQ/INOD/insider-trades/", "date": "2026-09-14", "tier": "general"}
+      ]
+    },
+    "industry": {
+      "rating": "neutral",
+      "view": "需求来自大型科技公司与 AI 实验室的模型训练、评测和智能体强化学习投入，增速高；但竞争者众多（Scale AI、Surge AI、Mercor、TELUS Digital、Appen 及大型 IT 外包商），客户资本开支变化将直接传导。",
+      "evidence": [
+        "10-K 列出竞争者：Appen、CloudFactory、Surge AI、Invisible Technologies、Turing、Mercor、TELUS Digital、Scale AI，以及 Accenture、Cognizant、Genpact、Infosys、TCS 等",
+        "公司重申 2026 全年营收增长 40% 以上的指引，并称有未计入指引的大型潜在项目（2026-08-06）",
+        "公司在前瞻性声明中列明风险：客户对大语言模型的投入、项目可能被终止或缩减、新竞争者出现"
+      ],
+      "sources": [
+        {"title": "Innodata Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/903651/000110465926020655/inod-20251231x10k.htm", "date": "2026-02-26", "tier": "primary"},
+        {"title": "Innodata Reports Record Second Quarter 2026 Results", "url": "https://investor.innodata.com/news/news-details/2026/Innodata-Reports-Record-Second-Quarter-2026-Results/default.aspx", "date": "2026-08-06", "tier": "primary"}
+      ]
+    },
+    "product": {
+      "rating": "unknown",
+      "view": "公司描述了智能体强化学习环境、公开评测基准、AI 安全编码数据集与机器人数据采集等新方向，但财报未单列研发费用，无法计算研发占营收比，新产品的收入贡献也未披露。",
+      "evidence": [
+        "2026 Q2 新签与最大客户的长程智能体个性化项目，以及电脑使用类智能体强化学习环境项目（公司口径）",
+        "发布两项公开评测基准及 AI Cyber Training Suite 第一阶段（12 个数据集与评测系统）",
+        "10-K 称研发通过 Innodata Labs、技术实践与平台工程团队开展，但未披露研发费用金额",
+        "截至 2026-06-30 累计已完成资本化软件 2,780 万美元，在建 320 万美元"
+      ],
+      "sources": [
+        {"title": "Innodata Reports Record Second Quarter 2026 Results", "url": "https://investor.innodata.com/news/news-details/2026/Innodata-Reports-Record-Second-Quarter-2026-Results/default.aspx", "date": "2026-08-06", "tier": "primary"},
+        {"title": "Innodata Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/903651/000110465926020655/inod-20251231x10k.htm", "date": "2026-02-26", "tier": "primary"},
+        {"title": "Innodata Form 10-Q for quarter ended 2026-06-30", "url": "https://www.sec.gov/Archives/edgar/data/903651/000110465926092021/inod-20260630x10q.htm", "date": "2026-08-06", "tier": "primary"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "核心风险是客户集中与项目可随时终止；另有 3 亿美元 ATM 带来潜在稀释、菲律宾旧劳资判决的或有负债。证券集体诉讼已于 2026-06 被驳回（with prejudice）。现金增长大部分来自客户预付款。",
+      "evidence": [
+        "2026-08-06 与 Goldman Sachs 等签订最高 3 亿美元的按市价发行（ATM）协议",
+        "截至 2026-06-30 客户预付款 6,696 万美元（2025 年底 181 万美元），上半年经营现金流 1.644 亿美元主要受此及应付款增加推动",
+        "菲律宾前子公司 2008 年劳资判决潜在支付约 530 万美元加法定利息，仍在诉讼中",
+        "2026-06-10 新泽西联邦地区法院驳回 D’Agostino v. Innodata 证券集体诉讼（with prejudice）"
+      ],
+      "sources": [
+        {"title": "Innodata Form 8-K (Item 1.01, equity distribution agreement)", "url": "https://www.sec.gov/Archives/edgar/data/903651/000110465926092133/tm2622364d1_8k.htm", "date": "2026-08-06", "tier": "primary"},
+        {"title": "Innodata Form 10-Q for quarter ended 2026-06-30", "url": "https://www.sec.gov/Archives/edgar/data/903651/000110465926092021/inod-20260630x10q.htm", "date": "2026-08-06", "tier": "primary"}
+      ]
+    }
+  },
+  "bull": [
+    "已进入多家头部科技公司与前沿实验室供应链，第二大客户快速放量，客户结构较 2025 年有所分散",
+    "自有数据集可多客户复用、预训练与智能体强化学习等高价值项目推高毛利，商业模式向“数据产品+服务”演进",
+    "联邦政府与企业 AI 被列为新方向，若落地可带来比项目制更稳定的收入"
+  ],
+  "bear": [
+    "两家客户合计约 71% 营收且合同多为项目制、可随时缩减，客户自建数据团队或转向竞争对手的风险高",
+    "AI 数据服务赛道竞争者众多且资金充足，价格与人才竞争可能压缩当前高于目标的毛利率",
+    "CEO/CFO 同期更替、创始人大额减持与 3 亿美元 ATM 叠加，治理与股东利益一致性需持续观察"
+  ],
+  "open_questions": [
+    "输入数据称内部人近 180 天净卖出约占市值 1.7%；按 MarketBeat 列示的 2026-05 至 09 卖出额（合计逾 1.4 亿美元）估算，比例可能更高，取决于所用市值时点，需用 Form 4 原件核实，并确认是否为 10b5-1 计划",
+    "客户预付款对应的“代付成本”业务性质、毛利水平以及是否影响营收确认口径",
+    "ATM 至今是否已实际发行、发行规模多少",
+    "公司未披露研发费用，研发投入强度与资本化软件政策需人工确认"
+  ]
+}

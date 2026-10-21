@@ -1,0 +1,113 @@
+{
+  "ticker": "CWEN",
+  "name": "Clearway Energy, Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "以长期合同为主的风光储及灵活电源资产持有平台，2026年二季度营收同比增约23%，增长主要来自收购、改造和发起方注入的项目；但杠杆较高，2026年 CAFD 指引因风资源偏弱下调，并依赖发起方 Clearway Energy Group 提供项目和运营服务。",
+  "dimensions": {
+    "business": {
+      "rating": "positive",
+      "view": "收入主要来自与公用事业和工商业用户签订的长期购电合同，可再生能源与储能板块合同加权平均剩余期限约12年（2025年末，按 CAFD 计），现金流可预期性较好；增长靠收购、改造和发起方项目注入。",
+      "evidence": [
+        "截至2026年二季度：总装机约13.9 GW（27个州），其中风光储11.1 GW，灵活电源超过2.8 GW",
+        "2026年二季度营业收入4.81亿美元，2025年同期3.92亿美元（约+23%）；调整后 EBITDA 4.09亿美元，CAFD 1.67亿美元",
+        "2025财年营业收入14.29亿美元，2024财年13.71亿美元（约+4%），全年增速明显低于单季增速",
+        "2025年末可再生能源与储能板块购电合同加权平均剩余期限约12年（按 CAFD 计）"
+      ],
+      "sources": [
+        {"title": "Clearway Energy, Inc. Reports Second Quarter 2026 Financial Results", "url": "https://investor.clearwayenergy.com/news-releases/news-release-details/clearway-energy-inc-reports-second-quarter-2026-financial", "date": "2026-08-05", "tier": "primary"},
+        {"title": "Clearway Energy, Inc. Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1567683/000162828026010952/cwen-20251231.htm", "date": "2026-02-24", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "neutral",
+      "view": "购电方以公用事业为主，合同期限长，但对加州两家公用事业依赖较高：2025财年 SCE 和 PG&E 合计约占营收38%。新签合同多数为投资级对手方。",
+      "evidence": [
+        "2025财年最大客户 SCE 占合并营收22%，PG&E 占16%",
+        "2025年末客户包括38家地方公用事业和26家工商业用户",
+        "2026年6月 Elbow Creek、Langford 风电场原商品合约重组，各签订15年期购电合同（Langford 对手方为投资级）"
+      ],
+      "sources": [
+        {"title": "Clearway Energy, Inc. Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1567683/000162828026010952/cwen-20251231.htm", "date": "2026-02-24", "tier": "primary"},
+        {"title": "Clearway Energy, Inc. SEC 10-K Report (summary)", "url": "https://www.tradingview.com/news/tradingview:645ce540f5ab1:0-clearway-energy-inc-sec-10-k-report/", "date": "2026-02-24", "tier": "general"},
+        {"title": "Clearway Energy, Inc. Reports Second Quarter 2026 Financial Results", "url": "https://investor.clearwayenergy.com/news-releases/news-release-details/clearway-energy-inc-reports-second-quarter-2026-financial", "date": "2026-08-05", "tier": "primary"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "CEO 同时任发起方 CEG 的 CEO，利益一致，但存在关联交易冲突；公司自2025年起无自有员工，运营依赖 CEG 服务协议。2026年 CFO 与总法律顾问相继更替。",
+      "evidence": [
+        "Craig Cornelius 自2024年7月任总裁兼 CEO，同时自2018年起任 CEG CEO",
+        "2026年9月8日公告：CFO Sarah Rubenstein（2023年4月起任职）于2026年10月1日转任 CEG 转型办公室负责人，由 CEG CFO Steven Ryder 兼任公司 CFO",
+        "2026年5月15日公告：总法律顾问 Kevin Malcarney 于2026年6月1日退休",
+        "自2025年1月1日起全部员工转入 CEG，公司按 Master Services Agreement 取得运营服务"
+      ],
+      "sources": [
+        {"title": "Clearway Energy, Inc. Announces Senior Leadership Changes", "url": "https://finance.yahoo.com/energy/articles/clearway-energy-inc-announces-senior-203000013.html", "date": "2026-09-08", "tier": "primary"},
+        {"title": "Clearway Energy, Inc. Form 8-K (Item 5.02, General Counsel retirement)", "url": "https://www.sec.gov/Archives/edgar/data/1567683/000110465926061748/tm2614750d1_8k.htm", "date": "2026-05-15", "tier": "primary"},
+        {"title": "Clearway Energy, Inc. Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1567683/000162828026010952/cwen-20251231.htm", "date": "2026-02-24", "tier": "primary"}
+      ]
+    },
+    "industry": {
+      "rating": "neutral",
+      "view": "公用事业和大型用电方对长期清洁电力合同的需求仍在增加，公司称发起方新签2 GW以上合同；但2025年7月生效的联邦税法缩短了风光项目税收抵免窗口，后续项目经济性存在变化。",
+      "evidence": [
+        "2026年二季度：发起方后期开发管线13.5 GW，近期新签超过2 GW 合同，对应2027–2030年投运",
+        "10-K 披露：按2025年7月4日立法，2026年7月4日后开工的风光项目须在2027年底前投运才可获得相关税收抵免",
+        "2026年10月20日运营预告：三季度风光资源与下调后的指引假设基本一致"
+      ],
+      "sources": [
+        {"title": "Clearway Energy, Inc. Reports Second Quarter 2026 Financial Results", "url": "https://investor.clearwayenergy.com/news-releases/news-release-details/clearway-energy-inc-reports-second-quarter-2026-financial", "date": "2026-08-05", "tier": "primary"},
+        {"title": "Clearway Energy, Inc. Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1567683/000162828026010952/cwen-20251231.htm", "date": "2026-02-24", "tier": "primary"},
+        {"title": "Clearway Energy, Inc. Operating Data Preview 3Q 2026 (8-K Ex. 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/1567683/000110465926117127/tm2627880d1_ex99-1.htm", "date": "2026-10-20", "tier": "primary"}
+      ]
+    },
+    "product": {
+      "rating": "positive",
+      "view": "投资项目节奏清晰：老风场改造（repowering）、Texas 合同重签、发起方项目注入（Honeycomb II、Chimney Canyon）均有具体金额和投运时间；与数据中心配套的数字基础设施尚处早期。",
+      "evidence": [
+        "2026年二季度：2026/2027年改造项目均按计划推进，Texas 机组合同改善已完成",
+        "Honeycomb Phase II：Utah 210 MW 储能，预计2027年投运，潜在出资约1.1亿美元，需独立董事审批",
+        "Chimney Canyon：Arizona 975 MW 光伏加储能，预计2029年投运，潜在出资约3.5亿美元，尚未收到注入要约",
+        "管理层2030年 CAFD/股目标2.90–3.10美元，为公司自定目标，非确定结果"
+      ],
+      "sources": [
+        {"title": "Clearway Energy, Inc. Reports Second Quarter 2026 Financial Results", "url": "https://investor.clearwayenergy.com/news-releases/news-release-details/clearway-energy-inc-reports-second-quarter-2026-financial", "date": "2026-08-05", "tier": "primary"},
+        {"title": "Clearway Energy, Inc. Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1567683/000162828026010952/cwen-20251231.htm", "date": "2026-02-24", "tier": "primary"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "主要风险是高负债、天气资源波动、对外部融资和发起方的依赖，以及2025年报披露的 HLBV 会计内控重大缺陷。2026年已因风资源偏弱下调 CAFD 指引。",
+      "evidence": [
+        "2025年末负债约86.74亿美元；2026年6月30日长期借款84.91亿美元，另有一年内到期5.70亿美元",
+        "2026年 CAFD 指引由4.70–5.10亿美元下调至4.30–4.70亿美元（2026-08-05），原因是上半年风资源偏弱",
+        "2025年10-K 披露 HLBV 会计相关内控重大缺陷；2026年二季度10-Q 称披露控制有效，但未查到明确的整改完成表述",
+        "总流动性由2025年末10.61亿美元降至2026年6月末9.85亿美元"
+      ],
+      "sources": [
+        {"title": "Clearway Energy, Inc. Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1567683/000162828026010952/cwen-20251231.htm", "date": "2026-02-24", "tier": "primary"},
+        {"title": "Clearway Energy, Inc. Form 10-Q for quarter ended June 30, 2026", "url": "https://www.sec.gov/Archives/edgar/data/1567683/000162828026053421/cwen-20260630.htm", "date": "2026-08-05", "tier": "primary"},
+        {"title": "Clearway Energy, Inc. Reports Second Quarter 2026 Financial Results", "url": "https://investor.clearwayenergy.com/news-releases/news-release-details/clearway-energy-inc-reports-second-quarter-2026-financial", "date": "2026-08-05", "tier": "primary"}
+      ]
+    }
+  },
+  "bull": [
+    "长期合同占比高、剩余期限约12年，现金流可预期性强于一般发电商",
+    "发起方开发管线13.5 GW 并持续签约，为公司提供可选的项目注入来源",
+    "老风场改造和合同重签可在不新增土地和并网的情况下提升存量资产收益"
+  ],
+  "bear": [
+    "负债规模大，增长依赖外部股债融资，利率上行会压缩投资回报",
+    "风光发电受天气影响，2026年已因风资源偏弱下调全年指引",
+    "SCE 与 PG&E 合计约占营收38%，且关联交易需独立董事审批，存在利益冲突风险"
+  ],
+  "open_questions": [
+    "2025年10-K 披露的 HLBV 内控重大缺陷是否已完成整改？二季度10-Q 中未找到明确说法",
+    "二季度营收同比约+23%，但2025全年仅约+4%；增速中多少来自收购并表、多少来自内生增长？",
+    "CFO 由发起方 CFO 兼任后，关联交易定价与审批是否有额外的独立性安排？",
+    "数字基础设施（数据中心配套电源）业务的资本投入规模和回报尚未披露"
+  ]
+}

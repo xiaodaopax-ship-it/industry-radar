@@ -6,6 +6,7 @@
 
 - 接入官方海外数据源：台湾 TWSE OpenAPI / MOPS，韩国 DART，日本 EDINET（日本季度数据）。
 - 新行业的配置：在 `config/sectors.json` 里增加行业、环节、龙头和需求证据。
+- 公司调研：按 `config/research/README.md` 的格式提交调研文件，或者核对已有草稿后把 `status` 改为 `reviewed`。每条判断必须附出处。
 - 更好的分类规则，减少 SIC 误归类。
 - 排序因子的回测。
 

@@ -1,0 +1,113 @@
+{
+  "ticker": "SITM",
+  "name": "SiTime Corporation",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "MEMS 精密计时龙头，2026 Q2 营收同比 +127%、由 AI 数据中心（CED）驱动，并于 7 月完成约 15 亿美元现金加约 356 万股的 Renesas 计时业务收购；增长与毛利质量强，但 GAAP 经营利润率仅约 5%，且整合、分销/大客户集中、可转债与股本稀释风险需持续跟踪。",
+  "dimensions": {
+    "business": {
+      "rating": "positive",
+      "view": "以 MEMS 振荡器/谐振器加时钟芯片提供全品类精密计时，代工模式、高毛利；收购 Renesas 时钟业务后补齐时钟产品线。GAAP 盈利刚转正，非 GAAP 与 GAAP 差距大（股权激励、收购费用）。",
+      "evidence": [
+        "2026 Q2 营收 1.574 亿美元，同比 +127%；GAAP 毛利率 63.0%，非 GAAP 67.1%（2026-08-05 财报）",
+        "2026 Q2 GAAP 经营利润 820 万美元（约 5.2%），上年同期为 -2,461 万美元（约 -35.4%），GAAP 经营利润率同比约 +41pp；非 GAAP 经营利润率 34%，上年同期 10%",
+        "2026-07-01 完成收购 Renesas 计时业务（TPD），对价约 15 亿美元现金加 3,558,691 股；公司称该业务毛利率约 70%、客户逾 1 万家",
+        "2025 财年营收 3.267 亿美元（+61%），GAAP 经营亏损 6,698 万美元；股权激励费用合计 1.035 亿美元"
+      ],
+      "sources": [
+        {"title": "SiTime Reports Second Quarter 2026 Financial Results", "url": "https://investor.sitime.com/news-releases/news-release-details/sitime-reports-second-quarter-2026-financial-results", "date": "2026-08-05", "tier": "primary"},
+        {"title": "SiTime Form 10-Q for quarter ended 2026-06-30", "url": "https://www.sec.gov/Archives/edgar/data/1451809/000145180926000060/sitm-20260630.htm", "date": "2026-08-06", "tier": "primary"},
+        {"title": "SiTime Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1451809/000145180926000012/sitm-20251231.htm", "date": "2026-02-11", "tier": "primary"},
+        {"title": "SiTime Completes Acquisition of Renesas’ Timing Business", "url": "https://www.sitime.com/de-de/company/newsroom/press-release/sitime-completes-acquisition-renesas-timing-business", "date": "2026-07-01", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "negative",
+      "view": "收入高度依赖少数分销商与终端大客户（Apple）。Apple 占比从 2024 年 22% 降至 2025 年 17%，但前十大终端客户占比反而上升至 65%–70%，集中度未改善。",
+      "evidence": [
+        "2025 财年最大终端客户 Apple 约占营收 17%（2024 年 22%，2023 年 21%）",
+        "2025 财年前三大分销商合计约 59%；Arrow 26%、Pernas 25%",
+        "2026 Q2 前三大分销商合计约 66%，前十大终端客户约 70%（上年同期 64%）",
+        "2026 Q2 电话会：大型消费类客户贡献 2,280 万美元（约占当季营收 14%）"
+      ],
+      "sources": [
+        {"title": "SiTime Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1451809/000145180926000012/sitm-20251231.htm", "date": "2026-02-11", "tier": "primary"},
+        {"title": "SiTime Form 10-Q for quarter ended 2026-06-30", "url": "https://www.sec.gov/Archives/edgar/data/1451809/000145180926000060/sitm-20260630.htm", "date": "2026-08-06", "tier": "primary"},
+        {"title": "SiTime (SITM) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/12/sitime-sitm-q2-2026-earnings-call-transcript/", "date": "2026-08-12", "tier": "general"}
+      ]
+    },
+    "management": {
+      "rating": "positive",
+      "view": "CEO 任期近 19 年，战略连续；收购提前于年底目标完成。管理层个人持股比例低（董监高合计 1.4%），第一大股东为 MegaChips（13.0%），存在大股东减持的潜在供给。",
+      "evidence": [
+        "Rajesh Vashist 自 2007 年 9 月任 CEO，2019 年 11 月起兼任董事长",
+        "CFO Elizabeth (Beth) Howe 自 2023 年 11 月任职，此前为 HP Inc. 首席审计官",
+        "2026 年委托书：董监高合计持股约 1.4%；MegaChips 持股 13.0%、FMR 12.7%、BlackRock 10.7%",
+        "Renesas CEO Hidetoshi Shibata 预计加入 SiTime 董事会（2026-07-01 公告）"
+      ],
+      "sources": [
+        {"title": "SiTime DEF 14A Proxy Statement 2026", "url": "https://www.sec.gov/Archives/edgar/data/1451809/000145180926000026/sitm-20260414.htm", "date": "2026-04-15", "tier": "primary"},
+        {"title": "SiTime Completes Acquisition of Renesas’ Timing Business", "url": "https://www.sitime.com/de-de/company/newsroom/press-release/sitime-completes-acquisition-renesas-timing-business", "date": "2026-07-01", "tier": "primary"}
+      ]
+    },
+    "industry": {
+      "rating": "positive",
+      "view": "AI 数据中心对高频、低抖动计时与同步的需求是主要驱动，公司称客户已提前 12–18 个月下单；但计时市场竞争者众多（石英厂商与大型模拟芯片公司），需求前移也意味着周期回落时波动放大。",
+      "evidence": [
+        "2026 Q2 CED（通信/企业/数据中心）营收 1.01 亿美元，同比 +181%，连续第 9 个季度三位数增长",
+        "管理层称 2027 年 800G 与 1.6T 光模块计时 SAM 合计约 4.5 亿美元（管理层估计，未经第三方核实）",
+        "10-K 列出的主要竞争对手包括 Seiko Epson、Murata、Kyocera、TXC、NDK、Microchip、TI、Skyworks 等"
+      ],
+      "sources": [
+        {"title": "SiTime (SITM) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/12/sitime-sitm-q2-2026-earnings-call-transcript/", "date": "2026-08-12", "tier": "general"},
+        {"title": "SiTime Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1451809/000145180926000012/sitm-20251231.htm", "date": "2026-02-11", "tier": "primary"}
+      ]
+    },
+    "product": {
+      "rating": "positive",
+      "view": "研发投入高（2025 财年占营收约 36%），产品覆盖振荡器、谐振器与时钟；收购后时钟产品增加逾 550 款。公司正推进计时集成进 chiplet/模块，尚处早期，收入贡献未知。",
+      "evidence": [
+        "2025 财年 GAAP 研发费用 1.189 亿美元，约占营收 36.4%；2026 Q2 为 3,612 万美元，约占 22.9%",
+        "收购 Renesas 计时业务新增逾 550 款时钟产品（FemtoClock、VersaClock 等）",
+        "管理层称计时集成进 chiplet/基板/模块可在 2030 年前为 CED 增加约 25 亿美元 SAM（管理层估计）"
+      ],
+      "sources": [
+        {"title": "SiTime Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1451809/000145180926000012/sitm-20251231.htm", "date": "2026-02-11", "tier": "primary"},
+        {"title": "SiTime Form 10-Q for quarter ended 2026-06-30", "url": "https://www.sec.gov/Archives/edgar/data/1451809/000145180926000060/sitm-20260630.htm", "date": "2026-08-06", "tier": "primary"},
+        {"title": "SiTime Reports Second Quarter 2026 Financial Results", "url": "https://investor.sitime.com/news-releases/news-release-details/sitime-reports-second-quarter-2026-financial-results", "date": "2026-08-05", "tier": "primary"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "主要风险在大规模剥离整合（依赖 Renesas 过渡服务与制造）、单一来源代工（Bosch MEMS、TSMC/UMC）、13.5 亿美元可转债与股本稀释。Q2 净利润含利息收入，公司称该收益不会以同等水平延续。",
+      "evidence": [
+        "2026 年 5 月发行 13.5 亿美元 0% 可转换优先票据（2031 年到期），用于支付收购现金对价",
+        "稀释后加权股数 2026 Q2 为 2,749 万股，上年同期 2,392 万股（+约 15%）；Q3 指引股数约 3,280 万股（含收购发行约 360 万股）",
+        "MEMS 晶圆依赖 Bosch（供应协议初始期至 2027 年 2 月、自动续约）与 Teledyne，模拟电路依赖 TSMC 与 UMC",
+        "2026 Q2 利息收入 1,255 万美元；CFO 称该收益因募集资金已用于收购而不会以同等水平延续；截至 2026-06-30 未计提诉讼负债"
+      ],
+      "sources": [
+        {"title": "SiTime Form 10-Q for quarter ended 2026-06-30", "url": "https://www.sec.gov/Archives/edgar/data/1451809/000145180926000060/sitm-20260630.htm", "date": "2026-08-06", "tier": "primary"},
+        {"title": "SiTime (SITM) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/12/sitime-sitm-q2-2026-earnings-call-transcript/", "date": "2026-08-12", "tier": "general"}
+      ]
+    }
+  },
+  "bull": [
+    "AI 数据中心光模块（800G→1.6T）与机架同步需求带来高价值计时用量，CED 已连续多个季度三位数增长",
+    "收购 Renesas 时钟业务后成为振荡器、谐振器、时钟全覆盖的纯计时公司，可交叉销售并抬升整体毛利",
+    "汽车自动驾驶定位、国防 PNT、可穿戴/AI 终端等新应用拓宽需求面，降低对单一终端市场依赖"
+  ],
+  "bear": [
+    "数据中心需求前移下单（12–18 个月）在资本开支放缓时可能放大回调，渠道库存与订单可见度需验证",
+    "Renesas 剥离整合复杂，过渡期依赖对方制造与测试，供应受限或客户流失可能影响 TPD 约 8,500 万美元的季度贡献",
+    "可转债、收购发股与高股权激励共同推高股本，GAAP 盈利能力仍远低于非 GAAP 口径"
+  ],
+  "open_questions": [
+    "输入数据称经营利润率同比 +41pp：按 10-Q 计 GAAP 口径约 +41pp（-35.4%→5.2%），非 GAAP 口径为 +24pp（10%→34%），两者需统一口径；其中是否含一次性项目尚需拆分核实",
+    "TPD 并表后的真实增速、毛利率与客户留存，以及 TSA 结束后的供应链安排",
+    "Apple 及前十大终端客户在 2026 全年的占比变化，消费类大客户新平台放量的持续性",
+    "约 32 倍 P/S 的输入数据未经本次核实；MegaChips 持股（13.0%）是否有减持计划"
+  ]
+}

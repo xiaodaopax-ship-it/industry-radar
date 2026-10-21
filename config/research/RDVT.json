@@ -1,0 +1,115 @@
+{
+  "ticker": "RDVT",
+  "name": "Red Violet, Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "身份情报数据平台，2026年Q2收入+23%、调整后EBITDA利润率42%、无负债，客户数持续创新高且未见单一客户依赖；主要不确定性在于2026年8月增发约13.6%股本用于潜在并购、2025年11月高管非计划减持，以及10-K风险因素原文与研发投入尚未直接核对。",
+  "dimensions": {
+    "business": {
+      "rating": "positive",
+      "view": "卖身份数据查询与分析（IDI面向企业，FOREWARN面向房产经纪），合同制收入为主、毛利率高、经营杠杆明显；对手为LexisNexis、TransUnion等大厂，护城河主要来自身份图谱与实体解析引擎，尚缺独立验证。",
+      "evidence": [
+        "2026年Q2收入2,670万美元，同比+23%；调整后毛利率86%，调整后EBITDA 1,120万美元、利润率42%（上年同期35%）",
+        "2026年Q2经营现金流1,060万美元，同比+42%；6月30日现金5,000万美元、无负债",
+        "2026年Q2合同制收入占总收入77%，毛收入留存率95%（据 StockTitan 对8-K的摘要）",
+        "公司称管理团队此前创建并出售过TLO（2013年售予TransUnion），CEO曾任职Seisint（后被LexisNexis收购）"
+      ],
+      "sources": [
+        {"title": "red violet Reports Second Quarter 2026 Financial Results", "url": "https://www.redviolet.com/company/news/red-violet-reports-second-quarter-2026-financial-results/", "date": "2026-08-10", "tier": "primary"},
+        {"title": "RDVT SEC Filings summaries (StockTitan)", "url": "https://www.stocktitan.net/sec-filings/RDVT/", "date": "2026-08-27", "tier": "general"},
+        {"title": "Corporate Governance | Red Violet, Inc.", "url": "https://investors.redviolet.com/corporate-governance", "date": "2026-10-21", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "positive",
+      "view": "客户基础分散且在向中大型企业上移：IDI计费客户超1万家、单季新增创纪录，年收入超10万美元客户数增长；未见单一客户占比超10%的披露，但该结论来自第三方转述，需以10-K原文核对。房地产垂直板块偏弱。",
+      "evidence": [
+        "2026年Q2新增IDI计费客户447家（创纪录），期末10,869家；FOREWARN用户443,173人，660个REALTOR协会签约",
+        "2025年年收入超10万美元的客户127家，2024年为96家",
+        "独立分析博客称公司无单一客户占收入10%以上（2025财年），本草稿未能直接打开10-K核对",
+        "2025年Q4电话会提到房地产垂直板块（不含FOREWARN）因高房价与高利率而下滑"
+      ],
+      "sources": [
+        {"title": "red violet Reports Second Quarter 2026 Financial Results", "url": "https://www.redviolet.com/company/news/red-violet-reports-second-quarter-2026-financial-results/", "date": "2026-08-10", "tier": "primary"},
+        {"title": "Red Violet Inc (RDVT) Q4 2025 Earnings Call Highlights", "url": "https://finance.yahoo.com/news/red-violet-inc-rdvt-q4-050252038.html", "date": "2026-03-05", "tier": "general"},
+        {"title": "Red Violet ($RDVT): Sold by Management. Priced for Perfection.", "url": "https://alphainplainsight.substack.com/p/red-violet-rdvt-sold-by-management", "date": "2026-04-23", "tier": "general"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "CEO兼董事长Derek Dubner自公司成立起任职，团队稳定、2026年业绩兑现较好；但据博客引述Form 4，2025年11月多名高管在CFO称股价有吸引力后数日内非计划减持，2021年的收入目标也未按期达成。持股比例未查到。",
+      "evidence": [
+        "Derek Dubner 自公司成立起任CEO并任董事长，曾任TransUnion与TLO总法律顾问、Equifax副总裁；CFO为Dan MacLachlan",
+        "独立分析博客引述Form 4称：2025年11月10–13日四名高管在非10b5-1计划下合计卖出约320万美元股票，此后公司提交1.5亿美元通用储架S-3",
+        "董事William Livek于2026年8月27日以71.49美元/股买入2,000股（Form 4摘要）",
+        "2026年6月3日年会上薪酬咨询投票：赞成8,925,718票、反对238,311票"
+      ],
+      "sources": [
+        {"title": "Corporate Governance | Red Violet, Inc.", "url": "https://investors.redviolet.com/corporate-governance", "date": "2026-10-21", "tier": "primary"},
+        {"title": "Red Violet Q2 Earnings Call Highlights", "url": "https://finance.yahoo.com/markets/stocks/articles/red-violet-q2-earnings-call-000410292.html", "date": "2026-08-12", "tier": "general"},
+        {"title": "Red Violet ($RDVT): Sold by Management. Priced for Perfection.", "url": "https://alphainplainsight.substack.com/p/red-violet-rdvt-sold-by-management", "date": "2026-04-23", "tier": "general"},
+        {"title": "RDVT SEC Filings summaries (StockTitan)", "url": "https://www.stocktitan.net/sec-filings/RDVT/", "date": "2026-08-27", "tier": "general"}
+      ]
+    },
+    "industry": {
+      "rating": "positive",
+      "view": "身份核验与反欺诈需求受欺诈与合成身份增多、数字交易量上升和合规要求推动，公司五个垂直板块中四个创新高；房地产受利率压制。行业由LexisNexis、TransUnion等大厂主导，公司以份额替代为主，约100亿美元TAM为公司自述口径。",
+      "evidence": [
+        "2026年Q2电话会：CEO称欺诈、合成身份、数字交易量与监管压力推高需求，新增客户部分来自竞品替换",
+        "五大垂直板块为催收、调查、金融与企业风险、新兴市场、房地产；Q2中四个板块收入创季度新高，房地产仍弱",
+        "公司在2026年8月的投资者演示中称服务超1万家客户、估计TAM约100亿美元（公司口径）"
+      ],
+      "sources": [
+        {"title": "Red Violet Q2 Earnings Call Highlights", "url": "https://finance.yahoo.com/markets/stocks/articles/red-violet-q2-earnings-call-000410292.html", "date": "2026-08-12", "tier": "general"},
+        {"title": "Red Violet Eyes M&A Growth as AI Identity Platform Expands Across Key Markets", "url": "https://finance.yahoo.com/technology/ai/articles/red-violet-eyes-m-growth-110159707.html", "date": "2026-08-29", "tier": "general"}
+      ]
+    },
+    "product": {
+      "rating": "neutral",
+      "view": "产品围绕云原生CORE平台扩展分发渠道与场景（Snowflake Marketplace、FOREWARN进入居家医疗），方向清晰；但公司不单独披露研发费用（软件开发多资本化），研发强度无法与同行比较，技术领先性主要来自公司自述。",
+      "evidence": [
+        "2026年7月6日IDI部分数据集上架Snowflake Marketplace，支持通过Cortex AI自然语言查询；消费者数据覆盖近100%美国成年人、房产数据超1.5亿处（公司口径）",
+        "2026年Q2 FOREWARN扩展到居家医疗场景",
+        "利润表未单列研发费用，调整后毛利加回的主要是资本化内部软件开发的摊销；研发占收入比例：unknown"
+      ],
+      "sources": [
+        {"title": "IDI Brings Its Industry-Leading Identity Graph to Snowflake Marketplace", "url": "https://www.redviolet.com/company/news/idi-brings-its-industry-leading-identity-graph-to-snowflake-marketplace-enabling-natural-language-analytics-through-cortex-ai/", "date": "2026-07-06", "tier": "primary"},
+        {"title": "red violet Reports Second Quarter 2026 Financial Results", "url": "https://www.redviolet.com/company/news/red-violet-reports-second-quarter-2026-financial-results/", "date": "2026-08-10", "tier": "primary"},
+        {"title": "Red Violet Q2 Earnings Call Highlights", "url": "https://finance.yahoo.com/markets/stocks/articles/red-violet-q2-earnings-call-000410292.html", "date": "2026-08-12", "tier": "general"}
+      ]
+    },
+    "risks": {
+      "rating": "neutral",
+      "view": "资产负债表稳健、无负债，但2026年8月增发约占原股本13.6%、资金拟用于潜在并购，带来稀释与整合风险；身份数据业务对数据安全与隐私监管高度敏感。本草稿未能直接打开2025年10-K风险因素原文（SEC访问受限），监管与诉讼细节待补。",
+      "evidence": [
+        "2026年8月完成增发1,916,667股，净募资约1.09亿美元，用途含潜在战略收购；MarketBeat报道称募资约1.15亿美元（可能为毛额，口径不一致）",
+        "截至2026年4月9日普通股14,112,391股，增发约占13.6%",
+        "截至2026年6月30日回购计划剩余1,550万美元，年内回购74,500股、均价41.87美元",
+        "新闻稿风险提示指向2026年3月4日提交的2025年10-K风险因素章节"
+      ],
+      "sources": [
+        {"title": "red violet Reports Second Quarter 2026 Financial Results", "url": "https://www.redviolet.com/company/news/red-violet-reports-second-quarter-2026-financial-results/", "date": "2026-08-10", "tier": "primary"},
+        {"title": "RDVT SEC Filings summaries (StockTitan)", "url": "https://www.stocktitan.net/sec-filings/RDVT/", "date": "2026-08-27", "tier": "general"},
+        {"title": "Red Violet Eyes M&A Growth as AI Identity Platform Expands Across Key Markets", "url": "https://finance.yahoo.com/technology/ai/articles/red-violet-eyes-m-growth-110159707.html", "date": "2026-08-29", "tier": "general"}
+      ]
+    }
+  },
+  "bull": [
+    "固定成本为主的数据平台，收入增长带来利润率扩张：2026年Q2调整后EBITDA利润率42%，管理层目标长期60–65%（公司口径）",
+    "客户结构上移与竞品替换并行，年收入超10万美元客户数与计费客户数同步增长",
+    "增发后现金超1.6亿美元、无负债，若并购执行得当可扩展数据资产与垂直场景"
+  ],
+  "bear": [
+    "面对LexisNexis、TransUnion等规模更大的数据商，护城河主要依赖公司自述的技术与图谱优势，缺乏独立验证",
+    "增发资金用于并购带来稀释与整合风险，本草稿未查到公司过往大型并购整合的执行记录",
+    "身份数据业务一旦发生数据泄露或遭遇隐私监管收紧，可能对客户信任造成重大冲击；房地产板块仍受利率压制"
+  ],
+  "open_questions": [
+    "2025年10-K原文：最大客户占比、数据供应商集中度、FCRA/GLBA等监管风险与未决诉讼的具体表述",
+    "高管与董事合计持股比例（需查2026年DEF 14A），以及2025年11月非计划减持的Form 4原件核对",
+    "研发（含资本化软件开发）投入占收入比例，与同行如何可比",
+    "1.09亿美元净募资（与媒体报道的约1.15亿美元口径差异）的具体并购方向与估值纪律"
+  ]
+}

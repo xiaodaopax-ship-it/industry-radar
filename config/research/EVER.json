@@ -1,0 +1,112 @@
+{
+  "ticker": "EVER",
+  "name": "EverQuote, Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "在线车险/家财险获客平台，2025年收入+38%、2026年Q2收入+25%且盈利与现金流改善、无负债；但收入约88%来自车险、公司自述依赖少数保险公司且无长期最低承诺，叠加AI代理绕开比价网站的结构性担忧，增长持续性存在明显不确定性。",
+  "dimensions": {
+    "business": {
+      "rating": "neutral",
+      "view": "向P&C保险公司与代理人出售消费者询价流量（线索、点击、来电），靠自有数据与AI竞价引擎提高转化，赚取流量买入与卖出之间的差价；规模与盈利能力已验证，但流量大量来自第三方媒体，护城河更多是运营效率而非排他资源。",
+      "evidence": [
+        "2026年Q2收入1.951亿美元，同比+25%；其中车险1.721亿美元（+23%，约占88%），家财与租房险2,300万美元（+35%）",
+        "2026年Q2 GAAP净利润1,920万美元，调整后EBITDA 3,010万美元（+37%），可变营销利润率29.2%",
+        "2025全年收入6.925亿美元（+38%），调整后EBITDA 9,460万美元（+62%）",
+        "管理层重申年收入10亿美元目标，预计在15–27个月内达到（公司口径）"
+      ],
+      "sources": [
+        {"title": "EverQuote Announces Second Quarter 2026 Financial Results", "url": "https://investors.everquote.com/news/news-details/2026/EverQuote-Announces-Second-Quarter-2026-Financial-Results/default.aspx", "date": "2026-08-03", "tier": "primary"},
+        {"title": "EverQuote Q4 Earnings Call Highlights", "url": "https://finance.yahoo.com/news/everquote-q4-earnings-call-highlights-231820098.html", "date": "2026-02-23", "tier": "general"},
+        {"title": "EverQuote (EVER) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/10/everquote-ever-q2-2026-earnings-call-transcript/", "date": "2026-08-10", "tier": "general"}
+      ]
+    },
+    "customers": {
+      "rating": "negative",
+      "view": "公司自述对少数保险公司依赖度高、客户无长期最低支出承诺，且收入高度集中于车险垂直；Q2称已扩展到更多保险公司。最大客户具体占比本草稿未能从10-K原文核实，评级基于公司定性披露。",
+      "evidence": [
+        "2026年Q2新闻稿风险提示：依赖与保险公司的关系且无长期最低财务承诺，少数保险公司贡献很大比例收入",
+        "2026年Q2车险收入1.721亿美元，约占总收入88%",
+        "2026年Q2电话会：收入在更多保险公司间分散；前10大保险公司中7家采用Smart Campaigns",
+        "最大客户收入占比（%及财年）：unknown，需查2025年10-K"
+      ],
+      "sources": [
+        {"title": "EverQuote Announces Second Quarter 2026 Financial Results", "url": "https://investors.everquote.com/news/news-details/2026/EverQuote-Announces-Second-Quarter-2026-Financial-Results/default.aspx", "date": "2026-08-03", "tier": "primary"},
+        {"title": "EverQuote (EVER) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/10/everquote-ever-q2-2026-earnings-call-transcript/", "date": "2026-08-10", "tier": "general"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "CEO Jayme Mendal与CFO兼首席行政官Joseph Sanborn带领公司2025–2026年收入利润双增并启动回购，执行较好；但两人任职年限、管理层与创始人持股比例未能核实。近期内部人卖出规模小且在10b5-1计划下。",
+      "evidence": [
+        "CEO Jayme Mendal，哈佛MBA，早年做管理咨询；CFO Joseph Sanborn此前任科技投行家逾20年（公司官网）",
+        "2026年上半年回购股票2,900万美元，Q2回购57.8万股约910万美元",
+        "2026年10月首席会计官Jon Ayotte及董事Neble、Shields依10b5-1计划小额卖出（各数百至约1,600股）"
+      ],
+      "sources": [
+        {"title": "EverQuote | Leadership", "url": "https://careers.everquote.com/leadership", "date": "2026-10-21", "tier": "primary"},
+        {"title": "EverQuote Announces Second Quarter 2026 Financial Results", "url": "https://investors.everquote.com/news/news-details/2026/EverQuote-Announces-Second-Quarter-2026-Financial-Results/default.aspx", "date": "2026-08-03", "tier": "primary"},
+        {"title": "EVER SEC Filings summaries (StockTitan)", "url": "https://www.stocktitan.net/sec-filings/EVER/", "date": "2026-10-16", "tier": "general"}
+      ]
+    },
+    "industry": {
+      "rating": "neutral",
+      "view": "车险公司在完成费率修复后转向增长，数字获客预算处于扩张期，但这类预算周期性强；Q3指引中值增速17%，低于Q2实际的25%。同时AI购物代理与AI比价工具引发对比价/线索平台被绕开的担忧，市场多次因此大幅抛售同类股。",
+      "evidence": [
+        "2025年Q4电话会：管理层预计2026年P&C市场“稳定健康”，保险公司从费率修复转向审慎增长；Q4保险公司支出同比+39%",
+        "2026年Q3指引收入1.98–2.08亿美元，中值同比+17%",
+        "2026年2月竞争对手Insurify推出AI工具后EVER单日下跌10.9%；2026年9月22日Meta AI代理Muse引发担忧，EVER当日下跌15%"
+      ],
+      "sources": [
+        {"title": "EverQuote Q4 Earnings Call Highlights", "url": "https://finance.yahoo.com/news/everquote-q4-earnings-call-highlights-231820098.html", "date": "2026-02-23", "tier": "general"},
+        {"title": "EverQuote Announces Second Quarter 2026 Financial Results", "url": "https://investors.everquote.com/news/news-details/2026/EverQuote-Announces-Second-Quarter-2026-Financial-Results/default.aspx", "date": "2026-08-03", "tier": "primary"},
+        {"title": "Why EverQuote (EVER) Stock Is Down Today", "url": "https://stockstory.org/us/stocks/nasdaq/ever/news/why-up-down/why-everquote-ever-stock-is-down-today", "date": "2026-02-11", "tier": "general"},
+        {"title": "Cars.com, Booking, EverQuote, Expedia, and CarGurus Stocks Trade Down", "url": "https://finance.yahoo.com/markets/stocks/articles/cars-com-booking-everquote-expedia-195746572.html", "date": "2026-09-22", "tier": "general"}
+      ]
+    },
+    "product": {
+      "rating": "positive",
+      "view": "AI竞价产品Smart Campaigns在头部保险公司中渗透快，并计划2026年推向本地代理人；公司已上线ChatGPT应用并布局面向AI搜索与代理式商务的新产品。研发投入约占收入5%，产品效果数据主要来自公司口径。",
+      "evidence": [
+        "2026年Q2 Smart Campaigns收入同比增长超100%，前10大保险公司中7家采用",
+        "2026年Q2研发费用943万美元，约占收入4.8%；2026年上半年1,798万美元，约占4.7%",
+        "2026年Q2电话会：已上线ChatGPT应用，Q3将增加100–125万美元用于新方案开发与推广；称AI使工程效率提升25%（公司口径）"
+      ],
+      "sources": [
+        {"title": "EverQuote (EVER) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/10/everquote-ever-q2-2026-earnings-call-transcript/", "date": "2026-08-10", "tier": "general"},
+        {"title": "EverQuote Announces Second Quarter 2026 Financial Results", "url": "https://investors.everquote.com/news/news-details/2026/EverQuote-Announces-Second-Quarter-2026-Financial-Results/default.aspx", "date": "2026-08-03", "tier": "primary"},
+        {"title": "EverQuote Q4 Earnings Call Highlights", "url": "https://finance.yahoo.com/news/everquote-q4-earnings-call-highlights-231820098.html", "date": "2026-02-23", "tier": "general"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "公司披露的核心风险集中在：依赖车险与少数保险公司、依赖第三方媒体导流、电话营销与数据隐私监管、AI投入回报不确定；2025年曾计提法律和解费用。AI代理可能改变消费者比价入口，是业务层面的结构性风险。财务端无负债、现金1.92亿美元。",
+      "evidence": [
+        "2026年Q2新闻稿列明风险：依赖P&C尤其车险、依赖少数保险公司、依赖第三方媒体流量、电话营销限制与数据隐私合规、AI投资收益不确定",
+        "2025年上半年计提法律和解费用823万美元（2026年上半年为0）",
+        "截至2026年6月30日现金及等价物1.923亿美元，无未偿债务"
+      ],
+      "sources": [
+        {"title": "EverQuote Announces Second Quarter 2026 Financial Results", "url": "https://investors.everquote.com/news/news-details/2026/EverQuote-Announces-Second-Quarter-2026-Financial-Results/default.aspx", "date": "2026-08-03", "tier": "primary"},
+        {"title": "Cars.com, Booking, EverQuote, Expedia, and CarGurus Stocks Trade Down", "url": "https://finance.yahoo.com/markets/stocks/articles/cars-com-booking-everquote-expedia-195746572.html", "date": "2026-09-22", "tier": "general"}
+      ]
+    }
+  },
+  "bull": [
+    "保险公司费率修复后转向增长，数字获客预算扩张，公司以AI竞价工具加深与头部保险公司的合作",
+    "家财险垂直增长快于车险（Q2 +35%），并向本地代理人推广Smart Campaigns，有助于降低对少数车险公司的依赖",
+    "盈利与现金流已稳定为正、无负债，有余力投入AI新产品并回购"
+  ],
+  "bear": [
+    "AI购物代理与AI比价工具可能直接在聊天界面完成比价，绕开比价网站，削弱线索平台的流量入口",
+    "收入高度依赖车险及少数保险公司且无长期承诺，保险公司一旦因赔付率恶化收缩预算，收入可能快速回落（2026年Q3指引已放缓）",
+    "流量依赖第三方媒体，叠加电话营销（TCPA类）与隐私监管，获客成本与合规成本可能上升"
+  ],
+  "open_questions": [
+    "2025年10-K中最大保险公司客户收入占比（%）及前几大客户合计占比",
+    "管理层与创始人（含董事长）持股比例、投票权结构，需查2026年DEF 14A",
+    "2025年法律和解的具体诉讼性质，以及2026年是否有新的TCPA类诉讼",
+    "AI搜索/代理渠道（如ChatGPT应用）带来的流量和收入是否开始可量化"
+  ]
+}

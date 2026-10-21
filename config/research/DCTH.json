@@ -1,0 +1,113 @@
+{
+  "ticker": "DCTH",
+  "name": "Delcath Systems, Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "单一产品 HEPZATO KIT 驱动的介入肿瘤公司，2026年二季度营收2,910万美元、同比约+20%，毛利率90%，已实现小幅盈利且无负债；长期价值取决于活跃治疗中心扩张和结直肠癌、乳腺癌等适应症扩展试验结果，产品单一和临床试验风险较高。",
+  "dimensions": {
+    "business": {
+      "rating": "positive",
+      "view": "HEPZATO KIT 为 FDA 批准的药械组合产品（melphalan 加肝脏灌注系统），用于不可切除肝转移的转移性葡萄膜黑色素瘤；高毛利、已盈利，壁垒来自批准资质、REMS 培训和介入科医生采用门槛。",
+      "evidence": [
+        "HEPZATO KIT 于2023年8月14日获 FDA 批准",
+        "2025财年总营收8,523万美元（2024财年3,721万美元），其中 HEPZATO KIT 7,884万美元、CHEMOSAT 640万美元；净利润270万美元",
+        "2026年二季度营收2,910万美元（2025年同期2,420万美元），HEPZATO KIT 2,710万美元，毛利率90%（去年同期86%）",
+        "2026年6月30日现金及投资9,590万美元，无负债"
+      ],
+      "sources": [
+        {"title": "Delcath Systems Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026012019/dcth-20251231.htm", "date": "2026-02-26", "tier": "primary"},
+        {"title": "Delcath Systems Reports Second Quarter 2026 Results and Business Highlights (8-K Ex. 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026053902/dcth-q22026erex991.htm", "date": "2026-08-06", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "neutral",
+      "view": "客户为开展手术的医院和癌症中心，数量仍少（31家活跃中心），单一客户占比在10%–20%区间，集中度较2024年下降，但新增中心节奏直接影响营收。",
+      "evidence": [
+        "2026年二季度末活跃治疗中心31家；2025年至少治疗1例的中心24家（2024年14家）",
+        "2025财年最大客户占营收15.2%；2024财年前四大客户分别为20.1%、17.7%、13.2%、11.3%",
+        "2026年上半年最大客户占营收18.8%，第二大10.4%"
+      ],
+      "sources": [
+        {"title": "Delcath Systems Reports Second Quarter 2026 Results and Business Highlights (8-K Ex. 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026053902/dcth-q22026erex991.htm", "date": "2026-08-06", "tier": "primary"},
+        {"title": "Delcath Systems Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026012019/dcth-20251231.htm", "date": "2026-02-26", "tier": "primary"},
+        {"title": "Delcath Systems Form 10-Q for quarter ended June 30, 2026", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026053956/dcth-20260630.htm", "date": "2026-08-06", "tier": "primary"}
+      ]
+    },
+    "management": {
+      "rating": "positive",
+      "view": "CEO 自2020年10月任职，任内完成 FDA 批准、美国上市和扭亏；CFO 稳定。董事和高管合计持股约19%（含期权等），近一年未查到 CEO/CFO 更替。",
+      "evidence": [
+        "Gerard Michel 自2020年10月1日任 CEO 兼董事，此前任 Vericel Corporation CFO",
+        "Sandra Pennell 为 CFO，签署2025年10-K 和2026年二季度10-Q",
+        "2026年委托书：董事及高管合计（11人）实益持股约19.36%",
+        "2026年5月13日股东会批准股权激励计划新增180万股"
+      ],
+      "sources": [
+        {"title": "Delcath Systems 2026 Proxy Statement (DEF 14A)", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026022948/dcth-20260401.htm", "date": "2026-04-02", "tier": "primary"},
+        {"title": "Delcath Systems Form 10-Q for quarter ended June 30, 2026", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026053956/dcth-20260630.htm", "date": "2026-08-06", "tier": "primary"},
+        {"title": "Delcath Systems Form 8-K (Item 5.02/5.07)", "url": "https://www.sec.gov/Archives/edgar/data/872912/000119312526222899/d94596d8k.htm", "date": "2026-05-14", "tier": "primary"}
+      ]
+    },
+    "industry": {
+      "rating": "neutral",
+      "view": "转移性葡萄膜黑色素瘤属罕见病市场，公司估计美欧年可及市场约6亿美元；系统性药物 KIMMTRAK 是主要替代/联用方案。扩展到结直肠癌、乳腺癌等肝转移将显著扩大市场，但尚无批准。",
+      "evidence": [
+        "公司估计美欧 mUM 适应症年可及市场约6亿美元；多种肝转移癌种的美国总可及市场超过10亿美元（公司估计）",
+        "KIMMTRAK（tebentafusp）2022年1月获 FDA 批准用于 HLA-A*02:01 阳性 mUM；公司称约55%患者不符合 KIMMTRAK 适用条件",
+        "二季度公司称 HEPZATO 与系统性疗法联用比例在提高"
+      ],
+      "sources": [
+        {"title": "Delcath Systems Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026012019/dcth-20251231.htm", "date": "2026-02-26", "tier": "primary"},
+        {"title": "Delcath Systems Reports Second Quarter 2026 Results and Business Highlights (8-K Ex. 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026053902/dcth-q22026erex991.htm", "date": "2026-08-06", "tier": "primary"}
+      ]
+    },
+    "product": {
+      "rating": "neutral",
+      "view": "研发投入占营收约三分之一，集中于同一平台的适应症扩展：结直肠癌 Phase 2（Del-Liver）和乳腺癌 Phase 2（DELUMA）均已入组，但尚无疗效数据，读出时间未披露。",
+      "evidence": [
+        "研发费用：2025财年2,925万美元（约占营收34%）；2026年二季度1,040万美元（约占营收36%），同比增加主要因临床人员和试验活动",
+        "mCRC Phase 2：约90例随机对照，2025年三季度开始入组，计划美欧20个以上中心",
+        "乳腺癌 Phase 2：2026年二季度首例患者给药；ESMO 2026（10月24日）展示试验设计海报",
+        "CHOPIN 试验结果于2026年3月发表于 Lancet Oncology（CHEMOSAT 联合免疫治疗）"
+      ],
+      "sources": [
+        {"title": "Delcath Systems Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026012019/dcth-20251231.htm", "date": "2026-02-26", "tier": "primary"},
+        {"title": "Delcath Systems Reports Second Quarter 2026 Results and Business Highlights (8-K Ex. 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026053902/dcth-q22026erex991.htm", "date": "2026-08-06", "tier": "primary"},
+        {"title": "Delcath Systems Highlights Clinical Program Presentations at ESMO Congress 2026", "url": "https://finance.yahoo.com/healthcare/articles/delcath-systems-highlights-clinical-program-200100121.html", "date": "2026-10-19", "tier": "primary"},
+        {"title": "Delcath Systems Form 8-K (Item 8.01, CHOPIN publication)", "url": "https://www.sec.gov/Archives/edgar/data/872912/000119312526088527/d16781d8k.htm", "date": "2026-03-03", "tier": "primary"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "营收几乎全部来自一个产品和一个适应症；产品带黑框警告并受 REMS 约束，需培训后的中心才能使用。加入 Medicaid 回扣和 340B 后定价承压，二季度量增约30%而营收增约20%，调整后 EBITDA 同比下降。",
+      "evidence": [
+        "HEPZATO KIT 处方信息含 BOXED WARNING，使用须完成 REMS 规定培训",
+        "2025年10月23日与 CMS 签订 National Drug Rebate Agreement，需支付 Medicaid 回扣，并自2025年7月1日起按 340B 向合规机构供货",
+        "2026年二季度 HEPZATO 用量同比约+30%，HEPZATO 营收同比约+20%；调整后 EBITDA 760万美元，去年同期980万美元",
+        "10-K 风险因素：欧洲 CHEMOSAT 报销可能不足、产品可能未获足够医学界接受、扩展适应症试验结果不确定"
+      ],
+      "sources": [
+        {"title": "Delcath Systems Reports Second Quarter 2026 Results and Business Highlights (8-K Ex. 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026053902/dcth-q22026erex991.htm", "date": "2026-08-06", "tier": "primary"},
+        {"title": "Delcath Systems Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/872912/000162828026012019/dcth-20251231.htm", "date": "2026-02-26", "tier": "primary"}
+      ]
+    }
+  },
+  "bull": [
+    "已获批、高毛利（约90%）且已盈利，无负债、现金约9,590万美元，可自筹扩张和临床投入",
+    "活跃治疗中心数量仍在增加，2026年营收指引上调至1.04–1.08亿美元",
+    "同一平台若在结直肠癌或乳腺癌肝转移取得阳性结果，可及市场将明显扩大"
+  ],
+  "bear": [
+    "营收高度依赖单一产品和罕见病适应症，系统性药物进展可能改变治疗格局",
+    "政府回扣与 340B 定价导致量价分化，研发和销售费用上升使利润率承压",
+    "Phase 2 试验结果和读出时间均不确定，失败将削弱长期增长逻辑"
+  ],
+  "open_questions": [
+    "用户给出的营收同比+21%与一手数据略有出入：二季度总营收约+20.2%（2,910 vs 2,420万美元），HEPZATO 约+20.4%；需确认+21%的口径",
+    "用量增长约30%与营收增长约20%之间的差距，有多少来自回扣/340B、多少来自产品组合或价格调整？",
+    "Del-Liver（mCRC）与 DELUMA（乳腺癌）试验的入组进度和预期读出时间未披露",
+    "10-K 中 mCRC 段落把试验写作“metastatic breast cancer (mCRC)”，疑为文字错误，需以试验登记信息核对"
+  ]
+}

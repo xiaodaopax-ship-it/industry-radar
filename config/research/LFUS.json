@@ -1,0 +1,114 @@
+{
+  "ticker": "LFUS",
+  "name": "Littelfuse, Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "2026 年 Q2 营收 +20%（内生 +14%，Basler 并购贡献约 6 个百分点），毛利率升至 41.4%，主要受益于数据中心、工业与电网需求；但 2025 年曾因功率半导体业务计提 $301.2M 商誉减值，汽车业务增长偏弱，新管理层任期较短。",
+  "dimensions": {
+    "business": {
+      "rating": "positive",
+      "view": "以电路保护（保险丝等被动器件）为核心，延伸到功率半导体、工业控制与电网保护。客户分散、产品单价低但嵌入设计，替换成本较高。2026 年 Q2 增长以内生为主，毛利率同比提升 3.6 个百分点。",
+      "evidence": [
+        "2026 年 Q2 净销售 $739M，同比 +20%，内生 +14%，Basler 贡献约 6 个百分点，汇率贡献约 1 个百分点",
+        "10-Q：Q2 毛利 $306.1M，毛利率 41.4%（上年同期 37.8%），含 $5.4M 购买会计存货费用",
+        "2025 财年净销售 $2,386M（+8.9%），GAAP 净亏损 $71.7M，主要因 $301.2M 非现金商誉减值",
+        "Q2 自由现金流 $127M（+75%），净杠杆约 0.8x，现金 $628M"
+      ],
+      "sources": [
+        {"title": "Littelfuse Form 10-Q for quarter ended June 27, 2026", "url": "https://www.sec.gov/Archives/edgar/data/889331/000162828026050481/lfus-20260627.htm", "date": "2026-07-29", "tier": "primary"},
+        {"title": "Littelfuse Form 10-K for fiscal year ended December 27, 2025", "url": "https://www.sec.gov/Archives/edgar/data/889331/000162828026009585/lfus-20251227.htm", "date": "2026-02-19", "tier": "primary"},
+        {"title": "Littelfuse (LFUS) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/07/littelfuse-lfus-q2-2026-earnings-call-transcript/", "date": "2026-07-29", "tier": "general"}
+      ]
+    },
+    "customers": {
+      "rating": "positive",
+      "view": "客户高度分散：最大客户为分销商 Arrow Electronics，2025 财年占 9.5%，其余客户均不超过 10%。但约 65% 销售来自美国以外，其中中国约 24%，存在地区集中度。",
+      "evidence": [
+        "10-K：Arrow Electronics 占合并净销售 2025 年 9.5%、2024 年 9.4%、2023 年 11.2%；近三年无其他单一客户超过 10%",
+        "10-K：直接销售对象超过 4,000 家客户与分销商",
+        "10-K：2025 财年约 65% 净销售来自美国以外客户，其中约 24% 来自中国（2024 年约 23%）",
+        "管理层称消费电子占公司销售不到 10%"
+      ],
+      "sources": [
+        {"title": "Littelfuse Form 10-K for fiscal year ended December 27, 2025", "url": "https://www.sec.gov/Archives/edgar/data/889331/000162828026009585/lfus-20251227.htm", "date": "2026-02-19", "tier": "primary"},
+        {"title": "Littelfuse (LFUS) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/07/littelfuse-lfus-q2-2026-earnings-call-transcript/", "date": "2026-07-29", "tier": "general"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "CEO Greg Henderson（2025-02 上任，前 ADI 高管）与 CFO Abhi Khandelwal（2025 年加入，前 IDEX CFO）任期均不足两年，2026 年前两季超指引，记录仍短；电子业务负责人将转任顾问。",
+      "evidence": [
+        "公司 IR 页：Henderson 自 2025-02-10 起任总裁兼 CEO；Khandelwal 于 2025 年加入任执行副总裁兼 CFO；Anne-Marie D'Angelo 于 2026 年加入任首席法务官",
+        "8-K（2026-09-16，Item 5.02）：电子业务 SVP/GM Deepak Nayar 将于 2026-12-31 卸任，2027-01-01 起任 CEO 特别顾问",
+        "8-K（2026-08-11，Item 5.02）：董事会由 8 人扩至 9 人，任命 Plexus CEO Todd Kelsey 为独立董事",
+        "管理层目标：2030 年营收 $4.5B、调整后 EBITDA $1.1B（Investor Day 提出，Q2 电话会重申）"
+      ],
+      "sources": [
+        {"title": "Littelfuse Executive Management", "url": "https://investor.littelfuse.com/governance/executive-management/default.aspx", "date": "2026-10-21", "tier": "primary"},
+        {"title": "Littelfuse Form 8-K (Item 5.02, September 2026)", "url": "https://www.sec.gov/Archives/edgar/data/889331/000088933126000012/lfus-20260910.htm", "date": "2026-09-16", "tier": "primary"},
+        {"title": "Littelfuse Form 8-K (Item 5.02, August 2026)", "url": "https://www.sec.gov/Archives/edgar/data/889331/000088933126000010/lfus-20260806.htm", "date": "2026-08-11", "tier": "primary"},
+        {"title": "Littelfuse (LFUS) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/07/littelfuse-lfus-q2-2026-earnings-call-transcript/", "date": "2026-07-29", "tier": "general"}
+      ]
+    },
+    "industry": {
+      "rating": "positive",
+      "view": "处于需求上行阶段：数据中心、电网与工业自动化拉动订单，Q2 订单创纪录、订单出货比明显高于 1.0，HVAC 提前复苏。分化在于乘用车产量下降、消费电子下滑，且被动器件与功率半导体都有较强的周期性。",
+      "evidence": [
+        "Q2 电子分部营收 $406M（+21%，内生 +20%），被动器件内生 +26%",
+        "Q2 工业分部营收 $150M（+52%，内生 +16%），受数据中心、工业自动化与建筑需求带动",
+        "Q2 交通分部营收 $182M（+2%），乘用车内生 -2%，商用车改善",
+        "Q3 指引营收 $780–800M（中值 +26%，内生约 21%），调整后 EPS $4.85–5.05"
+      ],
+      "sources": [
+        {"title": "Littelfuse (LFUS) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/07/littelfuse-lfus-q2-2026-earnings-call-transcript/", "date": "2026-07-29", "tier": "general"},
+        {"title": "Littelfuse Form 10-Q for quarter ended June 27, 2026", "url": "https://www.sec.gov/Archives/edgar/data/889331/000162828026050481/lfus-20260627.htm", "date": "2026-07-29", "tier": "primary"}
+      ]
+    },
+    "product": {
+      "rating": "neutral",
+      "view": "研发投入约占营收 4.5%，处于中等水平。被动保护器件表现强，功率半导体正在收缩聚焦高压高价值应用，并计划关闭得州 Allen 工厂；数据中心高压架构的单位价值提升目前仍主要体现为设计订单（design win），尚未形成收入。",
+      "evidence": [
+        "10-K：研发费用 2025 年 $106.9M（约占营收 4.5%），2024 年 $107.8M",
+        "Basler 于 2025-12-11 完成收购，对价 $350.3M（扣除所获现金），年化销售约 $130M；2026 年收入指引上调至 $135–140M",
+        "管理层称高压数据中心架构中的单位价值是低压系统的 2–4 倍，但当前数据中心收入主要来自低压架构",
+        "Q2 获得核聚变领域客户的 4.5kV IGBT/二极管设计订单，以及一项年化逾 $20M 的商用车平台设计订单"
+      ],
+      "sources": [
+        {"title": "Littelfuse Form 10-K for fiscal year ended December 27, 2025", "url": "https://www.sec.gov/Archives/edgar/data/889331/000162828026009585/lfus-20251227.htm", "date": "2026-02-19", "tier": "primary"},
+        {"title": "Littelfuse (LFUS) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/07/littelfuse-lfus-q2-2026-earnings-call-transcript/", "date": "2026-07-29", "tier": "general"}
+      ]
+    },
+    "risks": {
+      "rating": "neutral",
+      "view": "资产负债表稳健（净杠杆约 0.8x），主要风险在经营层面：连续计提减值显示部分并购资产回报不及预期；海外和中国销售占比高，面临汇率与关税成本风险；需求具周期性。",
+      "evidence": [
+        "2025 年对电子-半导体报告单元计提 $301.2M 商誉减值；2024 年对工业控制与传感器、汽车传感器单元计提商誉及无形资产减值合计 $93.5M",
+        "10-K 风险因素：关税等贸易成本变化可能抬高进口成本；若无法转嫁给客户，毛利率可能下降",
+        "约 65% 销售在美国以外（中国约 24%），欧元区销售以欧元计价，存在汇率影响",
+        "功率半导体产能优化（关闭 Allen 工厂）计划于 2027 年执行，存在重组费用与执行风险"
+      ],
+      "sources": [
+        {"title": "Littelfuse Form 10-K for fiscal year ended December 27, 2025", "url": "https://www.sec.gov/Archives/edgar/data/889331/000162828026009585/lfus-20251227.htm", "date": "2026-02-19", "tier": "primary"},
+        {"title": "Littelfuse (LFUS) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/07/littelfuse-lfus-q2-2026-earnings-call-transcript/", "date": "2026-07-29", "tier": "general"}
+      ]
+    }
+  },
+  "bull": [
+    "数据中心、电网与储能的电气架构向高压演进，有望提高单系统保护与功率器件价值量",
+    "Basler 整合进度快于预期，补强电网与发电保护能力",
+    "客户分散、现金流强、杠杆低，具备继续并购和分红的空间"
+  ],
+  "bear": [
+    "功率半导体业务曾大额减值，目前仍在收缩重组，组合优化效果有待验证",
+    "乘用车与消费电子需求偏弱；被动器件需求上行期可能包含渠道补库存成分",
+    "海外与中国销售占比高，汇率和关税成本可能影响利润率"
+  ],
+  "open_questions": [
+    "Q2 毛利率 41.4% 中，价格、产品组合与 Basler 各贡献多少？这一水平能否持续？",
+    "分销渠道的库存水平：当前需求中终端消费与补库存各占多少（管理层称渠道状况良好，但未给出量化数据）",
+    "数据中心收入占公司营收的具体比例（本次查阅的资料未给出），以及高压架构设计订单转化为收入的时间表（管理层称将从 2027 年起放量）",
+    "即将发布的 Q3 财报能否达到营收 $780–800M、内生增长约 21% 的指引"
+  ]
+}

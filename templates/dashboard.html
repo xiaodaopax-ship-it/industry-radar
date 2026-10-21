@@ -68,6 +68,11 @@
   .tile.ok { border-left-color:var(--green); } .tile.warn { border-left-color:var(--orange); }
   .tile .tv { font-size:20px; font-weight:600; line-height:1.3; } .tile .tv small { font-size:12px; color:var(--muted); font-weight:400; }
   details.ec h4 { margin:0 0 6px; font-size:13px; } details.ec ul, details.ec ol { margin:0; padding-left:18px; font-size:13px; } details.ec li { margin:2px 0; }
+  .dims .dim { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:12.5px; }
+  .dims .dh { margin-bottom:4px; } .dims .dv { margin-bottom:4px; }
+  .dims ul { font-size:12px !important; color:var(--muted); } .dims .src { margin-top:4px; }
+  .quote { font-size:12px; color:var(--muted); border-left:2px solid var(--line); padding-left:8px; max-height:110px; overflow:auto; }
+  details.sub { border:none; padding:0; margin:4px 0 0; background:none; }
   .chk { display:grid; grid-template-columns:16px 76px 1fr; gap:4px; font-size:12.5px; padding:2px 0; border-bottom:1px solid var(--line); }
   .toolbar { display:flex; gap:12px; align-items:center; margin:10px 0; flex-wrap:wrap; font-size:13px; }
   select, input { background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:4px; padding:4px 8px; font:inherit; }
@@ -444,6 +449,44 @@ function tile(label, main, sub, status) {
   return `<div class="tile ${status || ""}"><div class="label">${label}</div><div class="tv">${main}</div><div class="small">${sub}</div></div>`;
 }
 const stat = (e, key) => (e.checks.find(c => c.key === key) || {}).status || "na";
+// ---------- qualitative layer: six dimensions from config/research/<ticker>.json, falling back to filing quotes
+const DIMS = [["business", "业务与护城河"], ["customers", "客户与集中度"], ["management", "管理层"], ["industry", "行业形势"], ["product", "产品与创新"], ["risks", "风险"]];
+const RATING = {positive: ["正面", "ok"], neutral: ["中性", "na"], negative: ["负面", "warn"], unknown: ["待研究", "na"]};
+const srcList = ss => (ss || []).map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title || s.url)}</a><span class="tier">${TIER[s.tier] || ""}${s.date ? " · " + esc(s.date) : ""}</span>`).join("<br>");
+function autoFor(e, k) {
+  const a = e.auto || {}, li = xs => xs && xs.length ? `<ul>${xs.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
+  const filing = a.filing ? `（${esc(a.filing.form)} ${esc(a.filing.date)}）` : "";
+  switch (k) {
+    case "business": return a.business ? `<div class="quote">${esc(a.business)}</div><div class="small">来源：${a.market === "US" && a.business_src !== "yahoo" ? "年报业务部分" + filing : "Yahoo 业务描述"}</div>` : "";
+    case "customers": return a.customers && a.customers.length ? `${li(a.customers)}<div class="small">10-K 中提到客户占营收比例的原句${filing}</div>` : "";
+    case "management": {
+      const ex = (a.exec_changes || []).map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.date)} 8-K 5.02</a>`).join(" · ");
+      const of = (a.officers || []).map(o => `${esc(o.name)}（${esc(o.title)}${o.age ? "，" + o.age + " 岁" : ""}）`).join("；");
+      return (ex ? `<div class="small">近一年高管变动公告：${ex}</div>` : a.market === "US" ? `<div class="small">近一年没有 8-K 5.02 高管变动公告</div>` : "") + (of ? `<div class="small">${of}</div>` : "")
+        + (a.links && a.links["DEF 14A"] ? `<div class="small"><a href="${esc(a.links["DEF 14A"].url)}" target="_blank" rel="noopener noreferrer">最新代理声明 DEF 14A（${esc(a.links["DEF 14A"].date)}）</a>：薪酬与持股</div>` : "");
+    }
+    case "industry": { const g = segOf(e.segment); const d = (g?.demand || []).concat(S().demand || []).slice(0, 2);
+      return d.length ? `<ul>${d.map(x => `<li>${esc(x.text)}（${esc(x.as_of)}）</li>`).join("")}</ul><div class="small">引用看板的行业层证据</div>` : ""; }
+    case "product": return a.rd && a.rd.length ? `<div class="small">研发费用占营收（XBRL）：${a.rd.map(r => `${r.fy_end.slice(0, 4)} 财年 ${r.pct}%`).join("，")}</div>` : (a.market === "US" ? `<div class="small">XBRL 中没有单列研发费用</div>` : "");
+    case "risks": return a.risk_headings && a.risk_headings.length ? `${li(a.risk_headings.slice(0, 6))}<div class="small">10-K 第 1A 部分风险因素小标题（节选）${filing}</div>` : "";
+  }
+  return "";
+}
+function qualBlock(e) {
+  const rs = e.research, q = e.qual || {};
+  const head = rs ? `<span class="tag ${rs.status === "reviewed" ? "lv-可以观察" : "t-cyc"}">${rs.status === "reviewed" ? "已人工审核" : "调研草稿 · 待人工审核"}</span> <span class="small">${esc(rs.author || "")} · ${esc(rs.as_of || "")} · 正面 ${q.pos} / 负面 ${q.neg} / 待研究 ${q.unknown}</span>`
+    : `<span class="tag">没有调研文件</span> <span class="small">下面是从公开申报中自动摘录的原文，没有经过判断。新建 config/research/${esc(e.ticker)}.json 可以补上综合调研。</span>`;
+  const cells = DIMS.map(([k, name]) => {
+    const d = (rs?.dimensions || {})[k], au = autoFor(e, k), r = RATING[d?.rating || "unknown"];
+    const body = d ? `<div class="dv">${esc(d.view)}</div>${(d.evidence || []).length ? `<ul>${d.evidence.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}<div class="small src">${srcList(d.sources)}</div>`
+      : au || `<div class="small muted">没有资料</div>`;
+    return `<div class="dim"><div class="dh"><b>${name}</b> <span class="tag ${r[1] === "ok" ? "lv-可以观察" : r[1] === "warn" ? "t-cyc" : ""}">${d ? r[0] : au ? "原文摘录" : "待研究"}</span></div>${body}
+      ${d && au ? `<details class="sub"><summary class="small">申报原文摘录</summary>${au}</details>` : ""}</div>`;
+  }).join("");
+  const links = Object.entries(e.auto?.links || {}).map(([k, v]) => `<a href="${esc(v.url)}" target="_blank" rel="noopener noreferrer">${esc(k)}${v.date ? " " + esc(v.date) : ""}</a>`).join(" · ");
+  return `<div class="card" style="margin-top:10px"><h4>综合评估：业务、客户、管理层、行业、产品、风险</h4><div style="margin-bottom:8px">${head}</div>
+    <div class="grid g3 dims">${cells}</div>${links ? `<div class="small" style="margin-top:6px">原始申报：${links}</div>` : ""}</div>`;
+}
 function evalCard(e, prefix, open) {
   const d = e.d, n = D.notes[e.ticker] || {}, nq = e.mkt?.next_q, ld = e.kind === "leader";
   const f = (k, l) => `<div><b>${l}：</b>${n[k] ? esc(n[k]) : '<span class="todo">待填</span>'}</div>`;
@@ -461,18 +504,23 @@ function evalCard(e, prefix, open) {
       <span class="small">${esc(e.market)}${e.rank ? ` · 排第 ${e.rank}，综合百分位 ${(e.score * 100).toFixed(0)}` : e.gate ? ` · 未排序：${esc(e.gate)}` : ""}</span></summary>
     <div class="ec-head">
       <div class="one">${esc(e.oneliner) || "—"}${e.oneliner_src === "en" ? ' <span class="tier">（英文原文）</span>' : ""}</div>
-      <div class="concl"><b>结论（数据面）：</b>${esc(e.conclusion)}</div>
+      <div class="concl"><b>综合结论：</b>${esc(e.final)}<div class="small" style="margin-top:4px"><b>数据面依据：</b>${esc(e.conclusion)}</div></div>
     </div>
     <div class="grid g4">${tiles}</div>
     <div class="grid g2" style="margin-top:10px">
-      <div class="card"><h4 class="ok">机会</h4><ul>${e.bull.map(x => `<li>${esc(x)}</li>`).join("") || "<li>数据上没有突出的机会信号</li>"}</ul>${n.bull ? `<div class="small"><b>业务层面：</b>${esc(n.bull)}</div>` : ""}</div>
-      <div class="card"><h4 class="warn">风险</h4><ul>${e.bear.map(x => `<li>${esc(x)}</li>`).join("") || "<li>数据上没有明显的风险信号</li>"}</ul>${n.bear ? `<div class="small"><b>业务层面：</b>${esc(n.bear)}</div>` : ""}</div>
+      <div class="card"><h4 class="ok">机会</h4>
+        ${(e.research?.bull || []).length || n.bull ? `<div class="small"><b>业务层面</b></div><ul>${(e.research?.bull || []).map(x => `<li>${esc(x)}</li>`).join("")}${n.bull ? `<li>${esc(n.bull)}</li>` : ""}</ul><div class="small" style="margin-top:4px"><b>数据层面</b></div>` : ""}
+        <ul>${e.bull.map(x => `<li>${esc(x)}</li>`).join("") || "<li>数据上没有突出的机会信号</li>"}</ul></div>
+      <div class="card"><h4 class="warn">风险</h4>
+        ${(e.research?.bear || []).length || n.bear ? `<div class="small"><b>业务层面</b></div><ul>${(e.research?.bear || []).map(x => `<li>${esc(x)}</li>`).join("")}${n.bear ? `<li>${esc(n.bear)}</li>` : ""}</ul><div class="small" style="margin-top:4px"><b>数据层面</b></div>` : ""}
+        <ul>${e.bear.map(x => `<li>${esc(x)}</li>`).join("") || "<li>数据上没有明显的风险信号</li>"}</ul></div>
     </div>
+    ${qualBlock(e)}
     <div class="grid g3" style="margin-top:10px">
       <div class="card"><h4>${ld ? "价格位置" : "因子画像"}</h4>${ld ? "" : radar(e.factors)}${rangeBar(e)}${ld && e.ret1y != null ? `<div class="small" style="margin-top:6px">一年 ${pc(e.ret1y)}，同期 ${esc(S().benchmark.symbol)} ${pc(e.bench1y)}</div>${spark(e.spark, 260, 40)}` : ""}</div>
       <div class="card"><h4>林奇清单</h4>${compact}
         ${e.insider?.rows?.length ? `<div class="small" style="margin-top:6px"><b>内部人公开市场交易：</b><br>${e.insider.rows.slice(0, 4).map(r => `${r.date} ${esc(r.owner)} <span class="${r.code === "P" ? "pos" : "neg"}">${r.code === "P" ? "买入" : "卖出"}</span> ${Math.round(r.shares).toLocaleString()} 股 @ ${r.price.toFixed(2)}`).join("<br>")}</div>` : ""}</div>
-      <div class="card"><h4>下一步要验证</h4><ol class="small">${(e.verify || []).map(x => `<li>${esc(x)}</li>`).join("")}</ol>
+      <div class="card"><h4>下一步要验证</h4><ol class="small">${(e.research?.open_questions || []).map(x => `<li>${esc(x)} <span class="tier">调研</span></li>`).join("")}${(e.verify || []).slice(0, e.research ? 3 : 6).map(x => `<li>${esc(x)}</li>`).join("")}</ol>
         <h4 style="margin-top:8px">研究笔记 <span class="tier">config/notes.json</span></h4><div class="manual">${f("category", "林奇分类")}${f("story", "两分钟故事")}${f("falsify", "反证条件")}${f("customers", "客户集中度")}</div></div>
     </div>
     <div class="small" style="margin-top:8px">${links}<a href="https://finance.yahoo.com/quote/${encodeURIComponent(e.ticker)}" target="_blank" rel="noopener noreferrer">Yahoo Finance</a>${e.deep ? ` · <a href="${esc(e.deep)}">个股深度看板</a>` : ""}

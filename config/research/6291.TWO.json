@@ -1,0 +1,99 @@
+{
+  "ticker": "6291.TWO",
+  "name": "Analog Integrations Corporation（沛亨半導體）",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核，海外资料有限）",
+  "reviewed_by": "",
+  "summary": "台湾电源管理/类比 IC 设计公司，2026 Q2 营收同比 +36%、毛利率 32.1%→39.6%、营业利润率 14.7%→25.9%，Q3 月营收同比增速放缓至约 +29%；客户、行业与产品路线均未找到可靠披露，本稿主要依据数据库与月营收，覆盖有限。",
+  "dimensions": {
+    "business": {
+      "rating": "positive",
+      "view": "无晶圆厂类比 IC 公司，主营电源转换与电源管理芯片及分立器件。2026 年上半年营收与利润率同步改善，但 2023–2024 年曾出现大幅起落，周期性明显。",
+      "evidence": [
+        "2026 Q2 营收约 7.03 亿新台币，同比 +36.0%；毛利率 39.6%（上年同期 32.1%），营业利润率 25.9%（上年同期 14.7%），EPS 3.35 元",
+        "2026 年 1–9 月累计营收约 21.00 亿新台币，同比 +37.1%；9 月单月 2.23 亿，同比 +13.6%、环比 -17.3%",
+        "按月营收推算 2026 Q3 约 7.37 亿，同比约 +28.5%、环比约 +4.9%",
+        "年度 EPS：2023 年 10.32 元、2024 年 6.13 元、2025 年 6.60 元"
+      ],
+      "sources": [
+        {"title": "Analog Integrations (TPEX:6291) Financials – Quarterly", "url": "https://stockanalysis.com/quote/tpex/6291/financials/?p=quarterly", "date": "2026-10-21", "tier": "authoritative"},
+        {"title": "沛亨(6291.TWO) 財務報表 - 營收表 - Yahoo股市", "url": "https://tw.stock.yahoo.com/quote/6291.TWO/revenue", "date": "2026-10-21", "tier": "authoritative"},
+        {"title": "沛亨(6291.TWO) 基本資料 - Yahoo股市", "url": "https://tw.stock.yahoo.com/quote/6291.TWO/profile", "date": "2026-10-21", "tier": "authoritative"}
+      ]
+    },
+    "customers": {
+      "rating": "unknown",
+      "view": "未找到主要客户名称或集中度披露。只能看到按产品部门的营收拆分：电脑周边约占三分之二，网通约三分之一，需查年报的主要客户与销货对象。",
+      "evidence": [
+        "2026 Q2 电脑周边部门营收约 4.70 亿新台币（约 67%），网通产品部门约 2.33 亿（约 33%）",
+        "2025 Q2 两部门分别约 3.77 亿与 1.40 亿，网通部门同比增长较快"
+      ],
+      "sources": [
+        {"title": "Analog Integrations (TPEX:6291) Financials – Quarterly", "url": "https://stockanalysis.com/quote/tpex/6291/financials/?p=quarterly", "date": "2026-10-21", "tier": "authoritative"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "董事长黄子玮兼发言人，总经理陈铭俊；董监持股 53.69%，内部人持股比例高。任期、背景与近期人事变动未查到。",
+      "evidence": [
+        "董事长：黃子瑋（兼发言人）；总经理：陳銘俊（兼代理发言人）",
+        "董监持股比例 53.69%；已发行普通股约 4,274 万股",
+        "2025 年度现金股利 6.00 元，除息日 2026-04-01"
+      ],
+      "sources": [
+        {"title": "沛亨(6291.TWO) 基本資料 - Yahoo股市", "url": "https://tw.stock.yahoo.com/quote/6291.TWO/profile", "date": "2026-10-21", "tier": "authoritative"}
+      ]
+    },
+    "industry": {
+      "rating": "unknown",
+      "view": "未找到针对公司所在电源管理 IC 细分市场的可信行业资料（需求驱动、竞争对手、份额），无法判断周期位置。",
+      "evidence": [
+        "公司产品应用以 LCD TV、数码相机、手机等 3C 领域为主（数据库描述，可能未及时更新）"
+      ],
+      "sources": [
+        {"title": "Analog Integrations (TPEX:6291) Company Profile & Description", "url": "https://stockanalysis.com/quote/tpex/6291/company/", "date": "2026-10-21", "tier": "authoritative"}
+      ]
+    },
+    "product": {
+      "rating": "neutral",
+      "view": "产品线覆盖 LDO、DDR 稳压器、DC/DC、LED 背光、USB 电源开关、锂电保护及 MOSFET、SiC 肖特基二极管等分立器件。新品节奏与研发投入未查到。",
+      "evidence": [
+        "电源转换产品：低压差/超低压差线性稳压器、DDR 稳压器、电压基准、DC/DC 转换器、LED 背光与照明方案",
+        "电源管理产品：USB 电源开关、监控器件、NiMH/NiCd 充电器、Li-ion 电池保护；分立器件含 MOSFET、Hall、SiC Schottky、ESD、IGBT"
+      ],
+      "sources": [
+        {"title": "Analog Integrations (TPEX:6291) Company Profile & Description", "url": "https://stockanalysis.com/quote/tpex/6291/company/", "date": "2026-10-21", "tier": "authoritative"}
+      ]
+    },
+    "risks": {
+      "rating": "neutral",
+      "view": "历史上营收波动大，营业外损益不稳定；净现金在 Q2 明显下降。公司披露的风险、诉讼等未查阅。",
+      "evidence": [
+        "2024 年 8–10 月月营收同比约 -45% 至 -49%，2024 全年营收约 18.24 亿，同比 -26.4%",
+        "2025 Q2 营业利润率 14.7%，税前利润率仅 2.9%，显示当季有较大营业外损失",
+        "净现金由 2026-03-31 约 4.33 亿新台币降至 2026-06-30 约 1.50 亿；同期总债务约 3.21 亿"
+      ],
+      "sources": [
+        {"title": "沛亨(6291.TWO) 財務報表 - 營收表 - Yahoo股市", "url": "https://tw.stock.yahoo.com/quote/6291.TWO/revenue", "date": "2026-10-21", "tier": "authoritative"},
+        {"title": "Analog Integrations (TPEX:6291) Financials – Quarterly", "url": "https://stockanalysis.com/quote/tpex/6291/financials/?p=quarterly", "date": "2026-10-21", "tier": "authoritative"}
+      ]
+    }
+  },
+  "bull": [
+    "营收增长与毛利率、营业利润率同步提升，经营杠杆明显",
+    "网通产品部门同比增速较快，可能分散对电脑周边的依赖",
+    "内部人持股高、持续现金分红"
+  ],
+  "bear": [
+    "2023–2024 年曾出现营收大幅回落，当前高增长的可持续性未知",
+    "Q3 月营收同比增速放缓至约 +29%，9 月环比下降 17%",
+    "客户与终端应用透明度低，难以评估集中度风险"
+  ],
+  "open_questions": [
+    "主要客户与终端应用（笔电、服务器、网通等）占比需以年报或 MOPS 资料核实",
+    "毛利率提升来自产品组合、价格还是产能利用率，未找到公司说明",
+    "2026-06-30 净现金下降的原因（股利发放、营运资金或其他）",
+    "Q3 季报尚未发布，营业利润率能否维持 25% 左右"
+  ]
+}

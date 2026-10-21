@@ -1,0 +1,106 @@
+{
+  "ticker": "PLX",
+  "name": "Protalix BioTherapeutics, Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "以植物细胞表达平台ProCellEx生产酶替代疗法并向合作方供货，2026Q2营收+27%(主要是Elfabrio对Chiesi供货增加)；上半年盈利含2500万美元一次性里程碑，收入完全依赖Chiesi、Pfizer、Fiocruz三家客户，下一增长点PRX-115要到2027年下半年才有II期数据。",
+  "dimensions": {
+    "business": {
+      "rating": "neutral",
+      "view": "Protalix自产Elfabrio与Elelyso，由Chiesi、Pfizer等合作方商业化，按合作方净销售额一定比例收取供货款并获里程碑。模式稳定，但利润弹性受合作方定价与采购节奏限制，季度收入波动大。",
+      "evidence": [
+        "2026Q2总营收1990万美元(上年同期1570万美元，约+27%)，商品销售收入1980万美元；Q2营业利润470万美元，净利润380万美元",
+        "2026上半年营收5360万美元，含Chiesi因EU批准E4W给药方案支付的2500万美元里程碑；上半年净利润2210万美元",
+        "Chiesi按其净销售额的15%–35%(美国以外)与15%–40%(美国)向Protalix支付供货款",
+        "2025财年总营收5270万美元(2024年5340万美元)，商品销售收入同比-2%"
+      ],
+      "sources": [
+        {"title": "Protalix BioTherapeutics Reports Second Quarter 2026 Financial and Business Results", "url": "https://www.prnewswire.com/news-releases/protalix-biotherapeutics-reports-second-quarter-2026-financial-and-business-results-302849539.html", "date": "2026-08-12", "tier": "primary"},
+        {"title": "Protalix BioTherapeutics Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1006281/000110465926029858/plx-20251231x10k.htm", "date": "2026-03-18", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "negative",
+      "view": "客户高度集中：商品销售收入全部来自Chiesi、Pfizer、Fiocruz(巴西卫生部下属机构)三家，前两大客户合计约占2025年总营收的77%。Pfizer采购受其自身生产问题影响，Fiocruz采购长期低于协议约定的里程碑。",
+      "evidence": [
+        "2025财年商品销售：Chiesi 2250万美元(约占总营收5270万美元的43%)，Pfizer 1820万美元(约35%)，Fiocruz 1110万美元(约21%)",
+        "2026Q2商品销售增长由Chiesi与Fiocruz采购增加驱动，部分被Pfizer采购下降抵消(Pfizer上年存在生产问题)",
+        "10-K：Fiocruz迄今采购显著低于协议约定的采购里程碑，公司保留相应权利"
+      ],
+      "sources": [
+        {"title": "Protalix BioTherapeutics Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1006281/000110465926029858/plx-20251231x10k.htm", "date": "2026-03-18", "tier": "primary"},
+        {"title": "Protalix BioTherapeutics Reports Second Quarter 2026 Financial and Business Results", "url": "https://www.prnewswire.com/news-releases/protalix-biotherapeutics-reports-second-quarter-2026-financial-and-business-results-302849539.html", "date": "2026-08-12", "tier": "primary"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "CEO Dror Bashan自2019年起任职，期间完成Elfabrio在美欧获批与E4W方案在EU获批，公司转为盈利；CFO于2025-08更替为Gilad Mamlok。高管持股与薪酬未查阅。",
+      "evidence": [
+        "Dror Bashan的雇佣协议自2019-05-20起生效(10-K附件，8-K披露于2019-05-21)，现任总裁兼CEO",
+        "2025-08-24 Gilad Mamlok接替Eyal Rubin任高级副总裁兼CFO",
+        "10-K风险因素称公司高度依赖CEO Bashan与董事长Eliot R. Forster"
+      ],
+      "sources": [
+        {"title": "Protalix BioTherapeutics Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1006281/000110465926029858/plx-20251231x10k.htm", "date": "2026-03-18", "tier": "primary"}
+      ]
+    },
+    "industry": {
+      "rating": "neutral",
+      "view": "法布雷病以酶替代疗法为标准治疗，市场规模稳步增长，但由Sanofi(Fabrazyme)、Takeda(Replagal)和Amicus(Galafold)等成熟产品主导，且Sangamo基因疗法已开始滚动提交BLA，新进入者面临份额争夺。",
+      "evidence": [
+        "10-K引用预测：法布雷病全球治疗市场2026年约23亿美元，2025–2031年复合增速6.3%，2031年约32亿美元",
+        "主要竞品：Fabrazyme(Sanofi Genzyme)、Replagal(Takeda)、Galafold(Amicus)；Sangamo ST-920基因疗法已启动滚动BLA",
+        "美国获批方案仍为每两周1 mg/kg，每四周2 mg/kg方案目前仅在EU获批"
+      ],
+      "sources": [
+        {"title": "Protalix BioTherapeutics Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1006281/000110465926029858/plx-20251231x10k.htm", "date": "2026-03-18", "tier": "primary"}
+      ]
+    },
+    "product": {
+      "rating": "neutral",
+      "view": "两款植物细胞表达酶替代药物已上市；Elfabrio美国专利期延至2035年，EU获批每四周给药方案。管线以PRX-115(痛风PEG化尿酸酶)为主，II期数据预计2027年下半年，PRX-119在临床前。2025年研发约占营收37%。",
+      "evidence": [
+        "2026-05-04 USPTO颁发专利期延长证书，Elfabrio美国专利(US 9,194,011)到期日延至2035-11-17",
+        "2026-03-05 EC批准Elfabrio 2 mg/kg每四周给药方案(此前CHMP于2025-10给出负面意见，经复审转正)；2026-05韩国获批",
+        "PRX-115 II期RELEASE(NCT07280156)入组中，顶线结果预计2027年下半年",
+        "2025财年研发费用1960万美元，约占营收5270万美元的37%"
+      ],
+      "sources": [
+        {"title": "Protalix BioTherapeutics Reports Second Quarter 2026 Financial and Business Results", "url": "https://www.prnewswire.com/news-releases/protalix-biotherapeutics-reports-second-quarter-2026-financial-and-business-results-302849539.html", "date": "2026-08-12", "tier": "primary"},
+        {"title": "Protalix BioTherapeutics Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1006281/000110465926029858/plx-20251231x10k.htm", "date": "2026-03-18", "tier": "primary"}
+      ]
+    },
+    "risks": {
+      "rating": "neutral",
+      "view": "无负债、现金4070万美元，财务风险有限；主要风险在于Elfabrio美国标签含超敏反应/过敏性休克黑框警告、对合作方的依赖、季度收入波动，以及公司在以色列运营所披露的地区局势对供应链与监管的潜在干扰。",
+      "evidence": [
+        "FDA批准Elfabrio时附带超敏反应(含过敏性休克)黑框警告，并有孕期暴露等上市后研究要求",
+        "2026-06-30现金、现金等价物及短期存款4070万美元，公司称无未偿债务或认股权证",
+        "2026全年指引总营收7800–8300万美元(含2500万美元里程碑)，其中Elfabrio(不含里程碑)3300–3500万美元、Elelyso 2000–2300万美元",
+        "公司在前瞻性声明中披露以色列地区冲突可能干扰其运营、供应商及监管机构"
+      ],
+      "sources": [
+        {"title": "Protalix BioTherapeutics Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1006281/000110465926029858/plx-20251231x10k.htm", "date": "2026-03-18", "tier": "primary"},
+        {"title": "Protalix BioTherapeutics Reports Second Quarter 2026 Financial and Business Results", "url": "https://www.prnewswire.com/news-releases/protalix-biotherapeutics-reports-second-quarter-2026-financial-and-business-results-302849539.html", "date": "2026-08-12", "tier": "primary"}
+      ]
+    }
+  },
+  "bull": [
+    "Elfabrio EU每四周给药方案获批且美国专利期延至2035年，为Chiesi渠道放量提供时间窗口",
+    "合作模式下已实现盈利、无负债，Chiesi协议下仍有最高7.4亿美元的监管与商业里程碑可期(10-K口径)",
+    "PRX-115若II期数据积极，可能带来新的对外授权或合作机会"
+  ],
+  "bear": [
+    "2025财年收入同比微降，2026年上半年利润主要来自一次性里程碑，剔除后核心增长有限",
+    "三家客户贡献全部商品收入，Pfizer与Fiocruz采购已有波动先例，单一客户变动即可显著影响业绩",
+    "法布雷病市场由成熟产品主导并面临基因疗法潜在冲击，Elfabrio黑框警告可能限制渗透"
+  ],
+  "open_questions": [
+    "Chiesi的Elfabrio终端销售额与市场份额（公司只披露对Chiesi的供货收入）",
+    "美国是否会申请每四周给药方案及时间表",
+    "2026全年指引隐含下半年收入约2400–2900万美元(按上半年5360万美元推算)，与Q2单季1990万美元相比是否意味着下半年放缓",
+    "PRX-115的免疫原性与给药方案选择风险，以及是否寻求合作伙伴"
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "ticker": "HE",
+  "name": "Hawaiian Electric Industries, Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "2026 年 Q2 营收 +26% 基本来自燃料油与购电成本的转嫁（售电量 -0.8%），核心 EPS 从 $0.20 降至 $0.13；毛伊岛山火侵权和解已于 2026-04 生效并支付首期 $479M，剩余三期（2027–2029 年每年 4 月）构成主要财务负担，2027 年费率重置的结果是后续关键变量。",
+  "dimensions": {
+    "business": {
+      "rating": "neutral",
+      "view": "受监管的垂直一体化电力公司，服务夏威夷约 95% 人口，出售非公用事业资产后基本为纯公用事业。地区独家经营带来稳定性，但核心盈利能力在下降：Q2 核心净利同比 -37%，公用事业核心 ROE 约 5.7%。",
+      "evidence": [
+        "Q2 2026 合并营收 $939.7M（上年 $746.4M，+25.9%）；公用事业营收增量 $195M 中，燃料油价格/发电量贡献 $136M，购电成本贡献 $53M",
+        "Q2 售电量 2,015 百万千瓦时（上年 2,032），平均燃料油成本 $145.67/桶（上年 $100.40）",
+        "Q2 GAAP 净利 $123M（EPS $0.71），含和解负债现值重估带来的 $101M 税后非现金收益；核心净利 $22M（EPS $0.13），上年 $35M（$0.20）",
+        "截至 2026-06-30 的 12 个月，公用事业核心口径 ROE 为 5.7%（上年同期 7.2%）"
+      ],
+      "sources": [
+        {"title": "HEI Reports Second Quarter 2026 Results", "url": "https://www.hei.com/investor-relations/news-and-events/news/news-details/2026/HEI-Reports-Second-Quarter-2026-Results/default.aspx", "date": "2026-08-07", "tier": "primary"},
+        {"title": "HEI Form 10-Q for quarter ended June 30, 2026", "url": "https://www.sec.gov/Archives/edgar/data/354707/000035470726000054/he-20260630.htm", "date": "2026-08-07", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "neutral",
+      "view": "客户为瓦胡、夏威夷岛、毛伊等岛屿的约 47.4 万个用电账户，单一客户风险低。收入由 PUC 监管：采用绩效监管（PBR）与收入脱钩机制，燃料与购电成本通过调整条款转嫁。2026 年为过渡年，申请 2027 年起两年内加价 $170M。",
+      "evidence": [
+        "10-K：2025 年末客户账户 474,241 个（Hawaiian Electric 310,789；Hawaii Electric Light 91,234；Maui Electric 72,218），电力销售收入 $3,024M",
+        "10-K：收入脱钩机制（Revenue Balancing Account）允许回收 PUC 核定的目标收入，与售电量无关；PBR 框架为五年期多年费率计划",
+        "费率重置申请：两年合计加价 $170M，其中 $125M 拟于 2027 年生效；公司请求在 2026-12-18 前作出临时裁决，PUC 暂定时间表的最终裁决在 2027 年 4 月中下旬",
+        "2026 年预计触发燃料成本风险分担机制的最高罚金约 $3.7M（税前），PIM/SSM 预计全年净亏损（2025 年为 $7.5M 奖励）"
+      ],
+      "sources": [
+        {"title": "HEI Form 10-K for fiscal year ended December 31, 2025", "url": "https://www.sec.gov/Archives/edgar/data/354707/000035470726000008/he-20251231.htm", "date": "2026-02-27", "tier": "primary"},
+        {"title": "Hawaiian Electric (HE) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/14/hawaiian-electric-he-q2-2026-earnings-call-transcript/", "date": "2026-08-07", "tier": "general"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "Scott Seu 自 2022 年任 HEI CEO，2026-06-01 起兼任两家公司 CEO，Shelee Kimura 任两家公司总裁，CFO 由 Paul Ito 担任。管理层完成了山火和解与非核心资产剥离，但核心盈利仍在下滑。",
+      "evidence": [
+        "Q1 新闻稿：自 2026-06-01 起，Seu 任 HEI 与 Hawaiian Electric 的 CEO，Kimura（2022 年起任 Hawaiian Electric 总裁兼 CEO）任两家公司总裁",
+        "8-K（2026-04-10，Item 5.02）：Scott DeGhetto 的 EVP 兼 CFO 任期于 2026-04-01 结束，随后签订一年期顾问协议（月费 $200,000，期满另付 $1,350,000）",
+        "Q2 电话会上 Paul Ito 的头衔为 Senior Vice President and CFO；其具体接任日期本次未在 8-K 中核实"
+      ],
+      "sources": [
+        {"title": "HEI Reports First Quarter 2026 Results", "url": "https://www.hei.com/investor-relations/news-and-events/news/news-details/2026/HEI-Reports-First-Quarter-2026-Results/default.aspx", "date": "2026-05-08", "tier": "primary"},
+        {"title": "HEI Form 8-K (Item 5.02, CFO term ended)", "url": "https://www.sec.gov/Archives/edgar/data/354707/000035470726000029/he-20260406.htm", "date": "2026-04-10", "tier": "primary"},
+        {"title": "Hawaiian Electric (HE) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/14/hawaiian-electric-he-q2-2026-earnings-call-transcript/", "date": "2026-08-07", "tier": "general"}
+      ]
+    },
+    "industry": {
+      "rating": "neutral",
+      "view": "电网为孤立的海岛系统，发电高度依赖燃料油，燃料价格波动直接反映在营收和客户账单上。公司正推进大规模可再生能源与稳定电源招标；成本端受保险费、植被管理和利息上升挤压。",
+      "evidence": [
+        "2026-08-07 发布 IGP 招标：约 1,650 GWh 可变可再生能源、465MW 构网型资源、111MW 稳定发电容量",
+        "2023 年 Stage 3 招标中已获批三个光伏+储能合同，合计 166MW 光伏、670MWh 储能",
+        "公司预计 2026 年调整后运维费用增速明显高于通胀，原因包括保险费（2026 年起不再递延）、风暴抢修、植被管理与 IT 安全支出",
+        "JERA 在 2026 年 7 月向 PUC 提交函件，表示计划于 2027 年 Q1 申请设立受监管的发电公司（尚未启动正式程序）"
+      ],
+      "sources": [
+        {"title": "HEI Reports Second Quarter 2026 Results", "url": "https://www.hei.com/investor-relations/news-and-events/news/news-details/2026/HEI-Reports-Second-Quarter-2026-Results/default.aspx", "date": "2026-08-07", "tier": "primary"},
+        {"title": "Hawaiian Electric (HE) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/14/hawaiian-electric-he-q2-2026-earnings-call-transcript/", "date": "2026-08-07", "tier": "general"}
+      ]
+    },
+    "product": {
+      "rating": "neutral",
+      "view": "投资重点是山火防控与电网韧性：PUC 已批准约 $350M 山火缓解计划（WMP）支出的回收，公司计划改用证券化融资；另有气候适应和并网投资。回收机制已明确，但多项投资仍待 PUC 进一步批准。",
+      "evidence": [
+        "PUC 于 2026-06 批准约 $350M WMP 支出的回收（资本开支约 $270M、运维约 $80M），公司计划依据 Act 258 申请证券化融资令，以替代 EPRM",
+        "PUC 已批准的气候适应计划：未来五年约 $190M 电网加固投资",
+        "已识别至 2035 年约 $1.3B 的可再生能源并网点建设/扩容投资",
+        "若 WMP 支出通过证券化回收，将不计入费率基数（CFO 在 Q2 电话会上说明）"
+      ],
+      "sources": [
+        {"title": "Hawaiian Electric (HE) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/14/hawaiian-electric-he-q2-2026-earnings-call-transcript/", "date": "2026-08-07", "tier": "general"},
+        {"title": "HEI Reports Second Quarter 2026 Results", "url": "https://www.hei.com/investor-relations/news-and-events/news/news-details/2026/HEI-Reports-Second-Quarter-2026-Results/default.aspx", "date": "2026-08-07", "tier": "primary"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "和解已生效，不确定性下降，但剩余付款负担重：2026-06-30 和解负债现值 $1.30B，分三期于 2027–2029 年 4 月支付；评级仍低于投资级；风险因素保留持续经营相关表述；证券诉讼和解待最终批准。",
+      "evidence": [
+        "2024-08 达成的全球和解总额逾 $4B，HEI 与 Hawaiian Electric 承担 $1.99B（税前，含此前 $75M 的 One ʻOhana 捐款），分四期支付；2026-04-10 最后一批代位求偿保险公司撤回上诉，随后支付首期 $479M",
+        "10-Q：剩余三期于 2027、2028、2029 年 4 月支付，可按年 5.5% 贴现提前支付；截至 2026-06-30 流动负债 $410M、非流动负债 $890M；剩余索赔预计由 $500M 预留款覆盖",
+        "Q2 将剩余负债由 $1.44B 重估为现值 $1.30B，确认 $153.9M 税前费用冲减；该收益将在约三年内通过利息增值（非现金）转回，Q2 已确认 $17.7M",
+        "证券集体诉讼和解金额 $47.8M，法院定于 2026-09-24 举行最终批准听证；另有多起股东派生诉讼。评级：S&P BB-（2026-07 上调），Moody's HEI Ba2 / Hawaiian Electric Ba1（2026-04 上调）"
+      ],
+      "sources": [
+        {"title": "HEI Provides Update Following Global Settlement in Maui Wildfire Tort Litigation", "url": "https://hei.com/investor-relations/news-and-events/news/news-details/2024/HEI-Provides-Update-Following-Global-Settlement-in-Maui-Wildfire-Tort-Litigation/default.aspx", "date": "2024-08-02", "tier": "primary"},
+        {"title": "HEI Form 10-Q for quarter ended June 30, 2026", "url": "https://www.sec.gov/Archives/edgar/data/354707/000035470726000054/he-20260630.htm", "date": "2026-08-07", "tier": "primary"},
+        {"title": "HEI Reports First Quarter 2026 Results", "url": "https://www.hei.com/investor-relations/news-and-events/news/news-details/2026/HEI-Reports-First-Quarter-2026-Results/default.aspx", "date": "2026-05-08", "tier": "primary"},
+        {"title": "Hawaiian Electric (HE) Q2 2026 Earnings Call Transcript", "url": "https://www.fool.com/earnings/call-transcripts/2026/08/14/hawaiian-electric-he-q2-2026-earnings-call-transcript/", "date": "2026-08-07", "tier": "general"},
+        {"title": "Wildfire payoffs start slow path to victims", "url": "https://www.hawaiinewsnow.com/2026/04/14/wildfire-payoffs-start-slow-path-victims/", "date": "2026-04-14", "tier": "general"}
+      ]
+    }
+  },
+  "bull": [
+    "侵权和解已生效，赔付金额和付款时间表已固定，两家评级机构在 2026 年先后上调评级",
+    "2027 年费率重置若获批，有望覆盖保险费等结构性成本上升；WMP 支出已获批回收并计划证券化",
+    "收入脱钩机制和燃料成本转嫁机制使收入对售电量和燃料价格的直接敏感度较低"
+  ],
+  "bear": [
+    "核心盈利持续下滑：Q2 核心 EPS $0.13（上年 $0.20），利息与运维费用上升",
+    "2027–2029 年每年约 $479M 的和解付款需要外部融资，可能带来进一步的股权稀释或债务增加",
+    "燃料油价格上涨推高客户电费，影响可负担性和监管环境；PIM 由奖励转为预计亏损"
+  ],
+  "open_questions": [
+    "Q2 盈利不及预期的幅度存在口径分歧：247WallSt 称共识 $0.17、低于预期 23.5%；MarketBeat 称共识 $0.21、低 $0.08（约 38%）",
+    "证券集体诉讼和解在 2026-09-24 听证后是否已获最终批准？（2026-09-21 的 8-K 本次未查阅）",
+    "剩余三期和解款的具体融资组合（债务/股权/ATM）及对每股收益的稀释影响",
+    "PUC 是否会在 2026-12-18 前就费率重置作出临时裁决，以及 PBR 第六阶段的改革方向"
+  ]
+}

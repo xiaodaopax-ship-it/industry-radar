@@ -1,0 +1,100 @@
+{
+  "ticker": "5314.TWO",
+  "name": "Myson Century, Inc.（世紀民生科技）",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核，海外资料有限）",
+  "reviewed_by": "",
+  "summary": "公司名义上源自 IC 设计，但目前在 Yahoo 股市归类为「櫃其他」、主营保健食品批发零售，并通过并购扩展到保险经纪、电脑、电子等业务；2026 Q2 营收 +154% 而毛利率、营业利润率大幅下滑，时间上与新并入子公司吻合，但分部毛利率未取得，因果尚未证实。本稿未查阅 MOPS 财报原文，覆盖有限。",
+  "dimensions": {
+    "business": {
+      "rating": "neutral",
+      "view": "输入资料称其为 IC 设计公司，与现状不符：主营已转为保健食品与多元并购平台。营收高增主要来自并购扩表，利润率随业务结构变化明显下降。",
+      "evidence": [
+        "Yahoo 股市（2026-10-21）：产业类别「櫃其他」，主要经营业务「保健食品批发、零售；无店面零售业」",
+        "2026 Q2 营收约 15.80 亿新台币，同比 +153.7%；毛利率 42.1%（上年同期 62.9%），营业利润率 13.3%（上年同期 47.9%），净利率 5.3%",
+        "2026 Q2 分部营收：Myson Century 本体 2.91 亿、Hanyu Technology 1.70 亿、Nebula Computer 1.70 亿、Yung Sheng Electronics 2.62 亿、Taibaoda Investment Holding 2.49 亿、其他 4.54 亿；后三个具名分部 2025 年无数据",
+        "公司称推动「鳳凰計畫 2.0」，并购华瀚、晨阳、金丰三家保经公司组成「台保大联盟」，并以朝和生醫等自有保健品牌为主力"
+      ],
+      "sources": [
+        {"title": "世紀*(5314.TWO) 基本資料 - Yahoo股市", "url": "https://tw.stock.yahoo.com/quote/5314.TWO/profile", "date": "2026-10-21", "tier": "authoritative"},
+        {"title": "Myson Century (TPEX:5314) Financials – Quarterly", "url": "https://stockanalysis.com/quote/tpex/5314/financials/?p=quarterly", "date": "2026-10-21", "tier": "authoritative"},
+        {"title": "世紀民生1月營收年增2.6倍（中華日報）", "url": "https://www.cdns.com.tw/articles/1361146", "date": "2026-02-10", "tier": "general"}
+      ]
+    },
+    "customers": {
+      "rating": "unknown",
+      "view": "未找到客户集中度或主要客户披露。业务以零售、电商、直播等多元通路为主，客户结构与 IC 设计公司不同，需查年报。",
+      "evidence": [
+        "公司称保健与保养产品通过直播、电商与实体通路销售（公司新闻稿口径）"
+      ],
+      "sources": [
+        {"title": "世紀民生1月營收年增2.6倍（中華日報）", "url": "https://www.cdns.com.tw/articles/1361146", "date": "2026-02-10", "tier": "general"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "董事长张祐铭、总经理张硕文；董监持股比例高达 72.15%，股权高度集中。管理层任期、背景与并购执行记录未查到。",
+      "evidence": [
+        "董事长：張祐銘；总经理兼发言人：張碩文（Yahoo 股市，2026-10-21）",
+        "董监持股比例 72.15%",
+        "2025 年盈余分配：现金股利 0.0485 元、股票股利 1.5785 元，除权日 2026-08-14"
+      ],
+      "sources": [
+        {"title": "世紀*(5314.TWO) 基本資料 - Yahoo股市", "url": "https://tw.stock.yahoo.com/quote/5314.TWO/profile", "date": "2026-10-21", "tier": "authoritative"}
+      ]
+    },
+    "industry": {
+      "rating": "unknown",
+      "view": "业务横跨保健食品、保险经纪、电脑与电子等多个行业，未找到可信的细分行业需求与竞争格局资料，无法判断。",
+      "evidence": [
+        "公司称将锁定健康管理、宠物护理、银发经济等「非景气循环」市场（公司口径，未经第三方验证）"
+      ],
+      "sources": [
+        {"title": "世紀民生1月營收年增2.6倍（中華日報）", "url": "https://www.cdns.com.tw/articles/1361146", "date": "2026-02-10", "tier": "general"}
+      ]
+    },
+    "product": {
+      "rating": "unknown",
+      "view": "公开资料只提到外泌体保健与保养产品、朝和生醫品牌，未找到研发投入、产品线营收拆分或原有 IC 业务现状。",
+      "evidence": [
+        "公司称旗下外泌体保健与相关保养产品在直播、电商与实体通路放量",
+        "数据库描述仍列有 IC 系统设计制造，以及安防监控、餐饮、建材、服装、广告、保险经纪、连接线等业务"
+      ],
+      "sources": [
+        {"title": "世紀民生1月營收年增2.6倍（中華日報）", "url": "https://www.cdns.com.tw/articles/1361146", "date": "2026-02-10", "tier": "general"},
+        {"title": "Myson Century (TPEX:5314) Company Profile & Description", "url": "https://stockanalysis.com/quote/tpex/5314/company/", "date": "2026-10-21", "tier": "authoritative"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "并购扩张推高负债、经营现金流转负、利润率下滑；Q4 2025 净利率远高于营业利润率，依赖营业外收益；EPS 口径在不同数据源间不一致。",
+      "evidence": [
+        "总债务由 2026-03-31 约 12.80 亿新台币增至 2026-06-30 约 26.70 亿，净现金转为净负债约 11.23 亿",
+        "2026 Q2 经营现金流约 -0.99 亿新台币，自由现金流约 -1.33 亿",
+        "2025 Q4 营业利润率 19.7%，税前利润率 78.2%，显示有大额营业外收益",
+        "2026 Q2 EPS：Yahoo 股市为 0.29 元，stockanalysis 为 0.07 元，两者冲突，可能与股票股利调整或口径有关"
+      ],
+      "sources": [
+        {"title": "Myson Century (TPEX:5314) Financials – Quarterly", "url": "https://stockanalysis.com/quote/tpex/5314/financials/?p=quarterly", "date": "2026-10-21", "tier": "authoritative"},
+        {"title": "世紀*(5314.TWO) 基本資料 - Yahoo股市", "url": "https://tw.stock.yahoo.com/quote/5314.TWO/profile", "date": "2026-10-21", "tier": "authoritative"}
+      ]
+    }
+  },
+  "bull": [
+    "月营收仍保持同比增长：2026 年 1–9 月累计约 43.59 亿新台币，同比 +133.1%",
+    "保健品自有品牌与多通路体系若稳定，可能提供较不依赖电子周期的收入",
+    "保险经纪等服务类业务若整合顺利，可能形成交叉销售"
+  ],
+  "bear": [
+    "增速随并购基数抬高而放缓：2026 Q3 月营收合计约 14.91 亿，同比约 +92%，低于 Q2 的 +154%",
+    "并购扩表后毛利率与营业利润率明显下降，负债翻倍且现金流转负",
+    "1.5785 元股票股利扩大股本，每股收益被稀释"
+  ],
+  "open_questions": [
+    "毛利率 62.9%→42.1%、营业利润率 47.9%→13.3% 的原因：分部营收显示新并入子公司（Nebula Computer、Yung Sheng Electronics、Taibaoda 等）贡献约 43%，但各分部毛利率与并购摊销需以 MOPS 季报附注核实",
+    "原有 IC 设计业务是否仍存在、营收占比多少，输入资料「IC 设计」的分类是否需要更正",
+    "2025 Q4 大额营业外收益的性质（处分利益、廉价购买利益或其他）",
+    "Yahoo 与 stockanalysis 的 Q2 EPS（0.29 vs 0.07）为何不一致"
+  ]
+}

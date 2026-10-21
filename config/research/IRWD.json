@@ -1,0 +1,107 @@
+{
+  "ticker": "IRWD",
+  "name": "Ironwood Pharmaceuticals, Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "收入几乎全部来自与AbbVie共享的LINZESS美国利润，2026Q2营收+33%主要由净价改善驱动；但2027年起LINZESS适用IRA的Medicare最高公平价、最早2029年3月仿制药可上市，apraglutide需补做确证性III期，且CEO将于2027-01-01交接、CFO为临时代理。",
+  "dimensions": {
+    "business": {
+      "rating": "neutral",
+      "view": "商业模式是与AbbVie五五分享LINZESS美国品牌利润，成本结构轻、现金流强；但实质是单一成熟产品(上市第14年)的利润分成，增长主要来自净价而非需求，长期依赖apraglutide接棒。",
+      "evidence": [
+        "2026Q2总营收1.130亿美元(上年同期8520万美元，约+33%)，其中LINZESS美国合作收入1.100亿美元；GAAP净利润5130万美元",
+        "2026Q2 LINZESS美国净销售额2.823亿美元(+14%)，需求量+4%，净价改善源于取消通胀回扣与回扣准备的时间性因素",
+        "2026全年指引：LINZESS美国净销售11.5–12.0亿美元，总营收4.60–4.85亿美元，调整后EBITDA超3.1亿美元",
+        "2025财年营收2.962亿美元(2024年3.514亿美元)"
+      ],
+      "sources": [
+        {"title": "Ironwood Pharmaceuticals Raises 2026 Full-Year Financial Guidance Building on Strong Second Quarter Results", "url": "https://investor.ironwoodpharma.com/press-releases/press-release-details/2026/Ironwood-Pharmaceuticals-Raises-2026-Full-Year-Financial-Guidance-Building-on-Strong-Second-Quarter-Results/default.aspx", "date": "2026-08-06", "tier": "primary"},
+        {"title": "Ironwood Pharmaceuticals Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1446847/000110465926020489/irwd-20251231x10k.htm", "date": "2026-02-26", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "negative",
+      "view": "收入集中度极高：几乎全部收入来自linaclotide合作，其中绝大部分来自AbbVie美国合作；净销售数据也由AbbVie提供。对单一合作方和单一产品的依赖是最核心的结构性风险。",
+      "evidence": [
+        "10-K：linaclotide合作收入占2025、2024年几乎全部收入；美国收入占2025年97.7%(2024年97.1%)",
+        "2026Q2营收1.130亿美元中1.100亿美元(约97%)为AbbVie美国LINZESS合作收入",
+        "LINZESS美国净销售额由AbbVie提供给Ironwood，双方平分美国品牌合作利润"
+      ],
+      "sources": [
+        {"title": "Ironwood Pharmaceuticals Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1446847/000110465926020489/irwd-20251231x10k.htm", "date": "2026-02-26", "tier": "primary"},
+        {"title": "Ironwood Pharmaceuticals Raises 2026 Full-Year Financial Guidance Building on Strong Second Quarter Results", "url": "https://investor.ironwoodpharma.com/press-releases/press-release-details/2026/Ironwood-Pharmaceuticals-Raises-2026-Full-Year-Financial-Guidance-Building-on-Strong-Second-Quarter-Results/default.aspx", "date": "2026-08-06", "tier": "primary"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "管理层密集更替：CEO Tom McCourt(2021年起任CEO)将于2027-01-01退休，由首席商务官Tammi Gaskins接任；CFO于2026-05辞职，由首席会计官临时代理；CMO亦于7月更换。高管持股未查到。",
+      "evidence": [
+        "2026-10公告：Tammi Gaskins自2027-01-01起任CEO并进入董事会，2020年加入Ironwood，此前在AstraZeneca任职约20年；McCourt留任董事",
+        "2026-05：Corporate Controller兼首席会计官Ronald Silver接替辞职的Gregory Martini任临时CFO",
+        "2026-07：Jeffrey Silber, M.D.接替退休的Michael Shetzline任CMO兼研发负责人"
+      ],
+      "sources": [
+        {"title": "Ironwood Pharmaceuticals Appoints Tammi Gaskins as Chief Executive Officer", "url": "https://investor.ironwoodpharma.com/press-releases/press-release-details/2026/Ironwood-Pharmaceuticals-Appoints-Tammi-Gaskins-as-Chief-Executive-Officer/default.aspx", "date": "2026-10-16", "tier": "primary"},
+        {"title": "Ironwood Pharmaceuticals Raises 2026 Full-Year Financial Guidance Building on Strong Second Quarter Results", "url": "https://investor.ironwoodpharma.com/press-releases/press-release-details/2026/Ironwood-Pharmaceuticals-Raises-2026-Full-Year-Financial-Guidance-Building-on-Strong-Second-Quarter-Results/default.aspx", "date": "2026-08-06", "tier": "primary"},
+        {"title": "Ironwood Leadership", "url": "https://ironwoodpharma.com/about-us/leadership", "date": "2026-10-21", "tier": "primary"}
+      ]
+    },
+    "industry": {
+      "rating": "neutral",
+      "view": "LINZESS所在IBS-C/CIC市场已成熟，需求低个位数至中个位数增长；美国药价政策(IRA价格谈判)直接影响净价。SBS-IF领域已有Takeda的GATTEX，Zealand、Hanmi也在开发长效GLP-2类似物，竞争将加剧。",
+      "evidence": [
+        "2026Q2 LINZESS需求5,980万粒胶囊，同比+4%(IQVIA，公司引用)",
+        "HHS于2025-11-25公布LINZESS的Medicare最高公平价(30天剂量136美元)，2027-01-01起生效；2026-01-01起公司与AbbVie下调了标价",
+        "10-K列出SBS竞争：Takeda的GATTEX/REVESTIVE(teduglutide)，Zealand的glepaglutide(2026Q1启动新III期)，Hanmi的月制剂GLP-2(II期)"
+      ],
+      "sources": [
+        {"title": "Ironwood Pharmaceuticals Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1446847/000110465926020489/irwd-20251231x10k.htm", "date": "2026-02-26", "tier": "primary"},
+        {"title": "Ironwood Pharmaceuticals Raises 2026 Full-Year Financial Guidance Building on Strong Second Quarter Results", "url": "https://investor.ironwoodpharma.com/press-releases/press-release-details/2026/Ironwood-Pharmaceuticals-Raises-2026-Full-Year-Financial-Guidance-Building-on-Strong-Second-Quarter-Results/default.aspx", "date": "2026-08-06", "tier": "primary"}
+      ]
+    },
+    "product": {
+      "rating": "neutral",
+      "view": "LINZESS仍在扩展适应症(儿童功能性便秘)，但管线几乎只有apraglutide：STARS III期因实际给药剂量低于计划，FDA要求补做确证性STARS-2，上市时间被推后。研发投入约占营收三成。",
+      "evidence": [
+        "2026-05 FDA批准LINZESS用于2岁及以上儿童功能性便秘",
+        "2025-04公司宣布需补做确证性III期；STARS-2(NCT07742735)为24周全球随机双盲安慰剂对照试验，2026Q2已开始招募",
+        "2025财年研发费用9510万美元，约占营收2.962亿美元的32%"
+      ],
+      "sources": [
+        {"title": "Ironwood Pharmaceuticals Raises 2026 Full-Year Financial Guidance Building on Strong Second Quarter Results", "url": "https://investor.ironwoodpharma.com/press-releases/press-release-details/2026/Ironwood-Pharmaceuticals-Raises-2026-Full-Year-Financial-Guidance-Building-on-Strong-Second-Quarter-Results/default.aspx", "date": "2026-08-06", "tier": "primary"},
+        {"title": "Ironwood Pharmaceuticals Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1446847/000110465926020489/irwd-20251231x10k.htm", "date": "2026-02-26", "tier": "primary"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "三重时间点风险叠加：2027年Medicare最高公平价生效、最早2029年3月仿制药上市、apraglutide确证试验结果未知；同时公司仍有3.85亿美元循环贷款未偿，期末现金7910万美元。",
+      "evidence": [
+        "10-K：与五家仿制药企业达成和解，允许其最早于2029年3月上市72/145/290 mcg仿制LINZESS(需FDA批准)",
+        "LINZESS Medicare最高公平价136美元/30天，自2027-01-01起成为新的Medicare净价",
+        "2026-06-30循环信贷余额3.85亿美元(剩余额度1.65亿美元)，现金7910万美元；2026-06已用现金偿还2亿美元可转债"
+      ],
+      "sources": [
+        {"title": "Ironwood Pharmaceuticals Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1446847/000110465926020489/irwd-20251231x10k.htm", "date": "2026-02-26", "tier": "primary"},
+        {"title": "Ironwood Pharmaceuticals Raises 2026 Full-Year Financial Guidance Building on Strong Second Quarter Results", "url": "https://investor.ironwoodpharma.com/press-releases/press-release-details/2026/Ironwood-Pharmaceuticals-Raises-2026-Full-Year-Financial-Guidance-Building-on-Strong-Second-Quarter-Results/default.aspx", "date": "2026-08-06", "tier": "primary"}
+      ]
+    }
+  },
+  "bull": [
+    "LINZESS利润分成模式费用轻，2026Q2经营现金流5830万美元，指引全年调整后EBITDA超3.1亿美元，可用于降杠杆",
+    "若STARS-2成功，apraglutide有望成为每周一次的长效GLP-2，在SBS-IF领域形成第二条产品线",
+    "2026年净价改善与需求增长使LINZESS重回增长，指引全年净销售同比增长超30%"
+  ],
+  "bear": [
+    "2026年增长有相当部分来自取消通胀回扣与回扣准备时间性等净价因素，可持续性存疑，且2027年起适用IRA价格",
+    "最早2029年3月仿制药进入，而apraglutide最快上市时间晚于原计划，存在收入断层风险",
+    "CEO交接、临时CFO与CMO更换同时发生，执行连续性存在不确定性"
+  ],
+  "open_questions": [
+    "Medicare最高公平价对2027年LINZESS净销售的量化影响（Medicare占比未在已查阅资料中找到）",
+    "STARS-2的入组进度、预计读出时间与NDA提交时间表",
+    "正式CFO人选及新CEO上任后的资本配置与业务拓展策略",
+    "2026年净价改善中一次性(回扣准备时间性)与可持续部分的拆分"
+  ]
+}

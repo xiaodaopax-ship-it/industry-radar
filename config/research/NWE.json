@@ -1,0 +1,108 @@
+{
+  "ticker": "NWE",
+  "name": "NorthWestern Energy Group, Inc.",
+  "as_of": "2026-10-21",
+  "status": "draft",
+  "author": "Kiro 调研草稿（待人工审核）",
+  "reviewed_by": "",
+  "summary": "受监管的电力和天然气公用事业，客户分散，2026年二季度营收同比增约15%，主要来自新费率和售电量增长；公司正与 Black Hills 进行全股票合并，截至2026-10-21仅剩 Montana 监管批准，已签数据中心开发协议但尚未转为正式供电协议。",
+  "dimensions": {
+    "business": {
+      "rating": "neutral",
+      "view": "在 Montana、South Dakota、Nebraska 拥有特许经营的输配电和燃气业务，收益由监管机构核定的费率决定，护城河来自特许经营；增长取决于费率基数扩张和监管结果，Montana 近期出现部分投资不予回收的情况。",
+      "evidence": [
+        "2025年末约850,300户电力和/或天然气客户，覆盖 Montana、South Dakota、Nebraska 及 Yellowstone National Park",
+        "2026年二季度总营收3.926亿美元，2025年同期3.427亿美元（约+15%）；电力3.243亿美元，燃气0.683亿美元",
+        "2026年非 GAAP EPS 指引3.68–3.83美元；长期 EPS 和费率基数增长目标4%–6%（以2024年为基数）"
+      ],
+      "sources": [
+        {"title": "NorthWestern Energy Reports Second Quarter 2026 Financial Results (8-K Ex. 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/1993004/000199300426000052/ex991pressreleaseq22026.htm", "date": "2026-07-29", "tier": "primary"},
+        {"title": "NorthWestern Energy Group Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1993004/000199300426000006/nweg-20251231.htm", "date": "2026-02-12", "tier": "primary"}
+      ]
+    },
+    "customers": {
+      "rating": "positive",
+      "view": "客户以居民和商业用户为主，公司明确披露不依赖单一或少数客户。数据中心属于潜在新增大负荷，目前仍为开发协议阶段，尚未签订电力服务协议。",
+      "evidence": [
+        "10-K：电力和燃气业务不依赖单一客户或少数客户，失去任一或少数最大客户预计不会造成重大不利影响",
+        "2025年 Montana 零售电量结构：居民约46%、商业约46%、工业约5%、其他约3%",
+        "已与 Sabey Data Centers、Atlas Power Holdings 签开发协议，2026年4月与 Quantica Infrastructure 签开发协议；合计需求预计2027年底起150 MW，2030年前后可能增至约1,500 MW 或以上，仍在洽谈电力服务协议"
+      ],
+      "sources": [
+        {"title": "NorthWestern Energy Group Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1993004/000199300426000006/nweg-20251231.htm", "date": "2026-02-12", "tier": "primary"},
+        {"title": "NorthWestern Energy Reports Second Quarter 2026 Financial Results (8-K Ex. 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/1993004/000199300426000052/ex991pressreleaseq22026.htm", "date": "2026-07-29", "tier": "primary"}
+      ]
+    },
+    "management": {
+      "rating": "neutral",
+      "view": "CEO 与 CFO 均为公司内部长期任职者，执行连续性较好；合并完成后 CEO Brian Bird 将出任合并公司 CEO。近期公开人事变动主要是一名供应业务副总裁退休。",
+      "evidence": [
+        "Brian B. Bird 自2023年10月2日任集团总裁兼 CEO；此前任 NW Corp 总裁兼 COO（2021年2月起）和 CFO（2003年12月至2021年2月）",
+        "Crystal D. Lail 自2023年10月2日任集团副总裁兼 CFO，自2021年2月起任 NW Corp CFO",
+        "10-K 附件列有2025年8月18日 Black Hills 与 Brian B. Bird 签订的 CEO 协议（合并后出任合并公司 CEO）",
+        "2025年10月27日公告：供应/Montana 政府事务副总裁 John Hines 于2026年2月2日退休"
+      ],
+      "sources": [
+        {"title": "NorthWestern Energy Group Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1993004/000199300426000006/nweg-20251231.htm", "date": "2026-02-12", "tier": "primary"},
+        {"title": "NorthWestern Energy Group Form 8-K (Item 5.02)", "url": "https://www.sec.gov/Archives/edgar/data/1993004/000199300425000190/nwe-20251027.htm", "date": "2025-10-31", "tier": "primary"}
+      ]
+    },
+    "industry": {
+      "rating": "neutral",
+      "view": "受监管公用事业需求稳定，数据中心等大负荷带来新增投资机会，但需要配套发电和输电投资及监管批准。公司已在 Montana 提交大负荷费率规则，服务方式仍待监管评估。",
+      "evidence": [
+        "公司向 Montana PSC 提交针对5 MW 以上新增或扩容负荷（含数据中心）的大负荷（LNL）规则，进入公开审议程序",
+        "合并对方 Black Hills 于2026年10月6日公告与 Google 签订 Wyoming Cheyenne 数据中心供电协议（期限至2048年，总资源2.7 GW，自有发电投资18亿美元）",
+        "2026年1月1日以0美元收购 Avista、Puget 在 Colstrip 3、4号机组的权益，相关运营成本需在未来 Montana 费率审查中申请回收"
+      ],
+      "sources": [
+        {"title": "NorthWestern Energy Reports Second Quarter 2026 Financial Results (8-K Ex. 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/1993004/000199300426000052/ex991pressreleaseq22026.htm", "date": "2026-07-29", "tier": "primary"},
+        {"title": "Black Hills Corp. Executes Definitive Agreements to Serve Google's Planned Data Center in Cheyenne, Wyoming (8-K Ex. 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/1130464/000119312526415597/bkh-ex99_1.htm", "date": "2026-10-06", "tier": "primary"},
+        {"title": "Why NorthWestern Energy Group Stock Soared on Wednesday", "url": "https://www.fool.com/investing/2026/10/07/why-northwestern-energy-group-stock-soared-on-wednesday/", "date": "2026-10-07", "tier": "general"}
+      ]
+    },
+    "product": {
+      "rating": "neutral",
+      "view": "公用事业的产品即电网和电源投资：2026–2030年资本计划32亿美元，2026年6.83亿美元为历史最高；为支持 South Dakota 发电投资，预计2027年起发行股权。",
+      "evidence": [
+        "2026–2030年资本投资计划32亿美元，支撑费率基数自2024年约54亿美元起年增4%–6%",
+        "2026年资本计划6.83亿美元",
+        "公司预计2027年起需发行股权，为 South Dakota 发电投资融资"
+      ],
+      "sources": [
+        {"title": "NorthWestern Energy Reports Second Quarter 2026 Financial Results (8-K Ex. 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/1993004/000199300426000052/ex991pressreleaseq22026.htm", "date": "2026-07-29", "tier": "primary"}
+      ]
+    },
+    "risks": {
+      "rating": "negative",
+      "view": "近期风险集中在合并和监管：Montana PSC 最终裁决尚未出台，且有中间方就程序问题提起诉讼；Montana 已出现投资不予回收（YCGS）。合并采用固定换股比例，NWE 股价将随 Black Hills 股价变动。",
+      "evidence": [
+        "合并于2025年8月18日签约，NWE 股东每股换0.98股 Black Hills 股票；2026年4月双方股东批准，2026年5–6月获 FERC、Nebraska、South Dakota 批准，Montana 仍待裁决",
+        "据 Daily Montanan（2026-09-24），Montana PSC 裁决期限为10月12日，可延至11月10日；中间方关于审议程序的异议仍在州地区法院审理中",
+        "2025年12月 Montana PSC 不批准回收部分 YCGS 建设成本，公司2025年四季度计提3,090万美元非现金减值，并已申请复议",
+        "10-K 风险因素包括野火损失可能超出保险覆盖、合并所需审批可能延迟、附带条件或阻止交易"
+      ],
+      "sources": [
+        {"title": "NorthWestern Energy Reports Second Quarter 2026 Financial Results (8-K Ex. 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/1993004/000199300426000052/ex991pressreleaseq22026.htm", "date": "2026-07-29", "tier": "primary"},
+        {"title": "NorthWestern Energy Group Form 10-K for fiscal year 2025", "url": "https://www.sec.gov/Archives/edgar/data/1993004/000199300426000006/nweg-20251231.htm", "date": "2026-02-12", "tier": "primary"},
+        {"title": "Public Service Commission votes to take up merger decision with new member", "url": "https://dailymontanan.com/2026/09/24/public-service-commission-votes-to-take-up-merger-decision-with-new-member/", "date": "2026-09-24", "tier": "general"}
+      ]
+    }
+  },
+  "bull": [
+    "受监管业务客户分散，营收与费率基数挂钩，波动相对较小",
+    "与 Black Hills 合并后规模扩大，且 Black Hills 已签 Google 数据中心长期供电协议",
+    "Montana 数据中心开发协议若转为正式供电协议，2030年前后潜在新增负荷约1,500 MW"
+  ],
+  "bear": [
+    "Montana 合并审批仍未完成，可能附加条件或延迟",
+    "Montana 已出现投资成本不予回收的先例，Colstrip 新增权益的运营成本尚待费率回收",
+    "大规模电源和电网投资需要2027年起发行股权，存在摊薄和执行风险"
+  ],
+  "open_questions": [
+    "截至2026-10-21，Montana PSC 是否已就合并作出最终裁决？未查到10月12日之后的一手公告",
+    "Sabey、Atlas、Quantica 的开发协议何时、以何种价格机制转为电力服务协议？",
+    "日期存在出入：Motley Fool（2026-10-07）称合并于“八月”宣布，一手文件显示签约日为2025年8月18日；该文还称 Black Hills 投资期为2026–2029年，而 Black Hills 8-K 为2027–2029年，以一手文件为准",
+    "YCGS 成本复议结果及 PCCAM 机制暂停对2026年以后收益的影响"
+  ]
+}
