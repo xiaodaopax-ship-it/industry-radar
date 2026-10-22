@@ -448,6 +448,39 @@ def income_statement(code, report_date, ttl=1.0):
         return []
 
 
+def deducted_history(code, start, end, ttl=1.0):
+    """扣非 (non-recurring items excluded) earnings for one company, every report date in [start, end].
+    Two requests: RPT_LICO_FN_CPD (BASIC_EPS, DEDUCT_BASIC_EPS - published to 2 decimals) and RPT_DMSK_FN_INCOME
+    (PARENT_NETPROFIT, DEDUCT_PARENT_NETPROFIT, CNY). YTD cumulative. When a period appears more than once the most
+    recently updated row wins (restated comparatives).
+    Returns {report_date: {eps, eps_deducted, parent_net_profit, deducted_net_profit}}; {} on failure."""
+    out = {}
+    try:
+        a, b = str(start)[:10], str(end)[:10]
+        cpd, _ = dc_report("RPT_LICO_FN_CPD", "SECURITY_CODE,REPORTDATE,UPDATE_DATE,NOTICE_DATE,BASIC_EPS,DEDUCT_BASIC_EPS",
+                           f"(SECURITY_CODE=\"{code}\")(REPORTDATE>='{a}')(REPORTDATE<='{b}')", "REPORTDATE", "-1",
+                           page_size=50, max_pages=1, ttl=ttl, label=f"deducted/CPD {code}", warn_truncated=False)
+        inc, _ = dc_report("RPT_DMSK_FN_INCOME", "SECURITY_CODE,REPORT_DATE,NOTICE_DATE,PARENT_NETPROFIT,DEDUCT_PARENT_NETPROFIT",
+                           f"(SECURITY_CODE=\"{code}\")(REPORT_DATE>='{a}')(REPORT_DATE<='{b}')", "REPORT_DATE", "-1",
+                           page_size=50, max_pages=1, ttl=ttl, label=f"deducted/income {code}", warn_truncated=False)
+        seen = {}
+        for r in cpd:
+            d, u = day(r.get("REPORTDATE")), str(r.get("UPDATE_DATE") or r.get("NOTICE_DATE") or "")
+            if d and u >= seen.get(("c", d), ""):
+                seen[("c", d)] = u
+                out.setdefault(d, {}).update(eps=num(r.get("BASIC_EPS")), eps_deducted=num(r.get("DEDUCT_BASIC_EPS")))
+        for r in inc:
+            d, u = day(r.get("REPORT_DATE")), str(r.get("NOTICE_DATE") or "")
+            if d and u >= seen.get(("i", d), ""):
+                seen[("i", d)] = u
+                out.setdefault(d, {}).update(parent_net_profit=num(r.get("PARENT_NETPROFIT")),
+                                             deducted_net_profit=num(r.get("DEDUCT_PARENT_NETPROFIT")))
+        return out
+    except Exception as e:
+        warn(f"deducted_history: unexpected error {type(e).__name__}: {e}")
+        return out
+
+
 # ----------------------------------------------------------------------------- c. forecasts
 # RPT_PUBLIC_OP_NEWPREDICT (业绩预告): NOTICE_DATE | REPORT_DATE period | PREDICT_FINANCE metric (归母净利润/扣非/营收...)
 #   PREDICT_TYPE 预增/预减/扭亏/首亏/续亏/续盈/略增/略减/不确定 | PREDICT_AMT_LOWER/UPPER CNY | ADD_AMP_LOWER/UPPER yoy %

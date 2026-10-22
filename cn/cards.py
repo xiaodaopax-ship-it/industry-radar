@@ -34,6 +34,18 @@ CARD_RULES = {
     "holder_rows": 8,           # 增减持 detail rows per card
     "price_days": 365,          # price sparkline window
     "pe_points": 260,           # PE history points kept per stock (down-sampled)
+    # PEG = PE(TTM) / annualised EPS growth (%). Reference item only: not used in ranking, labels or warn_n.
+    "peg_min_org": 3,           # forward PEG needs >= 3 institutions in the consensus
+    "peg_ok_max": 1.0,          # PEG <= 1 => ✓
+    "peg_warn_min": 2.0,        # PEG > 2 => ⚠ (in between => ·)
+    "peg_growth_max": 100.0,    # growth > 100%/yr => shown but flagged unreliable
+    "peg_fwd_eps_min": 0.1,     # forward: current-year estimate < 0.1 CNY => low base, unreliable
+    "peg_fwd_actual_ratio": 0.1,  # forward: last reported annual EPS <= 10% of current-year estimate => low base
+    "peg_fwd_drop_pct": 30.0,   # forward: any year-on-year drop > 30% inside the estimate path => possible one-off
+    "peg_hist_base_ratio": 0.1,  # historical: last-year 扣非 profit < 10% of current => low base
+    "peg_hist_base_min": 1e7,   # historical: last-year 扣非 profit < 1000万元 => low base
+    "peg_hist_eps_min": 0.5,    # historical: use 扣非 EPS only if both >= 0.5 CNY (EPS is published to 2 decimals);
+                                # otherwise use 扣非归母净利润 growth
 }
 REG_COUNT_KINDS = {"inquiry_letter", "concern_letter", "regulatory_letter", "warning_letter", "investigation",
                    "disciplinary_action", "administrative_penalty"}
@@ -101,10 +113,27 @@ def fetch_cards(snap_path=None, snap=None):
     codes = card_codes(res)
     today = dt.date.today()
     t0 = dt.datetime.now(em.CST)
-    log(f"cards: {len(codes)} stocks (priority {len(res['priority'])} + value label, deduplicated) from {os.path.basename(snap_path or '')}")
-    out, failed = {}, {}
+    P = snap["periods"]
+    # reuse fields already fetched for the same snapshot (only missing / failed fields are fetched again)
+    prev_doc, prev_path = {}, latest_cards()
+    if prev_path and snap_path:
+        try:
+            with open(prev_path, encoding="utf-8") as f:
+                d = json.load(f)
+            if d.get("snap") == os.path.basename(snap_path):
+                prev_doc = d.get("cards") or {}
+        except (OSError, ValueError):
+            prev_doc = {}
+    log(f"cards: {len(codes)} stocks (priority {len(res['priority'])} + value label, deduplicated) from {os.path.basename(snap_path or '')}"
+        + (f"; reusing fields from {os.path.basename(prev_path)}" if prev_doc else ""))
+    out, failed, reused = {}, {}, 0
     for i, code in enumerate(codes, 1):
         rec, errs = {}, []
+        old = prev_doc.get(code) or {}
+        old_err = set(old.get("errors") or [])
+
+        def have(field, *keys):
+            return bool(old) and field not in old_err and all(k in old for k in keys)
 
         def call(field, fn, *a):
             before = em.STATS["failures"]
@@ -113,15 +142,38 @@ def fetch_cards(snap_path=None, snap=None):
                 errs.append(field)
             return v
 
-        prof = call("profile", em.company_profile, code)
-        rec["profile"] = prof[0] if prof else None
-        rec["mainop"] = call("mainop", em.main_business_composition, code)
-        rec["float_holders"] = call("float_holders", em.float_holders, code)
-        ac = call("consensus", em.analyst_consensus, code)
-        rec["consensus"] = ac[0] if ac else None
-        hist = call("valuation_history", em.valuation_history, code, RULES["valuation_years"])
-        rec["pe_series"], rec["pe_band"], rec["price"] = _series(hist, today)
-        rec["hist_range"] = [hist[0]["date"], hist[-1]["date"]] if hist else None
+        if have("profile", "profile"):
+            rec["profile"] = old["profile"]; reused += 1
+        else:
+            prof = call("profile", em.company_profile, code)
+            rec["profile"] = prof[0] if prof else None
+        if have("mainop", "mainop"):
+            rec["mainop"] = old["mainop"]; reused += 1
+        else:
+            rec["mainop"] = call("mainop", em.main_business_composition, code)
+        if have("float_holders", "float_holders"):
+            rec["float_holders"] = old["float_holders"]; reused += 1
+        else:
+            rec["float_holders"] = call("float_holders", em.float_holders, code)
+        if have("consensus", "consensus"):
+            rec["consensus"] = old["consensus"]; reused += 1
+        else:
+            ac = call("consensus", em.analyst_consensus, code)
+            rec["consensus"] = ac[0] if ac else None
+        if have("valuation_history", "pe_series", "pe_band", "price", "hist_range"):
+            for k in ("pe_series", "pe_band", "price", "hist_range"):
+                rec[k] = old[k]
+            reused += 1
+        else:
+            hist = call("valuation_history", em.valuation_history, code, RULES["valuation_years"])
+            rec["pe_series"], rec["pe_band"], rec["price"] = _series(hist, today)
+            rec["hist_range"] = [hist[0]["date"], hist[-1]["date"]] if hist else None
+        # 扣非 EPS / profit for the latest YTD period and the same period last year (historical PEG fallback)
+        if have("deducted", "deducted") and all(p in (old["deducted"] or {}) for p in (P["latest"], P["year_ago"])):
+            rec["deducted"] = old["deducted"]; reused += 1
+        else:
+            dh = call("deducted", em.deducted_history, code, P["year_ago"], P["latest"])
+            rec["deducted"] = {k: v for k, v in dh.items() if k in (P["latest"], P["year_ago"])}
         rec["errors"] = errs
         for e in errs:
             failed[e] = failed.get(e, 0) + 1
@@ -135,8 +187,9 @@ def fetch_cards(snap_path=None, snap=None):
     path = os.path.join(DATA_DIR, f"cards_{t0.strftime('%Y%m%d_%H%M%S')}.json")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False)
-    n = {k: sum(1 for c in out.values() if c.get(k)) for k in ("profile", "mainop", "float_holders", "consensus", "price")}
-    log(f"saved {os.path.relpath(path, ROOT)} ({os.path.getsize(path) / 1e6:.2f} MB); with_data={n}; failed={failed}; http={em.STATS}")
+    n = {k: sum(1 for c in out.values() if c.get(k)) for k in ("profile", "mainop", "float_holders", "consensus", "price", "deducted")}
+    log(f"saved {os.path.relpath(path, ROOT)} ({os.path.getsize(path) / 1e6:.2f} MB); with_data={n}; reused_fields={reused}; "
+        f"failed={failed}; http={em.STATS}")
     return path
 
 
@@ -173,6 +226,105 @@ def _research(code):
     except (OSError, ValueError) as e:
         log(f"WARNING: {os.path.relpath(p, ROOT)} unreadable ({type(e).__name__})")
         return None
+
+
+PEG_CYC_REASON = "周期行业，盈利高点时 PE 最低，PEG 不适用"
+PEG_HIST_CN = "历史口径（扣非，年初至今同比）"
+
+
+def peg(r, x, P):
+    """PEG for one card stock. Forward (consensus EPS CAGR from the current-year estimate) when the consensus is
+    usable, otherwise historical (扣非 YTD YoY). Returns a dict; value None => not shown, see 'reason'.
+    flags non-empty => shown but unreliable (status na). Reference only: never used in ranking / labels / warn_n."""
+    C = CARD_RULES
+    o = {"value": None, "method": None, "growth": None, "status": "na", "flags": [], "reason": None, "short": None,
+         "line": None, "fwd_note": None}
+    pe = r.get("pe_ttm")
+    if r.get("cyclical"):
+        o["reason"] = PEG_CYC_REASON
+        return o
+    if pe is None or pe <= 0:
+        o["reason"] = "PE(TTM) ≤ 0 或缺失，PEG 不适用"
+        return o
+
+    def finish(g, short, line):
+        o["growth"], o["short"] = round(g, 1), short
+        o["brief"] = short.strip() + (" 年化 " if o["method"] == "forward" else " ") + f"{g:+.0f}%"
+        if g > C["peg_growth_max"]:
+            o["flags"].append(f"增速 {g:+.0f}% > {C['peg_growth_max']:.0f}%，PEG 不可靠")
+        if g <= 0:
+            o["reason"] = f"{short}增速 {g:+.0f}% ≤ 0，PEG 不适用"
+            return o
+        v = pe / g
+        o["value"] = round(v, 2)
+        o["line"] = f"PEG {v:.2f}（{line}）"
+        o["status"] = "na" if o["flags"] else ("ok" if v <= C["peg_ok_max"] else "warn" if v > C["peg_warn_min"] else "na")
+        return o
+
+    # ---- forward: consensus mean EPS, current-year estimate -> two years later
+    a = x.get("consensus")
+    y_rep = int(P["latest"][:4])
+    est = {e["year"]: e["eps"] for e in (a or {}).get("eps", []) if e.get("kind") == "estimate" and e.get("eps") is not None}
+    act = {e["year"]: e["eps"] for e in (a or {}).get("eps", []) if e.get("kind") == "actual" and e.get("eps") is not None}
+    y0 = min((y for y in est if y >= y_rep), default=None)
+    why = None
+    if not a:
+        why = "无机构一致预期"
+    elif (a.get("org_num") or 0) < C["peg_min_org"]:
+        why = f"一致预期覆盖机构 {a.get('org_num') or 0:.0f} 家 < {C['peg_min_org']}"
+    elif y0 is None:
+        why = f"缺当年（{y_rep}E）一致预期"
+    else:
+        n = 2 if (y0 + 2) in est and (y0 + 1) in est else 1 if (y0 + 1) in est else 0
+        path = [est[y0 + k] for k in range(n + 1)]
+        if n == 0:
+            why = f"只有 {y0}E 一年预期，无法计算增速"
+        elif any(e <= 0 for e in path):
+            why = "一致预期 EPS 有 ≤ 0 的年度"
+    if why is None:
+        yn, e0, en = y0 + n, path[0], path[-1]
+        g = ((en / e0) ** (1 / n) - 1) * 100
+        o["method"] = "forward"
+        o["years"], o["org_num"], o["eps_path"] = [y0, yn], a.get("org_num"), [round(e, 3) for e in path]
+        if e0 < C["peg_fwd_eps_min"]:
+            o["flags"].append(f"基数低：{y0}E EPS {e0:.2f} < {C['peg_fwd_eps_min']} 元，PEG 不可靠")
+        la = act.get(y0 - 1)
+        if la is not None and la <= C["peg_fwd_actual_ratio"] * e0:
+            o["flags"].append(f"基数低：{y0 - 1}A EPS {la:.2f} → {y0}E {e0:.2f}，PE(TTM) 主要反映低基数期盈利，PEG 不可靠")
+        drops = [(y0 + k, path[k], path[k + 1]) for k in range(n) if path[k + 1] < path[k] * (1 - C["peg_fwd_drop_pct"] / 100)]
+        if drops:
+            y, p0, p1 = drops[0]
+            o["flags"].append(f"一致预期年度间大幅下降（{y}E {p0:.2f} → {y + 1}E {p1:.2f}），可能含一次性收益")
+        one = "，只有两年预期，按 1 年增速" if n == 1 else ""
+        return finish(g, f"前瞻 {y0}E→{yn}E ", f"前瞻，{y0}E→{yn}E 年化 {g:+.0f}%，{a.get('org_num') or 0:.0f} 家机构{one}")
+
+    # ---- historical: 扣非, latest YTD vs same YTD period last year
+    o["fwd_note"] = why
+    ded = x.get("deducted") or {}
+    cur, old = ded.get(P["latest"]) or {}, ded.get(P["year_ago"]) or {}
+    pc, po = cur.get("deducted_net_profit"), old.get("deducted_net_profit")
+    ec, eo = cur.get("eps_deducted"), old.get("eps_deducted")
+    if ec is not None and eo is not None and ec >= C["peg_hist_eps_min"] and eo >= C["peg_hist_eps_min"]:
+        basis, vc, vo = "扣非 EPS", ec, eo
+    elif pc is not None and po is not None:
+        basis, vc, vo = "扣非归母净利润", pc, po
+    elif ec is not None and eo is not None:
+        basis, vc, vo = "扣非 EPS", ec, eo
+    else:
+        o["reason"] = f"{why}；也没有取到 {P['latest']} / {P['year_ago']} 扣非数据，PEG 不适用"
+        return o
+    o["method"], o["basis"] = "historical", basis
+    o["hist"] = {"cur": vc, "old": vo, "cur_np": pc, "old_np": po}
+    if vo <= 0:
+        o["reason"] = f"{why}；上年同期（{P['year_ago']}）{basis} ≤ 0，增速不可计算，PEG 不适用"
+        return o
+    g = (vc / vo - 1) * 100
+    if po is not None and pc is not None and (po < C["peg_hist_base_ratio"] * pc or po < C["peg_hist_base_min"]):
+        o["flags"].append(f"基数低：上年同期扣非归母净利润 {po / 1e4:,.0f} 万元（本期 {pc / 1e4:,.0f} 万元），PEG 不可靠")
+    elif po is None and vo < C["peg_hist_base_ratio"] * vc:
+        o["flags"].append("基数低，PEG 不可靠")
+    return finish(g, f"{PEG_HIST_CN} ",
+                  f"{PEG_HIST_CN}，{P['latest']} vs {P['year_ago']} {basis} {g:+.0f}%；{why}")
 
 
 def card_payload(snap, res, cards_doc, rules):
@@ -230,6 +382,10 @@ def card_payload(snap, res, cards_doc, rules):
                   "s": "warn" if "warn" in cash_s else ("ok" if g["ocf"]["s"] == "ok" else "na")}
         t_val = {"label": "估值（近 5 年分位）", "main": f"PE 分位 {_f(r['pe_pct'], 0)}%" if r["pe_pct"] is not None else "PE 分位 —",
                  "sub": f"PE(TTM) {_f(r['pe_ttm'])} · PB {_f(r['pb'], 2)}（分位 {_f(r['pb_pct'], 0)}%）", "s": g["val"]["s"]}
+        pg = peg(r, x, P)
+        t_val["sub2"] = (pg["line"] + ("；⚠ " + "；".join(pg["flags"]) if pg["flags"] else "")) if pg["value"] is not None \
+            else "PEG —（" + pg["reason"] + ("；" + "；".join(pg["flags"]) if pg["flags"] else "") + "）"
+        t_val["sub2_s"] = pg["status"]
         ev_keys = ("pledge", "selling", "unlock", "reg")
         ev_warn = sum(1 for k in ev_keys if g[k]["s"] == "warn")
         t_event = {"label": "事件风险（质押 / 减持 / 解禁 / 监管）", "main": f"{ev_warn} 项提示",
@@ -283,9 +439,18 @@ def card_payload(snap, res, cards_doc, rules):
         b = "；".join(bull[:2]) or "数据上没有突出的优点"
         w = "；".join(bear[:2]) or "前 8 项风险门槛没有触发提示"
         concl = f"{head}。数据上的依据：{b}。需要注意：{w}。以上是按固定规则从公开数据生成的摘要，需要人工核实。"
+        # PEG lines are appended after the conclusion is built (reference item, not part of the summary)
+        if pg["value"] is not None and not pg["flags"]:
+            basis = "只按一致预期计算" if pg["method"] == "forward" else "只按历史增速计算"
+            if pg["status"] == "ok":
+                bull.append(f"PEG {pg['value']:.2f}（{pg['brief']}）≤ {CARD_RULES['peg_ok_max']:g}，增速相对估值不贵（{basis}）")
+            elif pg["status"] == "warn":
+                bear.append(f"PEG {pg['value']:.2f}（{pg['brief']}）> {CARD_RULES['peg_warn_min']:g}（{basis}）")
 
         # ---- questions to verify (3..5)
         qs = []
+        if pg["flags"]:
+            qs.append(f"PEG 不可靠的原因：{'；'.join(pg['flags'])}——核对上年基数与一次性收益，看扣非净利润")
         if g["ocf"]["s"] == "warn" or g["ar"]["s"] == "warn":
             qs.append(f"应收增长的客户结构是什么：新增应收集中在哪些客户、账期有没有拉长（现金流/净利 {_f(r['ocf_np'], 2)}，应收 {g['ar']['sv']}）")
         if g["inv"]["s"] == "warn":
@@ -319,7 +484,7 @@ def card_payload(snap, res, cards_doc, rules):
             "factors": p["f"] if p else None, "val_basis": p["val_basis"] if p else None,
             "oneliner": _oneliner(prof), "conclusion": concl,
             "tiles": [t_growth, t_cash, t_val, t_event], "bull": bull, "bear": bear, "questions": qs,
-            "gates": g, "warn_n": r["warn_n"],
+            "gates": g, "warn_n": r["warn_n"], "peg": pg,
             "fin": {k: r[k] for k in ("revenue", "rev_yoy", "rev_yoy_prev", "accel", "np", "np_yoy", "gm", "gm_chg",
                                       "ocf_np", "mcap", "pe_ttm", "pb", "pe_pct", "pb_pct")} | {"price": q.get("price")},
             "valuation": {"pe": pe, "pb": pb, "first": val.get("first"), "last": val.get("last")},

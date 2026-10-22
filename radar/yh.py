@@ -38,12 +38,13 @@ def market(yh, symbol, fx):
             for h in (r.get("earningsHistory") or {}).get("history", [])]
     trend = {t["period"]: t for t in (r.get("earningsTrend") or {}).get("trend", [])}
     nq = trend.get("0q") or {}
+    price = raw(p, "regularMarketPrice")
     ed = ((r.get("calendarEvents") or {}).get("earnings") or {}).get("earningsDate") or []
     ap = r.get("assetProfile") or {}
     summary = first_sentence(ap.get("longBusinessSummary") or "")
     return {
         "name": p.get("longName") or p.get("shortName"), "currency": ccy,
-        "price": raw(p, "regularMarketPrice"), "mcap": usd(raw(p, "marketCap"), ccy, fx),
+        "price": price, "mcap": usd(raw(p, "marketCap"), ccy, fx),
         "hi52": raw(sd, "fiftyTwoWeekHigh"), "lo52": raw(sd, "fiftyTwoWeekLow"),
         "analysts": raw(f, "numberOfAnalystOpinions"), "target": raw(f, "targetMedianPrice"), "rec": f.get("recommendationKey"),
         "insiders": raw(k, "heldPercentInsiders"), "institutions": raw(k, "heldPercentInstitutions"),
@@ -51,10 +52,31 @@ def market(yh, symbol, fx):
         "next_q": {"end": nq.get("endDate"), "eps": raw(nq.get("earningsEstimate"), "avg"),
                    "rev": usd(raw(nq.get("revenueEstimate"), "avg"), ccy, fx), "n": raw(nq.get("revenueEstimate"), "numberOfAnalysts")} if nq else None,
         "next_date": dt.datetime.fromtimestamp(ed[0]["raw"], dt.timezone.utc).strftime("%Y-%m-%d") if ed else None,
+        "eps_est": eps_estimates(trend, price, ccy, fx),
+        "eps_g5y": round(raw(trend["+5y"], "growth") * 100, 1) if raw(trend.get("+5y"), "growth") is not None else None,  # informational
         "profile": {"industry": ap.get("industry"), "sector": ap.get("sector"), "country": ap.get("country"),
                     "employees": ap.get("fullTimeEmployees"), "website": ap.get("website"),
                     "summary": summary},
     }
+
+
+def eps_estimates(trend, price, ccy, fx):
+    """Consensus EPS for the current (0y) and next (+1y) fiscal year from earningsTrend.
+
+    Values stay in the estimate currency (earningsCurrency, usually the reporting currency). yield_pct is the 0y
+    estimate as a share of the share price, both converted to USD, so a too-small base can be flagged in any currency.
+    """
+    out = {}
+    for k in ("0y", "+1y"):
+        t = trend.get(k)
+        e = (t or {}).get("earningsEstimate") or {}
+        if raw(e, "avg") is None:
+            continue
+        ec = e.get("earningsCurrency") or ccy
+        eu, pu = usd(raw(e, "avg"), ec, fx), usd(price, ccy, fx)
+        out[k] = {"avg": raw(e, "avg"), "n": raw(e, "numberOfAnalysts"), "end_date": t.get("endDate"), "ccy": ec,
+                  "year_ago": raw(e, "yearAgoEps"), "yield_pct": round(eu / pu * 100, 2) if eu is not None and pu else None}
+    return out or None
 
 
 FIN_TS = ["PretaxIncome", "StockholdersEquity", "TotalEquityGrossMinorityInterest", "CreditLossesProvision", "ProvisionForDoubtfulAccounts"]
@@ -125,10 +147,13 @@ def fundamentals(yh, symbol, fx):
         ni_ttm = sum(ni4) if ttm and None not in ni4 else None
     else:
         ttm, ni_ttm = q0["val"], ni.get(q0["date"])
+    # year-ago net income on the same basis: only annual data reaches back far enough (Yahoo gives ~5 quarters,
+    # a year-ago TTM needs 8), so quarterly-basis rows have no historical PEG fallback
+    ni_ly = ni.get(ly["date"]) if basis == "annual" else None
     s0, sly = sh.get(q0["date"]), sh.get(ly["date"])
     return {"q_end": q0["date"], "basis": basis, "rev_q": q0["val"], "rev_q_ly": ly["val"],
             "yoy": round((q0["val"] / ly["val"] - 1) * 100, 1), "yoy_prev": None,
-            "rev_ttm": ttm, "ni_ttm": ni_ttm,
+            "rev_ttm": ttm, "ni_ttm": ni_ttm, "ni_ttm_ly": ni_ly,
             "gm": pct(gp.get(q0["date"]), q0["val"]), "gm_ly": pct(gp.get(ly["date"]), ly["val"]),
             "opm": pct(op.get(q0["date"]), q0["val"]), "opm_ly": pct(op.get(ly["date"]), ly["val"]),
             "dilution": round((s0 / sly - 1) * 100, 1) if s0 and sly else None, "cash": cash.get(q0["date"])}

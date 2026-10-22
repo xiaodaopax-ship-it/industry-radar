@@ -102,7 +102,7 @@ def build(raw):
                 r = {"ticker": t, "name": (L.get("mkt") or {}).get("name") or t, "market": MARKET.get(t.split(".")[-1], "US") if "." in t else "US",
                      "mkt": L.get("mkt"), "insider": None, **f}
                 r = view(r, profile(g))
-                d = S.derived(r, {"profile": profile(g), "credit": bool(g.get("credit")), "verify": g.get("verify", [])})
+                d = S.derived(r, {"profile": profile(g), "credit": bool(g.get("credit")), "verify": g.get("verify", []), "cyclical": bool(g.get("cyclical"))})
                 bull, bear = S.bull_bear(r, d, bool(g.get("cyclical")), g["id"], leader=True)
                 px = L.get("px") or []
                 b = bench.get(s["benchmark"]["symbol"]) or []

@@ -134,7 +134,7 @@
     <h2><span class="step-tag">④</span>研究优先级 · Top <span id="pN"></span></h2>
     <p class="lead" id="pLead"></p>
     <table><thead><tr id="pHead"></tr></thead><tbody id="pBody"></tbody></table>
-    <p class="note">排序只表示"按这四个数据维度，先看谁"，没有做过回测，不代表后续表现。估值分位只描述相对自身近几年的位置，不是估值结论。点击代码打开该公司的评估卡。</p>
+    <p class="note">排序只表示"按这四个数据维度，先看谁"，没有做过回测，不代表后续表现。估值分位只描述相对自身近几年的位置，不是估值结论。点击代码打开该公司的评估卡。<br>PEG 列只作参考，<b>不参与排序，也不影响价值 / 博弈标签和 ⚠ 数</b>：标签「前瞻」= PE(TTM) ÷ 机构一致预期 EPS 年化增速，「历史」= PE(TTM) ÷ 扣非年初至今同比增速，「—」= 不适用（周期行业、PE ≤ 0、增速 ≤ 0 或无数据）；数值后带 ⚠ = 不可靠（基数低、增速 &gt; 100% 或一致预期年度间大幅下降）。鼠标悬停看原因，口径见"数据与方法"。</p>
     <h3>周期行业的高增长公司（单独列出，不参与排序）</h3>
     <p class="small" id="cyLead"></p>
     <table><thead><tr><th scope="col">代码</th><th scope="col">名称</th><th scope="col">行业</th><th scope="col" class="n">营收同比</th><th scope="col" class="n">净利同比</th><th scope="col" class="n">毛利率变化（pp）</th><th scope="col" class="n">现金流/净利</th><th scope="col" class="n">PE(TTM)</th><th scope="col">业绩预告</th><th scope="col">要先核实</th></tr></thead><tbody id="cyBody"></tbody></table>
@@ -163,6 +163,8 @@
           <tr><td>限售股解禁</td><td>RPT_LIFT_STAGE</td></tr>
           <tr><td>问询函、关注函、监管函、警示函、立案、纪律处分、行政处罚</td><td>巨潮资讯 hisAnnouncement/query 标题关键词检索</td></tr>
           <tr><td>PE / PB 历史分位</td><td>RPT_VALUEANALYSIS_DET 按代码取日频历史</td></tr>
+          <tr><td>PEG（前瞻）：机构一致预期 EPS 均值、覆盖机构数</td><td>RPT_WEB_RESPREDICT（EPS1–EPS4、YEAR_MARK、RATING_ORG_NUM），仅评估卡公司</td></tr>
+          <tr><td>PEG（历史）：扣非归母净利润 / 扣非每股收益</td><td>RPT_DMSK_FN_INCOME（DEDUCT_PARENT_NETPROFIT）/ RPT_LICO_FN_CPD（DEDUCT_BASIC_EPS），按代码取，仅评估卡公司</td></tr>
         </tbody></table>
         <h3>本次数据</h3>
         <table><tbody id="meta"></tbody></table>
@@ -180,6 +182,7 @@
         <p class="note">增减持合计把董监高与 5% 以上股东两张表直接相加，同一主体同时出现在两张表时会重复计算；股东表的变动区间可能与公告日不一致。质押比例是公司整体质押股数占总股本，不是控股股东质押率。未来解禁计划可能变更，以公司公告为准。</p>
         <p class="note">估值历史只为短名单（最多 <span id="slMax"></span> 只）拉取，以控制请求量；其余公司的估值分位显示为"未取"。PE ≤ 0（亏损期）不计入分位样本。</p>
         <p class="note">评估卡：主营构成、前十大流通股东、公司概况、机构一致预期来自东方财富 F10（RPT_F10_FN_MAINOP / RPT_F10_EH_FREEHOLDERS / RPT_F10_BASIC_ORGINFO / RPT_WEB_RESPREDICT），只为评估卡上的公司单独抓取。价格走势用估值历史里的日收盘价，<b>未复权</b>，送转、分红会造成跳变。机构一致预期只显示覆盖家数和 EPS 均值，不显示评级用词和目标价。结论、机会、风险和待核实问题都是按固定规则从数字生成的，不是研究结论。</p>
+        <p class="note" id="pegNote"></p>
         <p class="note">本页只整理公开披露的数字，不对任何政策、监管决定或宏观事项做评价。</p>
       </div>
     </div>
@@ -356,6 +359,7 @@ function renderPriority() {
     {k: "fo", t: "现金流分位", n: 1, v: p => p.f.ocf, f: p => `${num(p.f.ocf, 0)} <span class="small">(${num(BYCODE[p.code].ocf_np, 2)})</span>`},
     {k: "fv", t: "估值分位得分", n: 1, v: p => p.f.val, f: p => { const r = BYCODE[p.code]; return `${num(p.f.val, 0)} <span class="small">(${esc(p.val_basis || "—")} ${num(p.val_basis === "PB" ? r.pb_pct : r.pe_pct, 0)}%)</span>`; }},
     {k: "warn_n", t: "⚠ 数", n: 1, v: p => BYCODE[p.code].warn_n, f: p => BYCODE[p.code].warn_n},
+    {k: "peg", t: "PEG（参考）", n: 1, v: p => CARDS[p.code]?.peg?.value ?? null, f: p => pegCell(CARDS[p.code]?.peg)},
     {k: "label", t: "标签", v: p => BYCODE[p.code].label, f: p => `<span class="tag lb-${esc(BYCODE[p.code].label)}">${esc(BYCODE[p.code].label)}</span>`},
     {k: "fc", t: "业绩预告", nosort: 1, f: p => gateCell(BYCODE[p.code].gates.fc)},
     {k: "why", t: "标签原因", nosort: 1, cls: "why", f: p => `<span class="small">${esc(BYCODE[p.code].reasons.join("；"))}</span>`},
@@ -389,6 +393,15 @@ function renderMethod() {
   $("defs").innerHTML = esc(`年初至今（YTD）累计：利润表、现金流量表按中国披露习惯为年初至报告期末累计。营收同比使用业绩报表披露的 YSTZ 字段。` +
     `加速 = ${D.periods.latest} 年初至今营收同比 − ${D.periods.prev} 年初至今营收同比（百分点）。` +
     `估值分位 = 最新 PE(TTM) / PB 在近 ${R.valuation_years} 年日频历史中的百分位（剔除 ≤ 0 的值）。百分位排名在候选集合内计算，0 = 最低，100 = 最高。`);
+  $("pegNote").innerHTML = `<b>PEG（评估卡参考项）</b>：PEG = PE(TTM) ÷ 每年盈利增速（%）。<b>不参与 ④ 排序，也不影响价值 / 博弈标签和 ⚠ 数</b>，只在评估卡和 ④ 的 PEG 列显示。` + esc(
+    `① 前瞻口径（优先）：当年 = 第一个年份 ≥ 最新报告期（${D.periods.latest}）所在年的预测年度；增速 = (两年后预期 EPS ÷ 当年预期 EPS)^(1/2) − 1，只有当年和下一年预期时用 1 年增速并注明。` +
+    `要求覆盖机构 ≥ ${CR.peg_min_org} 家、有当年预期、所用各年预期 EPS 均 > 0，否则改用历史口径。` +
+    `② 历史口径（扣非，年初至今同比）：${D.periods.latest} 与 ${D.periods.year_ago} 的年初至今累计扣非数据相比；两期扣非 EPS 都 ≥ ${CR.peg_hist_eps_min} 元时用扣非 EPS（东财只披露到两位小数，数值小时误差大），否则用扣非归母净利润增速（股本变化未调整）。` +
+    `不显示：周期行业（盈利高点时 PE 最低，PEG 不适用）；PE(TTM) ≤ 0 或缺失；增速 ≤ 0；上年同期扣非 ≤ 0。` +
+    `显示但标为不可靠（记 ·）：增速 > ${CR.peg_growth_max}%；前瞻当年预期 EPS < ${CR.peg_fwd_eps_min} 元，或上一年实际 EPS ≤ 当年预期的 ${Math.round(100 * CR.peg_fwd_actual_ratio)}%（基数低，PE(TTM) 主要反映低基数期盈利）；` +
+    `一致预期任一年较上一年下降 > ${CR.peg_fwd_drop_pct}%（可能含一次性收益）；历史口径上年同期扣非归母净利润 < 本期的 ${Math.round(100 * CR.peg_hist_base_ratio)}% 或 < ${(CR.peg_hist_base_min || 0) / 1e4} 万元。` +
+    `状态：PEG ≤ ${CR.peg_ok_max} ✓，> ${CR.peg_warn_min} ⚠，其余 ·。` +
+    `局限：东方财富未公开一致预期的统计窗口和机构名单，EPS 是各机构预测的简单均值，可能包含过时预测；PE(TTM) 是滚动 12 个月口径，与预测年度不完全对齐；历史口径是年初至今累计同比，不是全年增速，季节性和一次性项目都会影响；PEG 假设增速可持续，对高增长、低基数和周期性公司都不稳定。`);
   $("foot").innerHTML = esc(`构建于 ${D.built_at}，数据抓取于 ${D.fetched_at}。研究工具，不构成投资建议。`);
 }
 
@@ -397,6 +410,7 @@ function renderMethod() {
 // evidence (factor radar, PE history, price, 主营构成, holders, events, gate checklist), questions, qualitative six dimensions.
 const CARDS = Object.fromEntries((D.cards || []).map(c => [c.code, c]));
 const CM = D.cards_meta || {};
+const CR = CM.rules || {};
 const codeCell = code => CARDS[code] ? `<a href="#card-${esc(code)}" class="cardlink" data-card="${esc(code)}" title="打开评估卡">${esc(code)}</a>` : esc(code);
 const BOARD_CN = {SH_MAIN: "沪市主板", STAR: "科创板", SZ_MAIN: "深市主板", ChiNext: "创业板", BSE: "北交所"};
 const FACTOR_CN = {growth: "增长", accel: "加速", ocf: "现金流", val: "估值"};
@@ -404,7 +418,12 @@ const wan = v => v == null ? "—" : (v / 1e4).toLocaleString("zh-CN", {maximumF
 const lis = xs => (xs || []).map(x => `<li>${esc(x)}</li>`).join("");
 const safeUrl = u => /^https?:\/\//i.test(String(u || "")) ? String(u) : "";
 const extA = (url, text) => safeUrl(url) ? `<a href="${esc(safeUrl(url))}" target="_blank" rel="noopener noreferrer">${esc(text)}</a>` : esc(text);
-const ctile = t => `<div class="tile ${esc(t.s)}"><div class="label">${esc(t.label)}</div><div class="tv">${esc(t.main)}</div><div class="small">${esc(t.sub)}</div></div>`;
+const ctile = t => `<div class="tile ${esc(t.s)}"><div class="label">${esc(t.label)}</div><div class="tv">${esc(t.main)}</div><div class="small">${esc(t.sub)}</div>${t.sub2 ? `<div class="small" style="margin-top:2px"><span class="${esc(t.sub2_s || "na")}">${ICON[t.sub2_s] || "·"}</span> ${esc(t.sub2)}</div>` : ""}</div>`;
+// PEG: reference item only (not in ranking, labels or the ⚠ count)
+const PEG_TAG = {forward: "前瞻", historical: "历史"};
+const pegTip = g => [g.line || (g.value == null ? "PEG 不显示" : ""), g.reason, ...(g.flags || []).map(f => "不可靠：" + f), g.fwd_note && g.method === "historical" ? `未用前瞻口径：${g.fwd_note}` : ""].filter(Boolean).map(esc).join("<br>");
+const pegCell = g => !g ? "—" : `<span class="${esc(g.status)}" data-tip="${esc(pegTip(g))}">${g.value == null ? "—" : num(g.value, 2)}${(g.flags || []).length && g.value != null ? " ⚠" : ""}</span> <span class="tag">${esc(PEG_TAG[g.method] && g.value != null ? PEG_TAG[g.method] : "—")}</span>`;
+const pegChk = g => `<div class="chk"><span class="${esc(g.status)}">${ICON[g.status] || "·"}</span><span>PEG（参考）</span><span class="small">${esc(g.value == null ? "不显示：" + g.reason : g.line)}${(g.flags || []).length ? `<br><span class="warn">不可靠：${esc(g.flags.join("；"))}</span>` : ""}${g.fwd_note && g.method === "historical" ? `<br>未用前瞻口径：${esc(g.fwd_note)}` : ""}</span></div>`;
 const pctTxt = v => v == null ? "—" : `${num(v)}%`;
 
 function radarCN(f, code) {
@@ -536,7 +555,7 @@ function evalCardCN(c) {
         <h4 style="margin-top:8px">近一年价格</h4>${priceSpark(c)}<h4 style="margin-top:8px">机构一致预期</h4>${consensusCN(c)}</div>
       <div class="card"><h4>主营构成</h4>${moTable(c.mainop_product, "按产品") || '<div class="small muted">没有取到主营构成</div>'}${moTable(c.mainop_region, "按地区")}
         <h4 style="margin-top:10px">前十大流通股东</h4>${fhTable(c.float_holders)}</div>
-      <div class="card"><h4>门槛清单（10 项）</h4>${gates}<div class="small" style="margin-top:4px">标签原因：${esc(c.reasons.join("；"))}</div>
+      <div class="card"><h4>门槛清单（10 项）</h4>${gates}${c.peg ? `<div class="label" style="margin-top:6px">参考项（不计入 ⚠ 数、标签和排序）</div>${pegChk(c.peg)}` : ""}<div class="small" style="margin-top:4px">标签原因：${esc(c.reasons.join("；"))}</div>
         <h4 style="margin-top:10px">待核实问题</h4><ol class="small">${qs}</ol></div>
     </div>
     <div class="grid g3" style="margin-top:10px">
@@ -558,7 +577,9 @@ function openCard(code, scroll) {
 function renderCards() {
   const cs = D.cards || [];
   $("ecN").textContent = cs.length;
-  $("ecLead").innerHTML = esc(`范围：④ 研究优先级前 ${D.priority.length} 名 + ② 中所有「偏价值」公司，去重后 ${cs.length} 家。每张卡依次是规则生成的结论、四个指标块、机会与风险、证据（因子雷达、PE 历史、价格、主营构成、前十大流通股东、业绩预告、增减持、解禁、监管标题、10 项门槛）、待核实问题和定性六维。判断句都是按固定规则从数字生成的，需要人工核实；不包含买卖含义。`);
+  $("ecLead").innerHTML = esc(`范围：④ 研究优先级前 ${D.priority.length} 名 + ② 中所有「偏价值」公司，去重后 ${cs.length} 家。每张卡依次是规则生成的结论、四个指标块、机会与风险、证据（因子雷达、PE 历史、价格、主营构成、前十大流通股东、业绩预告、增减持、解禁、监管标题、10 项门槛）、待核实问题和定性六维。判断句都是按固定规则从数字生成的，需要人工核实；不包含买卖含义。` +
+    `估值块和门槛清单下方另列 PEG（参考项，不参与排序、标签和 ⚠ 数）：优先用前瞻口径 = PE(TTM) ÷ 机构一致预期 EPS 从当年预期到两年后预期的年化增速（覆盖机构 ≥ ${CR.peg_min_org} 家、所用预期均 > 0）；` +
+    `没有可用一致预期时用历史口径（扣非，年初至今同比）；周期行业、PE ≤ 0、增速 ≤ 0 时不显示。PEG ≤ ${CR.peg_ok_max} 记 ✓，> ${CR.peg_warn_min} 记 ⚠，其余或不可靠时记 ·。`);
   $("ecMeta").textContent = CM.file ? `F10 数据：${CM.file}（抓取 ${CM.fetched_at}），${CM.n_extra} / ${CM.n} 家有数据` : "没有 cards 文件，只显示快照数据（运行 python -m cn cards 补全）";
   $("ecList").innerHTML = cs.map(evalCardCN).join("") || `<div class="small">没有评估卡</div>`;
   $("ecOpen").onclick = () => document.querySelectorAll("details.ec").forEach(d => d.open = true);

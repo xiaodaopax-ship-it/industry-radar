@@ -202,7 +202,8 @@
       <div>
         <p class="note">美国公司：营收、毛利、营业利润、净利润、股数、现金来自 SEC XBRL frames（金融类环节另取税前利润、股东权益、信用损失拨备和净利息收入；金融类龙头的这几项来自 Yahoo 财务时间序列）；行业代码、股票代码、Form 4 来自 SEC submissions。海外公司：股票池来自 Yahoo 行业筛选器，季度财务来自 Yahoo 财务时间序列，金额按当日汇率换算成美元；日本只有年度数据。股价、市值、EPS 实际与预期、一致预期、财报日、分析师人数来自 Yahoo Finance（非官方接口）。</p>
         <p class="note">研究优先池：先剔除周期性环节、缺市值、稀释超过 50%、亏损且现金不足 6 个季度、营收同比超过 300% 的公司，再按 10 个因子在本行业候选中的百分位排名取平均。权重相同，没有经过回测，只用来排研究顺序。</p>
-        <p class="note">金融类口径（券商、交易平台、交易所、放贷与先买后付，环节配置 profile = financial）：营收按 RevenuesNetOfInterestExpense → Revenues → 合同收入的顺序取（券商和放贷公司的合同收入通常只含手续费）；不看毛利率和现金跑道（现金大多是客户资金），清单改为增长、税前利润率、ROE（TTM 净利润 / 平均股东权益）、估值（市盈率、市净率、PEG）、资本（股东权益同比）、信用成本（放贷环节：信用损失拨备占收入及变化）、稀释、内部人、财报 vs 预期、关注度。门槛：周期性环节不剔除只提示；TTM 净亏损、股东权益为负、缺市值、稀释超过 50%、营收同比超过 300% 的不进入排序。排序因子：增速、加速、税前利润率、税前利润率趋势、ROE、PEG（没有时用市净率）、股东权益增长、稀释、内部人、关注度、EPS 超预期，百分位只在同一口径的公司里计算。拨备超过收入的视为标签错误不使用；按公允价值计量贷款的公司（如 UPST）没有拨备科目。</p>
+        <p class="note" id="pegNote">PEG = 市盈率（TTM，市值 ÷ 近四季 GAAP 净利润）÷ 每股收益增速（%）。<b>前瞻</b>（优先）：Yahoo 一致预期的本财年（FY0）→ 下一财年（FY1）EPS 增速；Yahoo 只给两个财年，所以这是一年的增速，不是常说的 3–5 年增速。要求 FY1 预期至少 3 家分析师、两个预期都为正。<b>历史</b>（前瞻不可用时）：只有年度数据的公司（主要是日本）用最新财年净利润同比；季度口径的公司 Yahoo 只给约 5 个季度，算不出一年前的 TTM 净利润，没有历史口径。不显示（—，悬停看原因）：TTM 亏损、增速 ≤ 0、标准口径的周期性环节（盈利高点时 PE 最低，PEG 会误导）；金融类的周期环节照算，但加提示。标为“不可靠”（照样显示，不参与判断和排序）：增速超过 100%，或本财年预期 EPS 不到股价的 0.5%（基数太低）。判断阈值：≤ 1 偏便宜，&gt; 2 偏贵。局限：Yahoo 一致预期是非官方汇总，来源和口径不公开，常是调整后 EPS，而市盈率用的是 GAAP 净利润；财年快结束时 FY0 大部分已经公布，增速更接近“下一年对今年”；一年的增速噪声大，单看 PEG 不能下结论。标准口径的排序因子仍是“增速调整后的市销率”，PEG 只用在清单、机会 / 风险和金融类的估值因子里。</p>
+        <p class="note">金融类口径（券商、交易平台、交易所、放贷与先买后付，环节配置 profile = financial）：营收按 RevenuesNetOfInterestExpense → Revenues → 合同收入的顺序取（券商和放贷公司的合同收入通常只含手续费）；不看毛利率和现金跑道（现金大多是客户资金），清单改为增长、税前利润率、ROE（TTM 净利润 / 平均股东权益）、估值（市盈率、市净率、PEG）、资本（股东权益同比）、信用成本（放贷环节：信用损失拨备占收入及变化）、稀释、内部人、财报 vs 预期、关注度。门槛：周期性环节不剔除只提示；TTM 净亏损、股东权益为负、缺市值、稀释超过 50%、营收同比超过 300% 的不进入排序。排序因子：增速、加速、税前利润率、税前利润率趋势、ROE、PEG（没有可靠的 PEG 时用市净率）、股东权益增长、稀释、内部人、关注度、EPS 超预期，百分位只在同一口径的公司里计算。拨备超过收入的视为标签错误不使用；按公允价值计量贷款的公司（如 UPST）没有拨备科目。</p>
         <p class="note">"占比"是在本工具覆盖公司中的市值占比，不是市场份额。龙头是手动挑选的，见 config/sectors.json。</p>
         <p class="note">一句话介绍：优先用 notes.json 里的人工描述，其次是 profiles_zh.json 中按公司公开业务描述整理的中文概述，都没有时显示 Yahoo 的英文业务描述首句。</p>
         <p class="note">已知局限：分类依赖 SIC 和 Yahoo 行业，比较粗；同一公司可能出现在两个行业；XBRL 和 Yahoo 偶有数据错误，异常值以原始财报为准；海外公司没有内部人交易数据。</p>
@@ -368,6 +369,13 @@ function renderSegments() {
 }
 
 // ---------- ③ leaders
+// PEG: value + method tag (前瞻 = consensus FY0→FY1 EPS growth, 历史 = latest fiscal-year net income growth); tooltip has the inputs or the reason it is not shown
+const PEGM = {fwd: "前瞻", hist: "历史"};
+const pegTip = d => d.peg == null ? esc(d.peg_why || "PEG 不适用")
+  : esc((d.peg_method === "fwd" ? `一致预期 EPS 增速 ${d.peg_g > 0 ? "+" : ""}${num(d.peg_g, 0)}%（FY0 ${d.peg_fy?.[0] || "—"} → FY1 ${d.peg_fy?.[1] || "—"}，FY1 ${d.peg_n} 家分析师）`
+    : `最新财年净利润同比 ${d.peg_g > 0 ? "+" : ""}${num(d.peg_g, 0)}%`) + `；市盈率（TTM）${num(d.pe, 1)} 倍` + (d.peg_ok ? "" : `。不可靠：${d.peg_why}`) + (d.peg_note ? `。${d.peg_note}` : ""));
+const pegH = d => d.peg == null ? `<span class="muted" data-tip="${pegTip(d)}">—</span>`
+  : `<span class="${d.peg_ok ? "" : "warn"}" data-tip="${pegTip(d)}">${num(d.peg, 2)} <span class="tier">${PEGM[d.peg_method] || ""}${d.peg_ok ? "" : " · 不可靠"}</span></span>`;
 function coKv(e) { const d = e.d, nq = e.mkt?.next_q;
   return `<div class="kv"><span>股价 / 市值</span><b>${d.price ? num(d.price, 2) + " " + esc(d.ccy || "") : "—"} / ${yi(d.mcap)} 亿</b></div>
     <div class="kv"><span>营收同比${e.basis === "annual" ? "（年度）" : ""}</span><b>${pc(e.yoy)}</b></div>
@@ -375,6 +383,7 @@ function coKv(e) { const d = e.d, nq = e.mkt?.next_q;
     <div class="kv"><span>市净率 / 市盈率</span><b>${num(d.pb)} / ${num(d.pe, 0)}</b></div>`
     : `<div class="kv"><span>毛利率 / 营业利润率</span><b>${num(e.gm)}% / ${num(e.opm)}%</b></div>
     <div class="kv"><span>市销率 / 市盈率</span><b>${num(d.ps)} / ${num(d.pe, 0)}</b></div>`}
+    <div class="kv"><span>PEG</span><b>${pegH(d)}</b></div>
     <div class="kv"><span>EPS 实际 vs 预期</span><b>${d.eps_last ? `${d.eps_last.actual} / ${num(d.eps_last.est, 2)} ${d.surprise != null ? pc(d.surprise) : ""}` : "—"}</b></div>
     <div class="kv"><span>下季预期 · 财报日</span><b>${nq && nq.eps != null ? "EPS " + num(nq.eps, 2) : "—"}${nq && nq.rev ? " · 营收 " + yi(nq.rev) + " 亿" : ""} · ${e.mkt?.next_date ? e.mkt.next_date.slice(5) : "—"}</b></div>
     <div class="kv"><span>分析师 · 目标价中位数</span><b>${e.mkt?.analysts ?? "—"} · ${num(e.mkt?.target, 2)}</b></div>`; }
@@ -461,7 +470,7 @@ function renderEmerging() {
     <td><a href="#card-${state.sector}-${esc(e.ticker)}"><b>${esc(e.ticker)}</b></a><div class="small">${esc((e.name || "").slice(0, 26))}</div></td>
     <td><span class="tag">${esc(segName(e.segment))}</span>${e.override ? `<div class="small warn" data-tip="${esc(e.override)}">人工调整</div>` : ""}</td><td>${esc(e.market)}</td>
     <td class="n">${d.price ? num(d.price, 2) : "—"}<div class="small">${esc(d.ccy || "")}${d.ccy && d.ccy !== "USD" && pxUsd(e) != null ? ` ≈ $${num(pxUsd(e), 2)}` : ""}</div></td><td class="n">${d.pos52 != null ? d.pos52 + "%" : "—"}</td><td class="n">${yi(d.mcap)}</td>
-    <td class="n">${pc(e.yoy)}${e.basis === "annual" ? '<div class="small">年度</div>' : ""}</td>${midCells(e)}<td class="n">${num(d.peg, 2)}</td>
+    <td class="n">${pc(e.yoy)}${e.basis === "annual" ? '<div class="small">年度</div>' : ""}</td>${midCells(e)}<td class="n">${pegH(d)}</td>
     <td class="n">${d.eps_last ? `${d.eps_last.actual} / ${num(d.eps_last.est, 2)}${d.surprise != null ? `<div>${pc(d.surprise)}</div>` : ""}` : "—"}</td>
     <td class="n">${nq && nq.eps != null ? "EPS " + num(nq.eps, 2) : "—"}<div class="small">${e.mkt?.next_date ? e.mkt.next_date.slice(5) : ""}</div></td>
     <td class="n">${e.mkt?.analysts ?? "—"}</td><td class="n">${e.insider ? `<span class="${e.insider.buys ? "pos" : ""}">${e.insider.buys}</span> / ${e.insider.sells}` : "—"}</td>
@@ -542,10 +551,10 @@ function evalCard(e, prefix, open) {
     ...(isFin(e) ? [
       tile("盈利（税前利润率 / ROE）", `${num(d.pretax_m)}% <small>税前利润率</small>`, `ROE ${num(d.roe)}%${d.pretax_trend != null ? ` · 税前利润率 ${d.pretax_trend >= 0 ? "+" : ""}${num(d.pretax_trend, 0)}pp` : ""}`,
         stat(e, "盈利能力") === "warn" || stat(e, "ROE") === "warn" ? "warn" : stat(e, "盈利能力")),
-      tile("估值（PE / PB）", `${num(d.pe, 0)} <small>倍市盈率</small>`, `市净率 ${num(d.pb, 1)} · PEG ${num(d.peg, 2)}`, stat(e, "估值")),
+      tile("估值（PE / PB）", `${num(d.pe, 0)} <small>倍市盈率</small>`, `市净率 ${num(d.pb, 1)} · PEG ${pegH(d)}`, stat(e, "估值")),
     ] : [
       tile("盈利", `${num(e.gm)}% <small>毛利率</small>`, `营业利润率 ${num(e.opm)}%${d.opm_trend != null ? `（${d.opm_trend >= 0 ? "+" : ""}${num(d.opm_trend, 0)}pp）` : ""}`, stat(e, "增长质量") === "warn" || stat(e, "盈利能力") === "warn" ? "warn" : stat(e, "盈利能力")),
-      tile("估值", `${num(d.ps)} <small>倍市销率</small>`, `市盈率 ${num(d.pe, 0)} · PEG ${num(d.peg, 2)}`, stat(e, "估值")),
+      tile("估值", `${num(d.ps)} <small>倍市销率</small>`, `市盈率 ${num(d.pe, 0)} · PEG ${pegH(d)}`, stat(e, "估值")),
     ]),
     tile("财报 vs 预期", d.eps_last ? `${d.eps_last.actual} <small>/ ${num(d.eps_last.est, 2)}</small>` : "—", `${d.surprise != null ? "差 " + pc(d.surprise) + " · " : ""}下次 ${e.mkt?.next_date || "—"}${nq && nq.eps != null ? "，EPS 预期 " + num(nq.eps, 2) : ""}`, stat(e, "财报 vs 预期")),
   ].join("");

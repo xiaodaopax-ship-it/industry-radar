@@ -211,10 +211,13 @@
 | `float_holders(code, ttl=7)` | RPT_F10_EH_FREEHOLDERS（前十大流通股东） | `(SECUCODE="…")`，`END_DATE desc, HOLDER_RANK`，取 30 行（3 期） | END_DATE，NOTICE_DATE，HOLDER_RANK，HOLDER_NAME，HOLDER_TYPE，HOLD_NUM → shares，FREE_HOLDNUM_RATIO → float_ratio_pct（占流通 A 股 %），HOLD_NUM_CHANGE（"不变"/"新进"/带符号股数）+ XZCHANGE → change_shares / status，CHANGE_RATIO → change_pct（持股变动 %） | works，35/36（688825 返回空，推测上市后尚无含流通股东的定期报告）。上期在前十、本期不在的股东以 status=`exited` 附上 |
 | `analyst_consensus(code, ttl=1)` | RPT_WEB_RESPREDICT（机构盈利预测汇总） | `(SECUCODE="…")` | RATING_ORG_NUM → org_num；RATING_BUY/ADD/NEUTRAL/REDUCE/SALE_NUM → rating_counts；YEAR1–4 + YEAR_MARK1–4（A 实际 / E 预测）+ EPS1–4 → eps；DEC_AIMPRICEMAX/MIN → target_max/min | works，28/36（8 只无机构覆盖，返回空）。汇总时间窗口未公开，**未核验**。看板只显示覆盖家数与 EPS，不显示评级用词和目标价 |
 | 价格走势 | 复用 `valuation_history()` 的 CLOSE_PRICE | — | 近 365 天日收盘价 | works。**未复权**（送转、分红会跳变）。未使用 push2his K 线 |
+| `deducted_history(code, start, end, ttl=1)`（PEG 历史口径） | RPT_LICO_FN_CPD + RPT_DMSK_FN_INCOME，按代码各 1 次请求 | `(SECURITY_CODE="…")(REPORTDATE>='上年同期')(REPORTDATE<='最新期')`；利润表用 REPORT_DATE；同一期多行时取 UPDATE_DATE / NOTICE_DATE 最新的一行（含追溯调整的上年比较数） | BASIC_EPS → eps，DEDUCT_BASIC_EPS → eps_deducted（**只到两位小数**），PARENT_NETPROFIT，DEDUCT_PARENT_NETPROFIT → deducted_net_profit（元）。年初至今累计 | works，40/40（2026-10-22，0 失败）。688297：2026-06-30 扣非 3,491 万 vs 2025-06-30 2,195 万，EPS 0.05 vs 0.03（舍入导致 EPS 口径 +67%、利润口径 +59%），所以两期扣非 EPS 都 ≥ 0.5 元时才用 EPS，否则用扣非归母净利润（股本变化未调整） |
+
+PEG（评估卡参考项，规则与阈值在 `cn/cards.py` 的 `CARD_RULES["peg_*"]` 和 `peg()`）：前瞻口径用 RPT_WEB_RESPREDICT 的 EPS 均值（当年 = 第一个 ≥ 最新报告期年份的 E 年度，到两年后年化；覆盖机构 ≥ 3、所用预期 > 0），否则用上表的扣非年初至今同比。一致预期的统计窗口与机构名单东财未公开，**未核验**；EPS 是简单均值。PEG 不参与排序、标签和 ⚠ 数。
 
 另外核验过但未接入：`reportapi.eastmoney.com/report/list?code=<code>&qType=0&beginTime=&endTime=&pageSize=`（个股研报列表，含标题、机构、评级、当年/次年 EPS 预测），可用（300750 一年 39 条），因含评级用词、且已有 RPT_WEB_RESPREDICT 汇总，暂不使用。
 
-`cards_<ts>.json` 结构：`fetched_at, snap（来源快照文件名）, codes, rules, cards{code: {profile, mainop, float_holders, consensus, pe_series（PE(TTM) 降采样至约 260 点）, pe_band{p20,p50,p80,n}, price, hist_range, errors}}, failed_fields, http`。快照文件不被修改；`build()` 读取最新的 cards 文件，只合并当前评估卡名单内的代码。
+`cards_<ts>.json` 结构：`fetched_at, snap（来源快照文件名）, codes, rules, cards{code: {profile, mainop, float_holders, consensus, pe_series（PE(TTM) 降采样至约 260 点）, pe_band{p20,p50,p80,n}, price, hist_range, deducted{report_date: {eps, eps_deducted, parent_net_profit, deducted_net_profit}}, errors}}, failed_fields, http`。快照文件不被修改；`build()` 读取最新的 cards 文件，只合并当前评估卡名单内的代码。
 
 ---
 
