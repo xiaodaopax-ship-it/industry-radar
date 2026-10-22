@@ -47,6 +47,29 @@ def _segment(sector, ticker, name, sic=None, industry=None):
     return None, None
 
 
+def profile(g):
+    return g.get("profile", "standard")
+
+
+def view(r, prof):
+    """The row as seen by one evaluation profile.
+
+    Financial profile: revenue comes from the financial tag list when it differs (r["rev_fin"], SEC only);
+    gross margin is not meaningful, and operating margin is dropped when it was computed on the other revenue figure.
+    """
+    if prof != "financial":
+        return r
+    v = {**r, **(r.get("rev_fin") or {}), "gm": None, "gm_ly": None}
+    if r.get("rev_fin"):
+        v["opm"] = v["opm_ly"] = None
+    return v
+
+
+def passes(r, t):
+    return bool(r.get("rev_ttm") and t["ttm_revenue_min"] <= r["rev_ttm"] <= t["ttm_revenue_max"]
+                and r["rev_q_ly"] >= t["prior_quarter_revenue_min"] and t["yoy_growth_min"] <= r["yoy"] <= t["yoy_growth_max_sanity"])
+
+
 def memberships(r, only_sector=None):
     """All (sector, segment) pairs a company qualifies for, plus exclusions for the audit table."""
     out, excluded = [], []
@@ -61,9 +84,8 @@ def memberships(r, only_sector=None):
             excluded.append({"sector": s["id"], "why": why_ex})
             continue
         t = thresholds(s, g)
-        ok = (r["rev_ttm"] and t["ttm_revenue_min"] <= r["rev_ttm"] <= t["ttm_revenue_max"]
-              and r["rev_q_ly"] >= t["prior_quarter_revenue_min"] and t["yoy_growth_min"] <= r["yoy"] <= t["yoy_growth_max_sanity"])
-        if ok:
+        if passes(view(r, profile(g)), t):
             out.append({"sector": s["id"], "segment": g["id"], "override": why_override,
-                        "cyclical": bool(g.get("cyclical")), "mcap_max": t["market_cap_max"]})
+                        "cyclical": bool(g.get("cyclical")), "mcap_max": t["market_cap_max"],
+                        "profile": profile(g), "credit": bool(g.get("credit")), "verify": g.get("verify", [])})
     return out, excluded

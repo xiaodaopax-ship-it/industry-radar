@@ -57,6 +57,35 @@ def market(yh, symbol, fx):
     }
 
 
+FIN_TS = ["PretaxIncome", "StockholdersEquity", "TotalEquityGrossMinorityInterest", "CreditLossesProvision", "ProvisionForDoubtfulAccounts"]
+
+
+def financial_fields(yh, symbol, fx, f):
+    """Pretax income, equity and credit-loss provision for financial-profile leaders, aligned with fundamentals() periods.
+
+    A separate request, so the cached time series of every other company stays exactly as before.
+    Yahoo reports CreditLossesProvision as a negative number (an expense); ProvisionForDoubtfulAccounts as positive.
+    """
+    pre = "quarterly" if f.get("basis") == "quarter" else "annual"
+    ts = yh.timeseries(symbol, [pre + k for k in FIN_TS], years=3 if pre == "quarterly" else 4)
+    by = {k: {x["date"]: x["val"] for x in _series(ts, pre + k, fx)} for k in FIN_TS}
+    q0 = f["q_end"]
+    dates = sorted({d for s in by.values() for d in s})
+    ly = next((d for d in reversed(dates) if 330 <= _days(d, q0) <= 400), None)
+    out = {}
+    for key, src in (("pretax", "PretaxIncome"), ("equity", "StockholdersEquity")):
+        if by[src].get(q0) is not None:
+            out[key], out[key + "_ly"], out[key + "_tag"] = by[src][q0], by[src].get(ly), "yahoo:" + src
+    if by["TotalEquityGrossMinorityInterest"].get(q0) is not None:
+        out["equity_total"] = by["TotalEquityGrossMinorityInterest"][q0]
+    cl, pda = by["CreditLossesProvision"], by["ProvisionForDoubtfulAccounts"]
+    if cl.get(q0) is not None:
+        out["prov"], out["prov_ly"], out["prov_tag"] = -cl[q0], (-cl[ly] if cl.get(ly) is not None else None), "yahoo:CreditLossesProvision"
+    elif pda.get(q0) is not None:
+        out["prov"], out["prov_ly"], out["prov_tag"] = pda[q0], pda.get(ly), "yahoo:ProvisionForDoubtfulAccounts"
+    return out
+
+
 def first_sentence(text, min_len=60, max_len=300):
     """First real sentence; skips periods in 'Inc.', 'Co.', 'Ltd.' and similar by requiring a minimum length."""
     text = " ".join(text.replace("\xa0", " ").split())

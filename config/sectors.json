@@ -221,7 +221,7 @@
     {
       "id": "payments", "name": "支付与金融软件",
       "benchmark": {"symbol": "IPAY", "name": "数字支付 ETF IPAY"},
-      "lynch_note": "支付公司的收入跟交易量和费率挂钩，量增长不一定带来同比例的收入增长，要看费率（take rate）的变化。券商、交易所、银行、放贷和先买后付公司按金融类公司另行评估，不在本行业。部分支付公司的 SIC 同时落在软件行业，已在软件行业里排除，避免重复计数。",
+      "lynch_note": "支付公司的收入跟交易量和费率挂钩，量增长不一定带来同比例的收入增长，要看费率（take rate）的变化。券商、交易所、放贷和先买后付公司归到「券商、交易平台与放贷科技」行业，按金融类口径评估；银行不在覆盖范围。部分支付公司的 SIC 同时落在软件行业，已在软件行业里排除，避免重复计数。",
       "thesis": "卡支付量保持增长：Visa 截至 2026-06 的财季支付量按固定汇率同比 +10%，万事达卡 2026Q2 总交易额本币口径同比 +8%，跨境交易增速高于整体。",
       "demand": [
         {"text": "美联储支付研究：2024 年美国非现金支付 2,366 亿笔，卡支付占笔数的 79%；2021–2024 年笔数年均增长 4.9%", "as_of": "2024", "tier": "primary", "url": "https://www.federalreserve.gov/paymentsystems/frps_cy2015_24_topline.htm"},
@@ -255,19 +255,80 @@
       "exclude": {
         "name_regex": "bitcoin|crypto|digital asset|blockchain|lending|loan|\\bbank|bancorp|brokerage|sezzle|affirm|klarna|upstart|sofi|robinhood|chime",
         "tickers": {
-          "SEZL": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（先买后付）",
-          "AFRM": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（先买后付）",
-          "KLAR": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（先买后付）",
-          "UPST": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（放贷平台）",
-          "SOFI": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（数字银行与放贷）",
-          "AXP": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（发卡与放贷）",
-          "HOOD": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（券商）",
-          "COIN": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（加密资产交易平台）",
-          "CRCL": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（稳定币发行）",
-          "CHYM": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（数字银行）",
-          "DAVE": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（数字银行与小额放贷）",
-          "GDOT": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（银行控股公司）",
-          "NU": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（数字银行）"
+          "SEZL": "归到券商、交易平台与放贷科技行业（先买后付）",
+          "AFRM": "归到券商、交易平台与放贷科技行业（先买后付）",
+          "KLAR": "归到券商、交易平台与放贷科技行业（先买后付）",
+          "UPST": "归到券商、交易平台与放贷科技行业（放贷平台）",
+          "SOFI": "归到券商、交易平台与放贷科技行业（数字金融与放贷）",
+          "HOOD": "归到券商、交易平台与放贷科技行业（券商）",
+          "COIN": "归到券商、交易平台与放贷科技行业（加密资产交易平台）",
+          "CRCL": "归到券商、交易平台与放贷科技行业（稳定币发行）",
+          "DAVE": "归到券商、交易平台与放贷科技行业（小额现金预支与数字账户）",
+          "AXP": "发卡与放贷，银行控股公司，不在本工具覆盖范围",
+          "CHYM": "数字银行（收入以借记卡交换费为主），金融类行业暂未覆盖数字银行",
+          "GDOT": "银行控股公司，不在本工具覆盖范围",
+          "NU": "数字银行，不在本工具覆盖范围"
+        }
+      }
+    },
+
+    {
+      "id": "fin", "name": "券商、交易平台与放贷科技",
+      "benchmark": {"symbol": "KCE", "name": "资本市场 ETF KCE"},
+      "lynch_note": "金融类公司的财务结构和产品公司不同：券商、交易所和放贷公司没有毛利，资产负债表上的现金大多是客户资金，所以本行业不看毛利率和现金跑道，改看税前利润率、ROE、市盈率与市净率、股东权益增长；放贷环节另看信用损失拨备占收入的比例和变化。券商、交易平台和加密资产交易的收入随交易量和利率变化，有周期性，这些环节标为周期但不剔除，只作提示。投行、银行、保险和资产管理公司不在本行业。IBKR 这类有大量少数股东权益的公司，归母口径的净利润和股东权益与市值口径不一致，市盈率、市净率要回到原始财报核对。",
+      "thesis": "券商与交易平台的客户活跃度处在高位：嘉信理财 2026Q3 日均交易量 1,070 万笔，同比 +44%；盈透证券 9 月客户账户 558 万个，同比 +35%。芝商所 Q3 日均成交量创同期纪录。放贷端，美联储数据显示 8 月消费信贷总额增速放缓，循环信贷按年化下降 4.2%。",
+      "demand": [
+        {"text": "嘉信理财 2026Q3 日均交易量 1,070 万笔，同比 +44%；客户总资产 13.33 万亿美元，同比 +15%；当季新开经纪账户 120 万个", "as_of": "2026Q3", "tier": "primary", "url": "https://pressroom.aboutschwab.com/press-releases/press-release/2026/Schwab-Delivers-Record-Net-New-Assets--Earnings/default.aspx"},
+        {"text": "盈透证券 2026 年 9 月日均收入交易笔数（DARTs）411.1 万笔，同比 +6%；客户账户 557.6 万个，同比 +35%；客户权益 9,647 亿美元，同比 +27%", "as_of": "2026-09", "tier": "primary", "url": "https://www.businesswire.com/news/home/20261001989930/en/Interactive-Brokers-Group-Reports-Brokerage-Metrics-and-Other-Financial-Information-for-September-2026-includes-Reg.-NMS-Execution-Statistics"},
+        {"text": "美联储 G.19：2026 年 8 月美国消费信贷余额 5.197 万亿美元，按年化增长 1.9%，其中循环信贷按年化下降 4.2%", "as_of": "2026-08", "tier": "primary", "url": "https://www.federalreserve.gov/releases/g19/current/default.htm"}
+      ],
+      "intl": {"regions": [], "industries": []},
+      "segments": [
+        {"id": "brokers", "name": "券商与交易平台", "profile": "financial", "cyclical": true,
+         "sic": [6211, 6200, 6199], "name_regex": "robinhood|interactive brokers|schwab|stonex|virtu financial|siebert|lpl financial|webull|tradestation|wealthfront|futu holdings|up fintech|etoro|freedom holding", "yahoo_industry": [],
+         "leaders": ["SCHW", "IBKR", "HOOD"],
+         "verify": ["收入里交易佣金（交易型收入）与净利息收入各占多少（读 10-Q 收入拆分）", "客户资产、有资金账户数和净新增资产的月度趋势", "加密资产相关收入占比（为业务数据，读 10-Q 原文）"],
+         "demand": [
+           {"text": "Robinhood 2026 年 8 月末有资金客户 2,860 万，总平台资产 3,840 亿美元，同比 +26%；当月股票名义交易额 3,350 亿美元，同比 +68%", "as_of": "2026-08", "tier": "primary", "url": "https://www.nasdaq.com/press-release/robinhood-markets-inc-reports-august-2026-operating-data-2026-09-10"}
+         ]},
+        {"id": "exchanges", "name": "交易所与市场数据", "profile": "financial",
+         "sic": [6200, 6211], "name_regex": "\\bexchange\\b|cme group|cboe|^nasdaq|tradeweb|marketaxess|miami international|bgc group", "yahoo_industry": [],
+         "screen": {"yoy_growth_min": 10},
+         "leaders": ["CME", "ICE", "NDAQ", "CBOE"],
+         "verify": ["收入里交易与清算费、市场数据与订阅收入各占多少", "日均成交量与每笔平均收费的变化（交易所月度成交数据）"],
+         "demand": [
+           {"text": "芝商所 2026Q3 日均成交量 2,940 万张合约，为第三季度纪录，同比约 +16%", "as_of": "2026Q3", "tier": "primary", "url": "https://www.cmegroup.com/media-room/press-releases/2026/10/21/cme_group_inc_reportshighestq3revenueonrecordforq32026.html"}
+         ]},
+        {"id": "lending", "name": "放贷与先买后付科技", "profile": "financial", "credit": true,
+         "sic": [6141, 6153, 6159, 6162, 6163, 6172, 6199, 6099, 7389], "name_regex": "affirm holdings|sofi technologies|upstart|sezzle|pagaya|enova|oportun|oppfi|dave inc|figure technology|atlanticus|klarna|moneylion|katapult|lendingclub", "yahoo_industry": [],
+         "leaders": ["AFRM", "SOFI"],
+         "verify": ["拨备覆盖与逾期率：读 10-Q 信用质量附注里的 30 天以上逾期率和核销率", "资金来源：存款、仓储授信、资产证券化还是远期出售贷款，融资成本怎么变", "交易额（GMV）或放款额增速与收入增速是否一致"],
+         "demand": [
+           {"text": "Affirm 截至 2026-06-30 的财季交易额（GMV）141 亿美元，同比 +36%；收入 11.7 亿美元，同比 +33%（据财经媒体对公司财报的报道；公司股东信为图片格式）", "as_of": "2026-06", "tier": "general", "url": "https://finance.yahoo.com/markets/stocks/articles/affirm-q4-earnings-beat-strong-182800889.html"}
+         ]},
+        {"id": "crypto", "name": "加密资产交易与相关服务", "profile": "financial", "cyclical": true,
+         "sic": [6199, 6211, 6200, 6099, 7389, 7374], "name_regex": "coinbase|gemini space|bakkt|bullish|galaxy digital|exodus movement|circle internet|crypto|bitcoin|blockchain|digital asset", "yahoo_industry": [],
+         "leaders": ["COIN"],
+         "verify": ["收入里交易手续费与稳定币、质押、托管等订阅与服务收入各占多少（读 10-Q 原文）", "加密资产交易量和价格变化对收入的影响（读 10-Q 原文）"],
+         "demand": [
+           {"text": "Robinhood 2026 年 8 月加密资产名义交易额 175 亿美元，同比 −38%（含 Bitstamp）", "as_of": "2026-08", "tier": "primary", "url": "https://www.nasdaq.com/press-release/robinhood-markets-inc-reports-august-2026-operating-data-2026-09-10"}
+         ]}
+      ],
+      "overrides": {},
+      "exclude": {
+        "name_regex": "mining|miner\\b|bitmine|american bitcoin|bit digital|\\bbank\\b|bancorp|insurance|asset management",
+        "tickers": {
+          "CORZ": "比特币挖矿/算力托管，业务与交易平台不同", "HUT": "比特币挖矿/算力托管，业务与交易平台不同",
+          "MARA": "比特币挖矿/算力托管，业务与交易平台不同", "RIOT": "比特币挖矿/算力托管，业务与交易平台不同",
+          "CLSK": "比特币挖矿/算力托管，业务与交易平台不同", "IREN": "比特币挖矿/算力托管，业务与交易平台不同",
+          "CIFR": "比特币挖矿/算力托管，业务与交易平台不同", "WULF": "比特币挖矿/算力托管，业务与交易平台不同",
+          "BTDR": "比特币挖矿/算力托管，业务与交易平台不同", "BITF": "比特币挖矿/算力托管，业务与交易平台不同",
+          "ABTC": "比特币挖矿/算力托管，业务与交易平台不同", "BTBT": "比特币挖矿/算力托管，业务与交易平台不同",
+          "WYFI": "比特币挖矿/算力托管，业务与交易平台不同",
+          "MSTR": "以持有加密资产为主的公司，业务与交易平台不同", "BMNR": "以持有加密资产为主的公司，业务与交易平台不同",
+          "SBET": "以持有加密资产为主的公司，业务与交易平台不同",
+          "GS": "投资银行与银行控股公司，不在本行业范围", "MS": "投资银行与银行控股公司，不在本行业范围",
+          "BLK": "资产管理公司，不在本行业范围"
         }
       }
     }

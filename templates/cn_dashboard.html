@@ -43,6 +43,7 @@
   td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
   td.g { white-space:nowrap; font-size:12px; } td.nw { white-space:nowrap; } td.why { min-width:160px; }
   .tag { display:inline-block; padding:1px 7px; border-radius:3px; font-size:12px; white-space:nowrap; background:rgba(138,147,158,.18); color:var(--gray); }
+  .t-cyc { background:rgba(240,160,48,.15); color:var(--orange); }
   .lb-偏价值 { background:rgba(63,191,127,.15); color:var(--green); } .lb-偏博弈 { background:rgba(240,160,48,.15); color:var(--orange); } .lb-中性 { background:rgba(138,147,158,.18); color:var(--gray); }
   tr.detail td { background:var(--panel2); }
   .chk { display:grid; grid-template-columns:18px 130px 1fr; gap:4px; font-size:12.5px; padding:2px 0; border-bottom:1px solid var(--line); }
@@ -134,6 +135,9 @@
     <p class="lead" id="pLead"></p>
     <table><thead><tr id="pHead"></tr></thead><tbody id="pBody"></tbody></table>
     <p class="note">排序只表示"按这四个数据维度，先看谁"，没有做过回测，不代表后续表现。估值分位只描述相对自身近几年的位置，不是估值结论。点击代码打开该公司的评估卡。</p>
+    <h3>周期行业的高增长公司（单独列出，不参与排序）</h3>
+    <p class="small" id="cyLead"></p>
+    <table><thead><tr><th scope="col">代码</th><th scope="col">名称</th><th scope="col">行业</th><th scope="col" class="n">营收同比</th><th scope="col" class="n">净利同比</th><th scope="col" class="n">毛利率变化（pp）</th><th scope="col" class="n">现金流/净利</th><th scope="col" class="n">PE(TTM)</th><th scope="col">业绩预告</th><th scope="col">要先核实</th></tr></thead><tbody id="cyBody"></tbody></table>
   </section>
 
   <section id="s6">
@@ -258,7 +262,7 @@ function renderHeat() {
     tip: `<b>${esc(g.name)}</b><br>公司 ${g.n} 家<br>营收合计 ${yi(g.revenue)} 亿元<br>同比中位数 ${num(g.yoy_median)}% · 加权 ${num(g.yoy_weighted)}%<br>同比 ≥20% 占比 ${num(g.share_ge20)}%<br>加速占比 ${num(g.share_accel)}%`})),
     1300, 420, id => { state.ind = id; $("fInd").value = id; render(); location.hash = "#s2"; });
   const cols = [
-    {k: "name", t: "行业", f: g => `<button type="button" class="linkbtn" data-ind="${esc(g.name)}">${esc(g.name)}</button>`},
+    {k: "name", t: "行业", f: g => `<button type="button" class="linkbtn" data-ind="${esc(g.name)}">${esc(g.name)}</button>${g.cyclical ? ' <span class="tag t-cyc">周期</span>' : ""}`},
     {k: "n", t: "家数", n: 1, f: g => g.n},
     {k: "revenue", t: "营收合计（亿元）", n: 1, f: g => yi(g.revenue)},
     {k: "yoy_median", t: "同比中位数", n: 1, f: g => pc(g.yoy_median, 1)},
@@ -300,7 +304,7 @@ function renderScreen() {
   const cols = [
     {k: "code", t: "代码", cls: "nw", f: r => codeCell(r.code)},
     {k: "name", t: "名称", cls: "nw", f: r => `<button type="button" class="linkbtn" data-open="${esc(r.code)}" aria-expanded="${state.open.has(r.code)}">${esc(r.name)}</button>`},
-    {k: "industry", t: "行业", cls: "nw", f: r => `<span class="small">${esc(r.industry)}</span>`},
+    {k: "industry", t: "行业", cls: "nw", f: r => `<span class="small">${esc(r.industry)}</span>${r.cyclical ? ' <span class="tag t-cyc">周期</span>' : ""}`},
     {k: "revenue", t: "营收（亿）", n: 1, f: r => yi(r.revenue)},
     {k: "rev_yoy", t: "营收同比", n: 1, f: r => pc(r.rev_yoy)},
     {k: "accel", t: "加速（pp）", n: 1, f: r => pp(r.accel, 0)},
@@ -332,14 +336,15 @@ function renderLabels() {
   $("lbRule").innerHTML = `<b>规则（按顺序判断）</b><ul>
     <li><span class="tag lb-偏博弈">偏博弈</span>：满足任一条——年初至今归母净利润 ≤ 0；PE 分位 ≥ ${esc(R.pe_pct_high)}%；未来 ${esc(R.unlock_days)} 天解禁 > 流通股 ${esc(R.unlock_float_warn)}%；近 ${esc(R.holder_months)} 个月净减持 ≥ 总股本 ${esc(R.net_sell_warn)}%；近 ${esc(R.reg_months)} 个月有监管类公告标题命中。</li>
     <li><span class="tag lb-偏价值">偏价值</span>：不满足上面任何一条，且同时满足——盈利；经营现金流 / 归母净利润 ≥ ${esc(R.value_ocf_np_min)}；PE 分位 ≤ ${esc(R.value_pe_pct_max)}%（需要有估值历史）；无监管类标题命中。</li>
-    <li><span class="tag lb-中性">中性</span>：其余情况。没有估值历史的公司（不在短名单）最多只能是"中性"，原因里会写明。</li></ul>
+    <li><span class="tag lb-中性">中性</span>：其余情况。没有估值历史的公司（不在短名单）最多只能是"中性"，原因里会写明。</li>
+    <li><span class="tag t-cyc">周期</span>：东财行业属于 ${esc(R.cyclical_industries.join("、"))} 的公司，盈利主要随商品价格或产能周期变化，周期高点时利润高、PE 反而低。它们不标"偏价值"（最多"中性"，触发上面任一条时仍为"偏博弈"），也不参与 ④ 研究优先级排序，单独列在 ④ 下方。名单在 cn/build.py 的 RULES 里，可调整。</li></ul>
     <span class="small">"价值 / 博弈"只是对数据特征的描述性分组，不包含任何买卖含义。</span>`;
 }
 
 function renderPriority() {
   const c = D.counts;
   $("pN").textContent = D.priority.length;
-  $("pLead").innerHTML = esc(`候选：② 中归母净利润 > 0、前 8 项风险门槛 ⚠ ≤ ${R.priority_max_warn} 的公司（${c.eligible} 家）。先按增长、加速、现金流/净利三项百分位均值取前 ${R.shortlist_max} 名作为估值短名单（实际 ${c.shortlist} 家，取到估值历史 ${c.valuation_ok} 家），再在短名单内按四项等权百分位排序：营收同比（高优先）、加速幅度（高优先）、现金流/净利（高优先）、估值分位（低优先；优先用 PE 分位，PE ≤ 0 时用 PB 分位）。缺失的维度不参与平均。`);
+  $("pLead").innerHTML = esc(`候选：② 中归母净利润 > 0、前 8 项风险门槛 ⚠ ≤ ${R.priority_max_warn}、且不属于周期行业的公司（${c.eligible} 家；周期行业 ${c.eligible_cyclical ?? 0} 家单独列在下方）。先按增长、加速、现金流/净利三项百分位均值取前 ${R.shortlist_max} 名作为估值短名单（实际 ${c.shortlist} 家，取到估值历史 ${c.valuation_ok} 家），再在短名单内按四项等权百分位排序：营收同比（高优先）、加速幅度（高优先）、现金流/净利（高优先）、估值分位（低优先；优先用 PE 分位，PE ≤ 0 时用 PB 分位）。缺失的维度不参与平均。`);
   const cols = [
     {k: "rank", t: "#", n: 1, f: p => p.rank},
     {k: "code", t: "代码", v: p => p.code, f: p => codeCell(p.code)},
@@ -357,6 +362,14 @@ function renderPriority() {
   ];
   const rows = table("p", "pHead", "pBody", cols, D.priority);
   $("pBody").innerHTML = rows.map(p => `<tr>${cols.map(c => `<td class="${c.n ? "n" : c.cls || ""}">${c.f(p)}</td>`).join("")}</tr>`).join("") || `<tr><td colspan="99">没有符合条件的公司</td></tr>`;
+  // cyclical industries: same profit / risk-gate conditions, listed by growth only
+  const cy = (D.cyclical_list || []).map(k => BYCODE[k]).filter(Boolean);
+  $("cyLead").textContent = `同样满足"盈利、风险门槛 ⚠ ≤ ${R.priority_max_warn}"的周期行业公司共 ${c.eligible_cyclical ?? 0} 家，按营收同比列前 ${cy.length} 家。` +
+    `这些公司的增长常来自产品价格上涨，毛利率同比大幅提升是常见信号；PE 低位在周期高点并不代表便宜，所以不和其他公司一起排序。`;
+  const ask = r => (r.gm_chg != null && r.gm_chg >= 5 ? `毛利率 +${num(r.gm_chg, 1)}pp：多少来自产品价格` : "量与价各贡献多少") + "；产品价格现在处在近几年什么位置";
+  $("cyBody").innerHTML = cy.map(r => `<tr><td class="nw">${codeCell(r.code)}</td><td class="nw">${esc(r.name)}</td><td class="nw"><span class="small">${esc(r.industry)}</span></td>
+    <td class="n">${pc(r.rev_yoy)}</td><td class="n">${pc(r.np_yoy)}</td><td class="n">${pp(r.gm_chg, 1)}</td><td class="n">${num(r.ocf_np, 2)}</td><td class="n">${num(r.pe_ttm)}</td>
+    <td>${gateCell(r.gates.fc)}</td><td class="small">${esc(ask(r))}</td></tr>`).join("") || `<tr><td colspan="10" class="small">没有符合条件的周期行业公司</td></tr>`;
 }
 
 function renderMethod() {

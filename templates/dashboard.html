@@ -141,9 +141,9 @@
     <h2><span class="step-tag">②</span>细分领域拆解</h2>
     <p class="lead">先看每个细分环节在"增长 × 估值"上的位置，再挑一个环节看里面谁占多大分量。</p>
     <div class="grid g2">
-      <div><h3>增长 × 估值（气泡大小 = 覆盖市值，横轴 = 营收增速中位数，纵轴 = 市销率中位数）</h3>
+      <div><h3 id="quadTitle">增长 × 估值（气泡大小 = 覆盖市值，横轴 = 营收增速中位数，纵轴 = 市销率中位数）</h3>
         <svg id="segQuad" viewBox="0 0 620 330" width="100%" role="img" aria-label="细分环节的增长与估值象限图"></svg></div>
-      <div><h3>环节一览</h3><table><thead><tr><th scope="col">环节</th><th scope="col" class="n">龙头 / 新兴 / 优先</th><th scope="col" class="n">增速中位数<br>龙头 · 新兴</th><th scope="col" class="n">毛利率</th><th scope="col" class="n">市销率</th><th scope="col">数据判断</th></tr></thead><tbody id="segTbl"></tbody></table></div>
+      <div><h3>环节一览</h3><table><thead><tr><th scope="col">环节</th><th scope="col" class="n">龙头 / 新兴 / 优先</th><th scope="col" class="n">增速中位数<br>龙头 · 新兴</th><th scope="col" class="n" id="segThM">毛利率</th><th scope="col" class="n" id="segThV">市销率</th><th scope="col">数据判断</th></tr></thead><tbody id="segTbl"></tbody></table></div>
     </div>
     <h3>选择细分环节</h3>
     <div class="seg-pick" id="segPick" role="group" aria-label="细分环节"></div>
@@ -167,7 +167,7 @@
   <section id="s4">
     <h2><span class="step-tag">④</span>新兴机会筛选</h2>
     <p class="lead" id="poolHow"></p>
-    <h3>增速 × 毛利率（气泡大小 = 市值；实心 = 新兴公司，按结论着色；空心紫圈 = 龙头，作参照）</h3>
+    <h3 id="bubTitle">增速 × 毛利率（气泡大小 = 市值；实心 = 新兴公司，按结论着色；空心紫圈 = 龙头，作参照）</h3>
     <svg id="bubble" viewBox="0 0 1300 360" width="100%" role="img" aria-label="新兴公司增速与毛利率散点图"></svg>
     <div class="legend"><span><span class="dot" style="background:#37c6e0"></span>优先研究</span><span><span class="dot" style="background:#3fbf7f"></span>可以观察</span><span><span class="dot" style="background:#5b636e"></span>暂不优先</span><span><span class="dot" style="border:2px solid #a78bfa"></span>龙头</span><span>横轴超过 150% 的放在最右侧</span></div>
     <h3>研究优先池 · Top <span id="poolN"></span></h3>
@@ -200,8 +200,9 @@
     <div class="grid g2">
       <div><h3>筛选漏斗</h3><table><tbody id="funnel"></tbody></table><h3>本行业已排除的公司</h3><table><tbody id="excl"></tbody></table></div>
       <div>
-        <p class="note">美国公司：营收、毛利、营业利润、净利润、股数、现金来自 SEC XBRL frames；行业代码、股票代码、Form 4 来自 SEC submissions。海外公司：股票池来自 Yahoo 行业筛选器，季度财务来自 Yahoo 财务时间序列，金额按当日汇率换算成美元；日本只有年度数据。股价、市值、EPS 实际与预期、一致预期、财报日、分析师人数来自 Yahoo Finance（非官方接口）。</p>
+        <p class="note">美国公司：营收、毛利、营业利润、净利润、股数、现金来自 SEC XBRL frames（金融类环节另取税前利润、股东权益、信用损失拨备和净利息收入；金融类龙头的这几项来自 Yahoo 财务时间序列）；行业代码、股票代码、Form 4 来自 SEC submissions。海外公司：股票池来自 Yahoo 行业筛选器，季度财务来自 Yahoo 财务时间序列，金额按当日汇率换算成美元；日本只有年度数据。股价、市值、EPS 实际与预期、一致预期、财报日、分析师人数来自 Yahoo Finance（非官方接口）。</p>
         <p class="note">研究优先池：先剔除周期性环节、缺市值、稀释超过 50%、亏损且现金不足 6 个季度、营收同比超过 300% 的公司，再按 10 个因子在本行业候选中的百分位排名取平均。权重相同，没有经过回测，只用来排研究顺序。</p>
+        <p class="note">金融类口径（券商、交易平台、交易所、放贷与先买后付，环节配置 profile = financial）：营收按 RevenuesNetOfInterestExpense → Revenues → 合同收入的顺序取（券商和放贷公司的合同收入通常只含手续费）；不看毛利率和现金跑道（现金大多是客户资金），清单改为增长、税前利润率、ROE（TTM 净利润 / 平均股东权益）、估值（市盈率、市净率、PEG）、资本（股东权益同比）、信用成本（放贷环节：信用损失拨备占收入及变化）、稀释、内部人、财报 vs 预期、关注度。门槛：周期性环节不剔除只提示；TTM 净亏损、股东权益为负、缺市值、稀释超过 50%、营收同比超过 300% 的不进入排序。排序因子：增速、加速、税前利润率、税前利润率趋势、ROE、PEG（没有时用市净率）、股东权益增长、稀释、内部人、关注度、EPS 超预期，百分位只在同一口径的公司里计算。拨备超过收入的视为标签错误不使用；按公允价值计量贷款的公司（如 UPST）没有拨备科目。</p>
         <p class="note">"占比"是在本工具覆盖公司中的市值占比，不是市场份额。龙头是手动挑选的，见 config/sectors.json。</p>
         <p class="note">一句话介绍：优先用 notes.json 里的人工描述，其次是 profiles_zh.json 中按公司公开业务描述整理的中文概述，都没有时显示 Yahoo 的英文业务描述首句。</p>
         <p class="note">已知局限：分类依赖 SIC 和 Yahoo 行业，比较粗；同一公司可能出现在两个行业；XBRL 和 Yahoo 偶有数据错误，异常值以原始财报为准；海外公司没有内部人交易数据。</p>
@@ -231,6 +232,9 @@ const pxUsd = e => { const p = e.d.price, r = (D.fx || {})[e.d.ccy || "USD"]; re
 const inPxBand = e => { if (!state.fPx) return true; const v = pxUsd(e); if (v == null) return false;
   const [lo, hi] = state.fPx.split("-").map(x => x === "" ? Infinity : +x); return v >= lo && v < hi; };
 const ents = () => D.entries.filter(e => e.sector === state.sector);
+// financial profile (brokers, exchanges, lenders): no gross margin / P/S; pretax margin, ROE and P/B instead
+const isFin = e => e.profile === "financial";
+const FIN = () => S().segments.some(g => g.profile === "financial");
 const segName = id => S().segments.find(g => g.id === id)?.name || id;
 const segOf = id => S().segments.find(g => g.id === id);
 const growthColor = v => { if (v == null) return "#4a515b"; const t = Math.max(-1, Math.min(1, (v - 10) / 60));
@@ -292,7 +296,8 @@ function renderOverview() {
     <div class="card"><div class="label">${esc(s.benchmark.name)} · 近一年</div><div class="kpi">${pc(o.bench_ret)}</div><div class="small">${esc(D.cfg.benchmark.name)} ${pc(o.spy_ret)} · 差 ${pc(o.bench_ret != null && o.spy_ret != null ? o.bench_ret - o.spy_ret : null)}</div></div>
     <div class="card"><div class="label">近三个月</div><div class="kpi">${pc(o.bench_3m)}</div><div class="small">大盘 ${pc(o.spy_3m)}</div></div>
     <div class="card"><div class="label">覆盖公司</div><div class="kpi">${o.n} <small>家 · 市值 ${yi(o.mcap)} 亿美元</small></div><div class="small">龙头 ${ents().filter(e => e.kind === "leader").length} · 新兴 ${ents().filter(e => e.kind === "emerging").length}</div></div>
-    <div class="card"><div class="label">营收增速 / 毛利率中位数</div><div class="kpi">${pc(o.yoy)} <small>/ ${num(o.gm)}%</small></div><div class="small">覆盖公司的最新一期同比</div></div>`;
+    ${FIN() ? `<div class="card"><div class="label">营收增速 / 税前利润率 / ROE 中位数</div><div class="kpi">${pc(o.yoy)} <small>/ ${num(o.pretax_m)}% / ${num(o.roe)}%</small></div><div class="small">金融类口径：不看毛利率</div></div>`
+      : `<div class="card"><div class="label">营收增速 / 毛利率中位数</div><div class="kpi">${pc(o.yoy)} <small>/ ${num(o.gm)}%</small></div><div class="small">覆盖公司的最新一期同比</div></div>`}`;
   $("benchTitle").textContent = `${s.benchmark.name} vs ${D.cfg.benchmark.name}（一年前 = 100）`;
   const b = norm(o.bench_px || []), m = norm(o.spy_px || []);
   lineChart("benchChart", [{...m, c: "#8a939e", w: 1.5, name: "大盘"}, {...b, c: "#37c6e0", name: s.benchmark.symbol}], 620, 230);
@@ -310,7 +315,8 @@ function segJudge(g) {
   const parts = [];
   if (g.yoy_emerging != null && g.yoy_leaders != null) parts.push(g.yoy_emerging > g.yoy_leaders ? `新兴公司增速（${g.yoy_emerging}%）高于龙头（${g.yoy_leaders}%），可能有份额转移` : `龙头增速（${g.yoy_leaders}%）不低于新兴公司（${g.yoy_emerging}%），龙头仍在主导`);
   else if (g.yoy != null) parts.push(`增速中位数 ${g.yoy}%`);
-  if (g.ps != null) parts.push(g.ps > 10 ? `市销率中位数 ${g.ps} 倍，估值已经不便宜` : `市销率中位数 ${g.ps} 倍`);
+  if (FIN()) { if (g.pb != null) parts.push(`市净率中位数 ${g.pb} 倍` + (g.roe != null ? `，ROE 中位数 ${g.roe}%` : "")); }
+  else if (g.ps != null) parts.push(g.ps > 10 ? `市销率中位数 ${g.ps} 倍，估值已经不便宜` : `市销率中位数 ${g.ps} 倍`);
   if (segOf(g.id)?.cyclical) parts.push("周期性环节，要区分涨价和真实需求");
   parts.push(g.n_pool ? `有 ${g.n_pool} 家进入研究优先池` : "没有公司进入研究优先池");
   return parts.join("；") + "。";
@@ -319,7 +325,10 @@ function renderSegments() {
   const o = OV(), segs = o.segments;
   if (!state.seg || !segs.find(g => g.id === state.seg)) state.seg = segs.slice().sort((a, b) => b.mcap - a.mcap)[0]?.id;
   // quadrant
-  const W = 620, H = 330, L = 44, R = 14, T = 14, B = 34, pts = segs.filter(g => g.yoy != null && g.ps != null);
+  const VK = FIN() ? "pb" : "ps", VL = FIN() ? "市净率" : "市销率";
+  $("quadTitle").textContent = `增长 × 估值（气泡大小 = 覆盖市值，横轴 = 营收增速中位数，纵轴 = ${VL}中位数）`;
+  $("segThM").textContent = FIN() ? "税前利润率" : "毛利率"; $("segThV").textContent = VL;
+  const W = 620, H = 330, L = 44, R = 14, T = 14, B = 34, pts = segs.filter(g => g.yoy != null && g[VK] != null).map(g => ({...g, ps: g[VK]}));
   if (pts.length) {
     // x is clamped at 120% so one outlier (e.g. memory in an up-cycle) does not squeeze the rest; bubble radius uses log scale
     const XC = 120, xs = pts.map(g => Math.min(XC, g.yoy)), ys = pts.map(g => g.ps), x0 = Math.min(0, ...xs), x1 = Math.max(...xs) * 1.08 + 2, y1 = Math.max(...ys) * 1.15 + 0.5;
@@ -330,15 +339,16 @@ function renderSegments() {
       <text x="${W - R - 4}" y="${H - B - 6}" text-anchor="end" style="fill:#3fbf7f">高增长 · 低估值</text><text x="${W - R - 4}" y="${T + 12}" text-anchor="end">高增长 · 高估值</text>
       <text x="${L + 6}" y="${T + 12}">低增长 · 高估值</text><text x="${L + 6}" y="${H - B - 6}">低增长 · 低估值</text>
       <text x="${(L + W) / 2}" y="${H - 6}" text-anchor="middle">营收增速中位数 %（超过 ${XC}% 的放在最右侧）</text>
-      ${[0, 25, 50, 75, 100].filter(v => v >= x0 && v <= x1).map(v => `<text x="${X(v)}" y="${H - B + 14}" text-anchor="middle">${v}</text>`).join("")}<text x="12" y="${(T + H) / 2}" transform="rotate(-90 12 ${(T + H) / 2})" text-anchor="middle">市销率中位数</text>`;
+      ${[0, 25, 50, 75, 100].filter(v => v >= x0 && v <= x1).map(v => `<text x="${X(v)}" y="${H - B + 14}" text-anchor="middle">${v}</text>`).join("")}<text x="12" y="${(T + H) / 2}" transform="rotate(-90 12 ${(T + H) / 2})" text-anchor="middle">${VL}中位数</text>`;
     pts.forEach(g => { const r = 7 + 15 * (lmax > lmin ? (Math.log10(Math.max(1, g.mcap)) - lmin) / (lmax - lmin) : 0.5);
       s += `<circle class="bub" cx="${X(g.yoy)}" cy="${Y(g.ps)}" r="${r}" fill="${growthColor(g.yoy)}" fill-opacity=".75" stroke="${segOf(g.id)?.cyclical ? "#f0a030" : g.id === state.seg ? "#fff" : "none"}" stroke-width="2" data-id="${g.id}" tabindex="0"
-        data-tip="<b>${esc(segName(g.id))}</b><br>增速 ${g.yoy}% · 市销率 ${g.ps}<br>覆盖市值 ${yi(g.mcap)} 亿"/><text x="${X(g.yoy)}" y="${Y(g.ps) + r + 12}" text-anchor="middle">${esc(segName(g.id))}${g.yoy > XC ? ` (${g.yoy}%→)` : ""}</text>`; });
+        data-tip="<b>${esc(segName(g.id))}</b><br>增速 ${g.yoy}% · ${VL} ${g.ps}<br>覆盖市值 ${yi(g.mcap)} 亿"/><text x="${X(g.yoy)}" y="${Y(g.ps) + r + 12}" text-anchor="middle">${esc(segName(g.id))}${g.yoy > XC ? ` (${g.yoy}%→)` : ""}</text>`; });
     $("segQuad").innerHTML = s;
     $("segQuad").querySelectorAll("circle").forEach(c => c.onclick = () => { state.seg = c.dataset.id; renderAll(); });
   } else $("segQuad").innerHTML = `<text x="20" y="30">数据不足</text>`;
   $("segTbl").innerHTML = segs.map(g => `<tr><td><a href="#s2" data-seg="${g.id}">${esc(segName(g.id))}</a>${segOf(g.id)?.cyclical ? ' <span class="tag t-cyc">周期</span>' : ""}</td>
-    <td class="n">${g.n_leader} / ${g.n_emerging} / <b>${g.n_pool}</b></td><td class="n">${pc(g.yoy_leaders)} · ${pc(g.yoy_emerging)}</td><td class="n">${g.gm != null ? g.gm + "%" : "—"}</td><td class="n">${num(g.ps)}</td>
+    <td class="n">${g.n_leader} / ${g.n_emerging} / <b>${g.n_pool}</b></td><td class="n">${pc(g.yoy_leaders)} · ${pc(g.yoy_emerging)}</td>
+    <td class="n">${FIN() ? (g.pretax_m != null ? g.pretax_m + "%" : "—") : g.gm != null ? g.gm + "%" : "—"}</td><td class="n">${num(FIN() ? g.pb : g.ps)}</td>
     <td class="small">${esc(segJudge(g))}</td></tr>`).join("");
   $("segTbl").querySelectorAll("a[data-seg]").forEach(a => a.onclick = () => { state.seg = a.dataset.seg; renderAll(); });
   $("segPick").innerHTML = segs.map(g => `<button type="button" data-seg="${g.id}" aria-pressed="${g.id === state.seg}">${esc(segName(g.id))}</button>`).join("");
@@ -361,8 +371,10 @@ function renderSegments() {
 function coKv(e) { const d = e.d, nq = e.mkt?.next_q;
   return `<div class="kv"><span>股价 / 市值</span><b>${d.price ? num(d.price, 2) + " " + esc(d.ccy || "") : "—"} / ${yi(d.mcap)} 亿</b></div>
     <div class="kv"><span>营收同比${e.basis === "annual" ? "（年度）" : ""}</span><b>${pc(e.yoy)}</b></div>
-    <div class="kv"><span>毛利率 / 营业利润率</span><b>${num(e.gm)}% / ${num(e.opm)}%</b></div>
-    <div class="kv"><span>市销率 / 市盈率</span><b>${num(d.ps)} / ${num(d.pe, 0)}</b></div>
+    ${isFin(e) ? `<div class="kv"><span>税前利润率 / ROE</span><b>${num(d.pretax_m)}% / ${num(d.roe)}%</b></div>
+    <div class="kv"><span>市净率 / 市盈率</span><b>${num(d.pb)} / ${num(d.pe, 0)}</b></div>`
+    : `<div class="kv"><span>毛利率 / 营业利润率</span><b>${num(e.gm)}% / ${num(e.opm)}%</b></div>
+    <div class="kv"><span>市销率 / 市盈率</span><b>${num(d.ps)} / ${num(d.pe, 0)}</b></div>`}
     <div class="kv"><span>EPS 实际 vs 预期</span><b>${d.eps_last ? `${d.eps_last.actual} / ${num(d.eps_last.est, 2)} ${d.surprise != null ? pc(d.surprise) : ""}` : "—"}</b></div>
     <div class="kv"><span>下季预期 · 财报日</span><b>${nq && nq.eps != null ? "EPS " + num(nq.eps, 2) : "—"}${nq && nq.rev ? " · 营收 " + yi(nq.rev) + " 亿" : ""} · ${e.mkt?.next_date ? e.mkt.next_date.slice(5) : "—"}</b></div>
     <div class="kv"><span>分析师 · 目标价中位数</span><b>${e.mkt?.analysts ?? "—"} · ${num(e.mkt?.target, 2)}</b></div>`; }
@@ -389,17 +401,20 @@ function renderLeaders() {
 
 // ---------- ④ emerging
 function renderBubble() {
-  const W = 1300, H = 360, L = 50, R = 20, T = 14, B = 34, list = ents().filter(e => e.gm != null && e.d.mcap);
+  // financial sectors have no gross margin: the y axis shows pretax margin instead
+  const YK = FIN() ? "税前利润率" : "毛利率", yv = e => isFin(e) ? e.d.pretax_m : e.gm;
+  $("bubTitle").textContent = `增速 × ${YK}（气泡大小 = 市值；实心 = 新兴公司，按结论着色；空心紫圈 = 龙头，作参照）`;
+  const W = 1300, H = 360, L = 50, R = 20, T = 14, B = 34, list = ents().filter(e => yv(e) != null && e.d.mcap);
   if (!list.length) { $("bubble").innerHTML = `<text x="20" y="30">没有数据</text>`; return; }
   const XC = 150, X = v => L + (W - L - R) * (Math.max(-30, Math.min(XC, v)) + 30) / (XC + 30), Y = v => T + (H - T - B) * (1 - (Math.max(-20, Math.min(100, v)) + 20) / 120);
   const mx = Math.max(...list.map(e => e.d.mcap));
   let s = ""; [-20, 0, 20, 40, 60, 80, 100].forEach(v => s += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#2a3038"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${v}%</text>`);
   [-25, 0, 25, 50, 75, 100, 125, 150].forEach(v => s += `<text x="${X(v)}" y="${H - 14}" text-anchor="middle">${v}%${v === 150 ? "+" : ""}</text>`);
-  s += `<text x="${(L + W) / 2}" y="${H - 1}" text-anchor="middle">营收同比</text><text x="14" y="${(T + H) / 2}" transform="rotate(-90 14 ${(T + H) / 2})" text-anchor="middle">毛利率</text>`;
+  s += `<text x="${(L + W) / 2}" y="${H - 1}" text-anchor="middle">营收同比</text><text x="14" y="${(T + H) / 2}" transform="rotate(-90 14 ${(T + H) / 2})" text-anchor="middle">${YK}</text>`;
   list.sort((a, b) => b.d.mcap - a.d.mcap).forEach(e => { const r = 4 + 26 * Math.sqrt(e.d.mcap / mx), ld = e.kind === "leader";
-    s += `<circle class="bub" cx="${X(e.yoy)}" cy="${Y(e.gm)}" r="${r}" fill="${ld ? "none" : LVCOL[e.level]}" fill-opacity="${ld ? 0 : .7}" stroke="${ld ? "#a78bfa" : e.pool ? "#fff" : "none"}" stroke-width="${ld ? 2 : 1.5}"
-      data-t="${esc(e.ticker)}" data-k="${e.kind}" tabindex="0" data-tip="<b>${esc(e.ticker)}</b> ${esc(e.name)}<br>${esc(segName(e.segment))} · ${ld ? "龙头" : esc(e.level)}<br>同比 ${e.yoy}% · 毛利率 ${e.gm}%<br>市值 ${yi(e.d.mcap)} 亿"/>`;
-    if (e.pool || (ld && r > 14)) s += `<text x="${X(e.yoy)}" y="${Y(e.gm) - r - 3}" text-anchor="middle" style="fill:${ld ? "#a78bfa" : "#e6e9ee"}">${esc(e.ticker)}</text>`; });
+    s += `<circle class="bub" cx="${X(e.yoy)}" cy="${Y(yv(e))}" r="${r}" fill="${ld ? "none" : LVCOL[e.level]}" fill-opacity="${ld ? 0 : .7}" stroke="${ld ? "#a78bfa" : e.pool ? "#fff" : "none"}" stroke-width="${ld ? 2 : 1.5}"
+      data-t="${esc(e.ticker)}" data-k="${e.kind}" tabindex="0" data-tip="<b>${esc(e.ticker)}</b> ${esc(e.name)}<br>${esc(segName(e.segment))} · ${ld ? "龙头" : esc(e.level)}<br>同比 ${e.yoy}% · ${YK} ${yv(e)}%<br>市值 ${yi(e.d.mcap)} 亿"/>`;
+    if (e.pool || (ld && r > 14)) s += `<text x="${X(e.yoy)}" y="${Y(yv(e)) - r - 3}" text-anchor="middle" style="fill:${ld ? "#a78bfa" : "#e6e9ee"}">${esc(e.ticker)}</text>`; });
   $("bubble").innerHTML = s;
   $("bubble").querySelectorAll("circle").forEach(c => c.onclick = () => { const el = document.getElementById((c.dataset.k === "leader" ? "ld-" : "card-") + state.sector + "-" + c.dataset.t);
     if (c.dataset.k === "leader") { const e = ents().find(x => x.ticker === c.dataset.t && x.kind === "leader"); state.seg = e.segment; renderAll(); }
@@ -411,14 +426,27 @@ function poolCard(e) { const top = Object.entries(e.factors).sort((a, b) => b[1]
     <div class="one">${esc(e.oneliner)}${e.oneliner_src === "en" ? ' <span class="tier">（英文原文）</span>' : ""}</div>
     ${coKv(e)}${top.map(([k, v]) => `<div class="fbar"><span>${esc(D.factor_cn[k])}</span><span class="t"><i style="width:${v * 100}%"></i></span><span>${(v * 100).toFixed(0)}</span></div>`).join("")}
     <div class="or"><b class="ok">机会：</b>${esc(e.opp)}</div><div class="or"><b class="warn">风险：</b>${esc(e.risk)}</div></div>`; }
-const COLS = [["ticker", "公司"], ["segment", "环节"], ["market", "市场"], ["price", "股价", 1], ["pos52", "52 周位置", 1], ["mcap", "市值（亿美元）", 1], ["yoy", "同比", 1],
-  ["gm", "毛利率", 1], ["gm_trend", "毛利率变化", 1], ["opm", "营业利润率", 1], ["ps", "市销率", 1], ["peg", "PEG", 1], ["surprise", "EPS 实际 / 预期", 1],
+// four margin / valuation columns differ by profile; everything else is shared
+const MID = [["gm", "毛利率", 1], ["gm_trend", "毛利率变化", 1], ["opm", "营业利润率", 1], ["ps", "市销率", 1]];
+const MID_FIN = [["pretax_m", "税前利润率", 1], ["pretax_trend", "税前利润率变化", 1], ["roe", "ROE", 1], ["pb", "市净率", 1]];
+const COLS = () => [["ticker", "公司"], ["segment", "环节"], ["market", "市场"], ["price", "股价", 1], ["pos52", "52 周位置", 1], ["mcap", "市值（亿美元）", 1], ["yoy", "同比", 1],
+  ...(FIN() ? MID_FIN : MID), ["peg", "PEG", 1], ["surprise", "EPS 实际 / 预期", 1],
   ["next", "下季预期 / 财报日", 1], ["analysts", "分析师", 1], ["ins", "内部人 买 / 卖", 1], ["score", "结论", 1]];
 const val = (e, k) => ({price: pxUsd(e), pos52: e.d.pos52, mcap: e.d.mcap, gm_trend: e.d.gm_trend, ps: e.d.ps, peg: e.d.peg, surprise: e.d.surprise,
+  pretax_m: e.d.pretax_m, pretax_trend: e.d.pretax_trend, roe: e.d.roe, pb: e.d.pb,
   next: e.mkt?.next_date, analysts: e.mkt?.analysts, ins: e.insider ? e.insider.buys - e.insider.sells / 100 : null, segment: segName(e.segment), score: e.score ?? -1})[k] ?? e[k];
-$("thead").innerHTML = COLS.map(([k, t, n]) => `<th scope="col" class="${n ? "n" : ""}"><button type="button" data-k="${k}">${t}</button></th>`).join("");
-document.querySelectorAll("#thead button").forEach(b => b.onclick = () => { state.dir = state.sort === b.dataset.k ? -state.dir : -1; state.sort = b.dataset.k; renderEmerging(); });
+const pp1 = (v, warn) => v == null ? "—" : `<span class="${warn ? "warn" : v < 0 ? "neg" : ""}">${v > 0 ? "+" : ""}${num(v)}pp</span>`;
+const midCells = e => { const d = e.d;
+  return isFin(e) ? `<td class="n">${d.pretax_m != null ? `<span class="${d.pretax_m < 0 ? "neg" : ""}">${num(d.pretax_m)}%</span>` : "—"}</td><td class="n">${pp1(d.pretax_trend)}</td>
+    <td class="n">${d.roe != null ? `<span class="${d.roe < 0 ? "neg" : ""}">${num(d.roe)}%</span>` : "—"}</td><td class="n">${num(d.pb)}</td>`
+  : `<td class="n">${e.gm != null ? num(e.gm) + "%" : "—"}</td><td class="n">${pp1(d.gm_trend, d.gm_trend != null && d.gm_trend >= D.cfg.flags.gm_jump_warn_pp)}</td>
+    <td class="n">${e.opm != null ? `<span class="${e.opm < 0 ? "neg" : ""}">${num(e.opm)}%</span>` : "—"}</td><td class="n">${num(d.ps)}</td>`; };
+function renderHead() {
+  $("thead").innerHTML = COLS().map(([k, t, n]) => `<th scope="col" class="${n ? "n" : ""}"><button type="button" data-k="${k}">${t}</button></th>`).join("");
+  document.querySelectorAll("#thead button").forEach(b => b.onclick = () => { state.dir = state.sort === b.dataset.k ? -state.dir : -1; state.sort = b.dataset.k; renderEmerging(); });
+}
 function renderEmerging() {
+  renderHead();
   const em = ents().filter(e => e.kind === "emerging"), pool = em.filter(e => e.pool).sort((a, b) => a.rank - b.rank);
   $("poolN").textContent = D.cfg.pool.size;
   $("poolHow").textContent = `本行业 ${em.length} 家新兴候选（美股 ${em.filter(e => e.market === "US").length}，海外 ${em.filter(e => e.market !== "US").length}），${em.filter(e => !e.gate).length} 家通过门槛进入排序。`;
@@ -433,9 +461,7 @@ function renderEmerging() {
     <td><a href="#card-${state.sector}-${esc(e.ticker)}"><b>${esc(e.ticker)}</b></a><div class="small">${esc((e.name || "").slice(0, 26))}</div></td>
     <td><span class="tag">${esc(segName(e.segment))}</span>${e.override ? `<div class="small warn" data-tip="${esc(e.override)}">人工调整</div>` : ""}</td><td>${esc(e.market)}</td>
     <td class="n">${d.price ? num(d.price, 2) : "—"}<div class="small">${esc(d.ccy || "")}${d.ccy && d.ccy !== "USD" && pxUsd(e) != null ? ` ≈ $${num(pxUsd(e), 2)}` : ""}</div></td><td class="n">${d.pos52 != null ? d.pos52 + "%" : "—"}</td><td class="n">${yi(d.mcap)}</td>
-    <td class="n">${pc(e.yoy)}${e.basis === "annual" ? '<div class="small">年度</div>' : ""}</td><td class="n">${e.gm != null ? num(e.gm) + "%" : "—"}</td>
-    <td class="n">${d.gm_trend == null ? "—" : `<span class="${d.gm_trend >= D.cfg.flags.gm_jump_warn_pp ? "warn" : d.gm_trend < 0 ? "neg" : ""}">${d.gm_trend > 0 ? "+" : ""}${num(d.gm_trend)}pp</span>`}</td>
-    <td class="n">${e.opm != null ? `<span class="${e.opm < 0 ? "neg" : ""}">${num(e.opm)}%</span>` : "—"}</td><td class="n">${num(d.ps)}</td><td class="n">${num(d.peg, 2)}</td>
+    <td class="n">${pc(e.yoy)}${e.basis === "annual" ? '<div class="small">年度</div>' : ""}</td>${midCells(e)}<td class="n">${num(d.peg, 2)}</td>
     <td class="n">${d.eps_last ? `${d.eps_last.actual} / ${num(d.eps_last.est, 2)}${d.surprise != null ? `<div>${pc(d.surprise)}</div>` : ""}` : "—"}</td>
     <td class="n">${nq && nq.eps != null ? "EPS " + num(nq.eps, 2) : "—"}<div class="small">${e.mkt?.next_date ? e.mkt.next_date.slice(5) : ""}</div></td>
     <td class="n">${e.mkt?.analysts ?? "—"}</td><td class="n">${e.insider ? `<span class="${e.insider.buys ? "pos" : ""}">${e.insider.buys}</span> / ${e.insider.sells}` : "—"}</td>
@@ -513,8 +539,14 @@ function evalCard(e, prefix, open) {
   const links = e.market === "US" && e.cik ? `<a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${e.cik}&type=10-&owner=include&count=40" target="_blank" rel="noopener noreferrer">EDGAR 申报</a> · ` : "";
   const tiles = [
     tile("增长", pc(e.yoy), e.basis === "annual" ? "最新财年同比" : d.accel != null ? `上一期 ${pc(e.yoy_prev)}，${d.accel >= 0 ? "加速" : "放缓"} ${Math.abs(d.accel).toFixed(0)}pp` : "最新季度同比", stat(e, "增长")),
-    tile("盈利", `${num(e.gm)}% <small>毛利率</small>`, `营业利润率 ${num(e.opm)}%${d.opm_trend != null ? `（${d.opm_trend >= 0 ? "+" : ""}${num(d.opm_trend, 0)}pp）` : ""}`, stat(e, "增长质量") === "warn" || stat(e, "盈利能力") === "warn" ? "warn" : stat(e, "盈利能力")),
-    tile("估值", `${num(d.ps)} <small>倍市销率</small>`, `市盈率 ${num(d.pe, 0)} · PEG ${num(d.peg, 2)}`, stat(e, "估值")),
+    ...(isFin(e) ? [
+      tile("盈利（税前利润率 / ROE）", `${num(d.pretax_m)}% <small>税前利润率</small>`, `ROE ${num(d.roe)}%${d.pretax_trend != null ? ` · 税前利润率 ${d.pretax_trend >= 0 ? "+" : ""}${num(d.pretax_trend, 0)}pp` : ""}`,
+        stat(e, "盈利能力") === "warn" || stat(e, "ROE") === "warn" ? "warn" : stat(e, "盈利能力")),
+      tile("估值（PE / PB）", `${num(d.pe, 0)} <small>倍市盈率</small>`, `市净率 ${num(d.pb, 1)} · PEG ${num(d.peg, 2)}`, stat(e, "估值")),
+    ] : [
+      tile("盈利", `${num(e.gm)}% <small>毛利率</small>`, `营业利润率 ${num(e.opm)}%${d.opm_trend != null ? `（${d.opm_trend >= 0 ? "+" : ""}${num(d.opm_trend, 0)}pp）` : ""}`, stat(e, "增长质量") === "warn" || stat(e, "盈利能力") === "warn" ? "warn" : stat(e, "盈利能力")),
+      tile("估值", `${num(d.ps)} <small>倍市销率</small>`, `市盈率 ${num(d.pe, 0)} · PEG ${num(d.peg, 2)}`, stat(e, "估值")),
+    ]),
     tile("财报 vs 预期", d.eps_last ? `${d.eps_last.actual} <small>/ ${num(d.eps_last.est, 2)}</small>` : "—", `${d.surprise != null ? "差 " + pc(d.surprise) + " · " : ""}下次 ${e.mkt?.next_date || "—"}${nq && nq.eps != null ? "，EPS 预期 " + num(nq.eps, 2) : ""}`, stat(e, "财报 vs 预期")),
   ].join("");
   // checklist without repeating what the opportunity / risk lists already say: one short line per dimension
@@ -553,7 +585,7 @@ function evalCard(e, prefix, open) {
 function renderOpp() {
   const o = OV(), segs = o.segments.slice().sort((a, b) => (b.n_pool - a.n_pool) || ((b.yoy ?? -99) - (a.yoy ?? -99)));
   $("oppSeg").innerHTML = `<div class="grid g4">${segs.map(g => { const pool = ents().filter(e => e.segment === g.id && e.pool).sort((a, b) => a.rank - b.rank), ld = ents().filter(e => e.segment === g.id && e.kind === "leader");
-    return `<div class="card"><div class="small">${segOf(g.id)?.cyclical ? '<span class="tag t-cyc">周期</span> ' : ""}增速 ${g.yoy ?? "—"}% · 市销率 ${g.ps ?? "—"}</div>
+    return `<div class="card"><div class="small">${segOf(g.id)?.cyclical ? '<span class="tag t-cyc">周期</span> ' : ""}增速 ${g.yoy ?? "—"}% · ${FIN() ? `市净率 ${g.pb ?? "—"}` : `市销率 ${g.ps ?? "—"}`}</div>
       <div style="font-weight:600;margin:4px 0">${esc(segName(g.id))}</div><div class="small">${esc(segJudge(g))}</div>
       <div class="small" style="margin-top:6px"><b>龙头：</b>${ld.map(e => esc(e.ticker)).join("、") || "—"}</div>
       <div class="small"><b>先研究：</b>${pool.map(e => `<a href="#card-${state.sector}-${esc(e.ticker)}">${esc(e.ticker)}</a>`).join("、") || "—"}</div></div>`; }).join("")}</div>`;
@@ -562,8 +594,8 @@ function renderOpp() {
     <td class="small">${esc(e.oneliner).slice(0, 140)}</td><td class="small ok">${esc(e.opp)}</td><td class="small warn">${esc(e.risk)}</td><td class="n">${e.mkt?.next_date || "—"}</td></tr>`).join("");
 }
 $("csv").onclick = () => {
-  const rows = [["sector", "segment", "ticker", "market", "name", "oneliner", "opportunity", "risk", "yoy", "gross_margin", "ps", "next_earnings"]]
-    .concat(D.entries.filter(e => e.pool).map(e => [SEC[e.sector].name, e.segment, e.ticker, e.market, e.name, e.oneliner, e.opp, e.risk, e.yoy, e.gm, e.d.ps, e.mkt?.next_date]));
+  const rows = [["sector", "segment", "ticker", "market", "name", "oneliner", "opportunity", "risk", "yoy", "gross_margin", "ps", "next_earnings", "pretax_margin", "roe", "pb"]]
+    .concat(D.entries.filter(e => e.pool).map(e => [SEC[e.sector].name, e.segment, e.ticker, e.market, e.name, e.oneliner, e.opp, e.risk, e.yoy, e.gm, e.d.ps, e.mkt?.next_date, e.d.pretax_m, e.d.roe, e.d.pb]));
   const csv = "\ufeff" + rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type: "text/csv"})); a.download = "research_pool.csv"; a.click();
 };

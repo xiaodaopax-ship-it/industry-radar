@@ -8,7 +8,7 @@ import statistics as st
 from . import heat, research
 from . import score as S
 from .yh import first_sentence
-from .classify import memberships, sectors
+from .classify import memberships, profile, sectors, view
 from .paths import CFG, DATA, ROOT, SITE, TEMPLATES, load
 
 
@@ -78,15 +78,17 @@ def build(raw):
         mem, _ = memberships(r)
         mc = (r.get("mkt") or {}).get("mcap")
         mem = [m for m in mem if (not mc or mc <= m["mcap_max"]) and r["ticker"] not in lead_by[m["sector"]]]
-        d = S.derived(r)
         for m in mem:
-            bull, bear = S.bull_bear(r, d, m["cyclical"], m["segment"])
-            entries.append({"_r": r, "d": d, "kind": "emerging", "sector": m["sector"], "segment": m["segment"], "override": m["override"],
-                            "cyclical": m["cyclical"], "checks": S.checklist(r, d, m["cyclical"]), "bull": bull, "bear": bear,
-                            "verify": S.verify(r, d, m["cyclical"], m["segment"]),
-                            "gate": S.gate(r, d, m), "factors": {}})
+            rv = view(r, m["profile"])  # the financial profile reads revenue from its own tag list
+            d = S.derived(rv, m)
+            bull, bear = S.bull_bear(rv, d, m["cyclical"], m["segment"])
+            entries.append({"_r": rv, "d": d, "kind": "emerging", "sector": m["sector"], "segment": m["segment"], "override": m["override"],
+                            "cyclical": m["cyclical"], "profile": m["profile"], "checks": S.checklist(rv, d, m["cyclical"]), "bull": bull, "bear": bear,
+                            "verify": S.verify(rv, d, m["cyclical"], m["segment"]),
+                            "gate": S.gate(rv, d, m), "factors": {}})
     for s in secs:
-        S.rank([e for e in entries if e["sector"] == s["id"] and not e["gate"]])
+        for p in {profile(g) for g in s["segments"]}:  # percentiles never mix evaluation profiles
+            S.rank([e for e in entries if e["sector"] == s["id"] and e["profile"] == p and not e["gate"]], p)
 
     # ---- leaders: hand-picked per segment, any market
     leaders = []
@@ -99,11 +101,12 @@ def build(raw):
                     continue
                 r = {"ticker": t, "name": (L.get("mkt") or {}).get("name") or t, "market": MARKET.get(t.split(".")[-1], "US") if "." in t else "US",
                      "mkt": L.get("mkt"), "insider": None, **f}
-                d = S.derived(r)
+                r = view(r, profile(g))
+                d = S.derived(r, {"profile": profile(g), "credit": bool(g.get("credit")), "verify": g.get("verify", [])})
                 bull, bear = S.bull_bear(r, d, bool(g.get("cyclical")), g["id"], leader=True)
                 px = L.get("px") or []
                 b = bench.get(s["benchmark"]["symbol"]) or []
-                leaders.append({"_r": r, "d": d, "kind": "leader", "sector": s["id"], "segment": g["id"], "cyclical": bool(g.get("cyclical")),
+                leaders.append({"_r": r, "d": d, "kind": "leader", "sector": s["id"], "segment": g["id"], "cyclical": bool(g.get("cyclical")), "profile": profile(g),
                                 "checks": S.checklist(r, d, bool(g.get("cyclical"))), "bull": bull, "bear": bear, "factors": {},
                                 "verify": S.verify(r, d, bool(g.get("cyclical")), g["id"]),
                                 "ret1y": _ret(px), "ret3m": _ret(px, 91), "bench1y": _ret(b),
@@ -146,12 +149,16 @@ def build(raw):
             segs.append({"id": g["id"], "n_leader": sum(1 for e in es if e["kind"] == "leader"), "n_emerging": sum(1 for e in es if e["kind"] == "emerging"),
                          "n_pool": sum(1 for e in es if e.get("pool")), "mcap": sum(e["d"]["mcap"] or 0 for e in es),
                          "yoy": _median(e["yoy"] for e in es), "gm": _median(e.get("gm") for e in es), "ps": _median(e["d"]["ps"] for e in es),
+                         **({"pretax_m": _median(e["d"].get("pretax_m") for e in es), "roe": _median(e["d"].get("roe") for e in es),
+                             "pb": _median(e["d"].get("pb") for e in es), "pe": _median(e["d"].get("pe") for e in es)} if g.get("profile") == "financial" else {}),
                          "yoy_leaders": _median(e["yoy"] for e in es if e["kind"] == "leader"),
                          "yoy_emerging": _median(e["yoy"] for e in es if e["kind"] == "emerging")})
         b = bench.get(s["benchmark"]["symbol"]) or []
         overview[s["id"]] = {"segments": segs, "bench_ret": _ret(b), "spy_ret": _ret(spy), "bench_3m": _ret(b, 91), "spy_3m": _ret(spy, 91),
                              "bench_px": b, "spy_px": spy, "n": len(mine), "mcap": sum(x["mcap"] for x in segs),
-                             "yoy": _median(e["yoy"] for e in mine), "gm": _median(e.get("gm") for e in mine)}
+                             "yoy": _median(e["yoy"] for e in mine), "gm": _median(e.get("gm") for e in mine),
+                             **({"pretax_m": _median(e["d"].get("pretax_m") for e in mine), "roe": _median(e["d"].get("roe") for e in mine)}
+                                if any(g.get("profile") == "financial" for g in s["segments"]) else {})}
 
     # ---- market-wide heat map (optional; needs `python -m radar heat`)
     sector_sics = {s["id"]: {c for g in s["segments"] for c in g.get("sic", [])} for s in secs}

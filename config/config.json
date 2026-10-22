@@ -3,6 +3,14 @@
   "sec_user_agent": "industry-radar (you@example.com)",
   "current_quarter": "CY2026Q2",
   "revenue_tags": ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "RevenueFromContractWithCustomerIncludingAssessedTax"],
+  "financial_tags": {
+    "_readme": "金融类评估口径（profile = financial）用的 XBRL 标签，按顺序取第一个有值的。券商和放贷公司常把手续费部分报成 RevenueFromContractWithCustomer...，总收入（含净利息）在 RevenuesNetOfInterestExpense 或 Revenues，所以金融类的营收标签顺序不同；只用于金融类环节，其他行业不受影响。拨备：ProvisionForLoanLossesExpensed（COF、SYF、SEZL 等）和 ASC 326 的 FinancingReceivableExcludingAccruedInterestCreditLossExpenseReversal（SOFI 等）；按公允价值计量贷款的公司（如 UPST）没有拨备科目。",
+    "revenue": ["RevenuesNetOfInterestExpense", "Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax", "RevenueFromContractWithCustomerIncludingAssessedTax"],
+    "pretax": ["IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest", "IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments"],
+    "equity": ["StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"],
+    "provision": ["ProvisionForLoanLossesExpensed", "FinancingReceivableExcludingAccruedInterestCreditLossExpenseReversal", "ProvisionForLoanLeaseAndOtherLosses", "ProvisionForLoanAndLeaseLosses"],
+    "net_interest": ["InterestIncomeExpenseNet"]
+  },
   "market_benchmark": {"symbol": "SPY", "name": "标普 500 ETF"},
   "deep_dives": {"INTC": "deep-dive/intel/index.html"},
 
@@ -26,7 +34,9 @@
 
   "flags": {
     "few_analysts_max": 3, "many_analysts_min": 10, "dilution_warn_pct": 10, "gm_jump_warn_pp": 15,
-    "runway_warn_quarters": 6, "peg_good_max": 1.0, "low_gm_pct": 25, "high_gm_pct": 50, "rich_ps": 15, "eps_beat_pct": 10
+    "runway_warn_quarters": 6, "peg_good_max": 1.0, "low_gm_pct": 25, "high_gm_pct": 50, "rich_ps": 15, "eps_beat_pct": 10,
+    "financial": {"_readme": "金融类口径（券商、交易所、放贷）的提示阈值", "roe_good_pct": 15, "roe_low_pct": 8, "rich_pb": 5,
+                  "pretax_low_pct": 10, "pretax_high_pct": 30, "prov_up_warn_pp": 2, "prov_high_pct": 30, "nci_warn_pct": 30}
   },
 
   "pool": {
@@ -34,7 +44,12 @@
     "size": 5,
     "gates": {"exclude_cyclical": true, "require_market_data": true, "max_dilution_pct": 50, "min_runway_quarters": 6, "max_yoy_pct": 300, "min_mcap": 200000000},
     "anomaly": {"opm_jump_pp": 40, "surprise_small_base_pct": 100},
-    "factors": ["growth", "accel", "gm", "gm_trend", "op_margin", "value", "dilution", "insider", "coverage", "surprise"]
+    "factors": ["growth", "accel", "gm", "gm_trend", "op_margin", "value", "dilution", "insider", "coverage", "surprise"],
+    "financial": {
+      "_readme": "金融类环节（profile = financial）：周期性环节不剔除，只提示；用『TTM 净亏损』代替『亏损且现金不足』（现金大多是客户资金）；股东权益为负剔除。百分位只在同一口径的公司里计算。",
+      "require_ttm_profit": true,
+      "factors": ["growth", "accel", "pretax_m", "pretax_trend", "roe", "value_fin", "equity_g", "dilution", "insider", "coverage", "surprise"]
+    }
   },
 
   "form4": {"lookback_days": 180, "max_filings_per_company": 8},

@@ -41,6 +41,14 @@ RULES = {
     "shortlist_max": 60,                 # stocks that get valuation_history (rate-limit budget)
     "priority_top": 30,
     "priority_max_warn": 1,              # risk-gate ⚠ allowed for the research-priority list
+    "cyclical_top": 20,                  # rows in the separate cyclical-industry list
+    # Eastmoney industries whose earnings move mainly with commodity / freight prices or a capacity cycle. Companies in
+    # them are never labeled 偏价值 and are listed separately instead of entering the research-priority ranking (same
+    # treatment as cyclical segments in the US pipeline). Low PE near a cycle peak is a known trap, so PE percentile is
+    # not used as a "cheap" signal for them.
+    "cyclical_industries": ["油气开采Ⅱ", "油服工程", "炼化及贸易", "煤炭开采", "焦炭Ⅱ", "工业金属", "小金属", "贵金属",
+                            "能源金属", "普钢", "特钢Ⅱ", "冶钢原料", "化学原料", "化学纤维", "农化制品", "塑料", "橡胶",
+                            "水泥", "玻璃玻纤", "造纸", "养殖业", "饲料", "航运港口", "工程机械"],
 }
 # regulatory kinds that count as a hit (review_inquiry = IPO/refinancing review Q&A, case_filing_other = lawsuits)
 REG_COUNT_KINDS = {"inquiry_letter", "concern_letter", "regulatory_letter", "warning_letter", "investigation",
@@ -318,7 +326,7 @@ def analyze(snap, valuation=None):
         on = [fl[c]["operating_cash_flow"] / fl[c]["parent_net_profit"] for c in codes
               if fl[c].get("operating_cash_flow") is not None and (fl[c].get("parent_net_profit") or 0) > 0]
         industries.append({
-            "name": ind, "n": len(with_y), "revenue": rev,
+            "name": ind, "n": len(with_y), "revenue": rev, "cyclical": ind in RULES["cyclical_industries"],
             "mcap": sum(Q[c].get("total_mcap") or 0 for c in codes),
             "yoy_median": med(ys), "yoy_weighted": r1((rev / rev_old - 1) * 100 if rev_old > 0 else None, 2),
             "share_ge20": r1(100 * sum(1 for c in with_y if fl[c]["revenue_yoy_pct"] >= 20) / len(with_y)),
@@ -447,6 +455,7 @@ def analyze(snap, valuation=None):
                        f"{fc.get('report_period')} {fc.get('forecast_type_cn') or ''} {rng}".strip(), fc.get("forecast_type_cn") or "—")
 
         # ---- 价值 / 博弈 label
+        cyc = (q.get("industry") or "") in RULES["cyclical_industries"]
         game, value_fail = [], []
         if np_ is None or np_ <= 0:
             game.append("年初至今归母净利润≤0")
@@ -458,8 +467,12 @@ def analyze(snap, valuation=None):
             game.append(f"6 个月净减持 {abs(net_pct):.2f}% 总股本")
         if rh:
             game.append(f"12 个月监管类标题 {len(rh)} 条")
+        cyc_why = (f"周期行业（东财：{q.get('industry')}）：盈利主要随商品价格或产能周期变化，"
+                   f"周期高点时利润高、PE 反而低，所以不标偏价值，也不参与研究优先级排序")
         if game:
-            label, reasons = "偏博弈", game
+            label, reasons = "偏博弈", game + ([cyc_why] if cyc else [])
+        elif cyc:
+            label, reasons = "中性", [cyc_why]
         else:
             if on is None or on < RULES["value_ocf_np_min"]:
                 value_fail.append(f"经营现金流/净利润 {'—' if on is None else f'{on:.2f}'} < {RULES['value_ocf_np_min']}")
@@ -483,13 +496,16 @@ def analyze(snap, valuation=None):
             "pe_pct": pe_pct, "pb_pct": pb_pct,
             "gates": {k: {"s": t[0], "v": t[1], "sv": t[2] if len(t) > 2 else t[1]} for k, t in g.items()},
             "warn_n": sum(1 for k in RISK_GATES if g[k][0] == "warn"),
-            "label": label, "reasons": reasons,
+            "label": label, "reasons": reasons, "cyclical": cyc,
             "reg_items": [{"date": r.get("date"), "title": r.get("title_cn"), "url": r.get("url"),
                            "kind": REG_KIND_CN[r["kind"]]} for r in rh[:3]],
         })
 
     # ---- research priority: eligible = profitable + <= priority_max_warn risk-gate warnings
-    elig = [r for r in rows if (r["np"] or 0) > 0 and r["ocf_np"] is not None and r["warn_n"] <= RULES["priority_max_warn"]]
+    base = [r for r in rows if (r["np"] or 0) > 0 and r["ocf_np"] is not None and r["warn_n"] <= RULES["priority_max_warn"]]
+    elig = [r for r in base if not r["cyclical"]]
+    # cyclical industries: listed separately by growth, never ranked against structural growers
+    cyc_list = [r["code"] for r in sorted((r for r in base if r["cyclical"]), key=lambda r: -(r["rev_yoy"] or 0))][:RULES["cyclical_top"]]
     pg = pct_rank({r["code"]: r["rev_yoy"] for r in elig})
     pa = pct_rank({r["code"]: r["accel"] for r in elig})
     po = pct_rank({r["code"]: r["ocf_np"] for r in elig})
@@ -518,10 +534,10 @@ def analyze(snap, valuation=None):
     n_fin = sum(1 for c in Q if c in fl and fl[c].get("revenue") is not None)
     all_y = [fl[c].get("revenue_yoy_pct") for c in Q if c in fl]
     return {
-        "industries": industries, "screen": rows, "priority": prio, "shortlist": shortlist,
+        "industries": industries, "screen": rows, "priority": prio, "shortlist": shortlist, "cyclical_list": cyc_list,
         "counts": {"quotes": len(Q), "with_fin": n_fin, "industries_all": len(groups), "industries": len(industries),
                    "screen_raw": len(screen) + sum(excl.values()), "screen": len(rows), "excluded": excl,
-                   "eligible": len(elig), "shortlist": len(shortlist), "valuation_ok": sum(1 for c in shortlist if c in valuation),
+                   "eligible": len(elig), "eligible_cyclical": len(base) - len(elig), "shortlist": len(shortlist), "valuation_ok": sum(1 for c in shortlist if c in valuation),
                    "priority": len(prio), "regulatory_rows": len(snap["regulatory"]),
                    "reg_hit_rows": sum(len(v) for v in reg.values())},
         "market": {"yoy_median": med(all_y),

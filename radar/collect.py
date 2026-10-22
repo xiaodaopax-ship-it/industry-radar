@@ -4,7 +4,7 @@ import json
 import os
 
 from . import us, yh as Y
-from .classify import loosest, memberships, sectors
+from .classify import loosest, memberships, profile, sectors, view
 from .net import Yahoo
 from .paths import CFG, DATA
 
@@ -19,11 +19,16 @@ def _num(q, k):
 
 
 def collect_us(yh, fx, excluded):
-    P, rows = us.fundamentals()
+    P, rows = us.fundamentals(financial=any(profile(g) == "financial" for s in sectors() for g in s["segments"]))
     L = loosest()
-    funnel = [{"step": "美国：有可比季度营收的 SEC 申报公司", "n": len(rows)}]
-    s1 = [r for r in rows if r["rev_ttm"] and L["ttm_revenue_min"] <= r["rev_ttm"] <= L["ttm_revenue_max"]
-          and r["rev_q_ly"] >= L["prior_quarter_revenue_min"] and r["yoy"] >= L["yoy_growth_min"]]
+    n_std = sum(1 for r in rows if r["rev_q"] is not None)
+    funnel = [{"step": "美国：有可比季度营收的 SEC 申报公司", "n": n_std}]
+    if n_std < len(rows):
+        funnel.append({"step": "美国：另有只在金融类营收标签下有可比营收的公司（仅用于金融类环节）", "n": len(rows) - n_std})
+    pre = lambda r: (r["rev_ttm"] and L["ttm_revenue_min"] <= r["rev_ttm"] <= L["ttm_revenue_max"]
+                     and r["rev_q_ly"] >= L["prior_quarter_revenue_min"] and r["yoy"] >= L["yoy_growth_min"])
+    # a filer passes if either its standard revenue or its financial-tag revenue passes (memberships re-checks per profile)
+    s1 = [r for r in rows if pre(r) or (r.get("rev_fin") and pre(view(r, "financial")))]
     funnel.append({"step": f"美国：规模与增速预筛（同比 ≥ {L['yoy_growth_min']}%）", "n": len(s1)})
     log(f"US: {len(rows)} filers, {len(s1)} after pre-screen; fetching submissions ...")
     s2 = []
@@ -100,10 +105,13 @@ def collect_intl(yh, fx, excluded):
 def collect_leaders(yh, fx):
     out = {}
     syms = sorted({t for s in sectors() for g in s["segments"] for t in g.get("leaders", [])})
-    log(f"leaders: {len(syms)} symbols ...")
+    fin = {t for s in sectors() for g in s["segments"] if profile(g) == "financial" for t in g.get("leaders", [])}
+    log(f"leaders: {len(syms)} symbols ({len(fin)} financial-profile) ...")
     for sym in syms:
         m = Y.market(yh, sym, fx)
         f = Y.fundamentals(yh, sym, fx) or {}
+        if f and sym in fin:
+            f.update(Y.financial_fields(yh, sym, fx, f))
         c = yh.chart(sym, "1y")
         out[sym] = {"ticker": sym, "mkt": m, "fund": f, "px": (c or {}).get("px", [])}
     return out
