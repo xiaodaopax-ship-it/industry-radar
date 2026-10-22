@@ -5,7 +5,7 @@ import json
 import os
 import statistics as st
 
-from . import research
+from . import heat, research
 from . import score as S
 from .yh import first_sentence
 from .classify import memberships, sectors
@@ -72,10 +72,12 @@ def build(raw):
 
     # ---- emerging entries: one per (company, sector) membership
     entries = []
+    # a hand-picked leader is shown in the leader layer of its sector, never also as an emerging candidate there
+    lead_by = {s["id"]: {t for g in s["segments"] for t in g.get("leaders", [])} for s in secs}
     for r in raw["candidates"]:
         mem, _ = memberships(r)
         mc = (r.get("mkt") or {}).get("mcap")
-        mem = [m for m in mem if not mc or mc <= m["mcap_max"]]
+        mem = [m for m in mem if (not mc or mc <= m["mcap_max"]) and r["ticker"] not in lead_by[m["sector"]]]
         d = S.derived(r)
         for m in mem:
             bull, bear = S.bull_bear(r, d, m["cyclical"], m["segment"])
@@ -151,7 +153,13 @@ def build(raw):
                              "bench_px": b, "spy_px": spy, "n": len(mine), "mcap": sum(x["mcap"] for x in segs),
                              "yoy": _median(e["yoy"] for e in mine), "gm": _median(e.get("gm") for e in mine)}
 
-    data = {"built_at": dt.datetime.now().strftime("%Y-%m-%d %H:%M"), "fetched_at": raw["fetched_at"], "periods": raw["periods"],
+    # ---- market-wide heat map (optional; needs `python -m radar heat`)
+    sector_sics = {s["id"]: {c for g in s["segments"] for c in g.get("sic", [])} for s in secs}
+    hm = heat.summarize(heat.latest(), sector_sics)
+    sec_names = {s["id"]: s["name"] for s in secs}
+
+    data = {"heat": hm, "sector_names": sec_names,
+            "built_at": dt.datetime.now().strftime("%Y-%m-%d %H:%M"), "fetched_at": raw["fetched_at"], "periods": raw["periods"],
             "fx": raw.get("fx"), "funnel": raw["funnel"], "form4_since": raw["form4_since"], "sectors": secs, "entries": out,
             "overview": overview, "excluded": raw["excluded"], "notes": notes, "factor_cn": S.FACTOR_CN,
             "cfg": {"flags": CFG["flags"], "pool": CFG["pool"], "benchmark": CFG["market_benchmark"]}}

@@ -127,7 +127,149 @@
         {"id": "data_ai", "name": "数据与 AI 软件", "sic": [7370, 7371, 7372, 7373, 7374], "name_regex": "data|\\bai\\b|intelligen|analytic|snowflake|palantir|mongo|elastic|confluent", "leaders": ["PLTR", "SNOW", "MDB"], "demand": []},
         {"id": "saas", "name": "企业软件与 SaaS", "sic": [7370, 7371, 7372, 7373, 7374], "name_regex": "", "leaders": ["CRM", "NOW", "ADBE"], "demand": []}
       ],
-      "overrides": {}, "exclude": {"name_regex": "", "tickers": {}}
+      "overrides": {},
+      "exclude": {
+        "name_regex": "payment|merchant",
+        "tickers": {
+          "TOST": "支付业务，归到支付与金融软件行业", "XYZ": "支付业务，归到支付与金融软件行业", "MQ": "发卡处理平台，归到支付与金融软件行业",
+          "BILL": "企业支付与费用管理，归到支付与金融软件行业", "ACIW": "支付处理软件，归到支付与金融软件行业", "EVTC": "支付处理，归到支付与金融软件行业",
+          "STNE": "商户收单，归到支付与金融软件行业", "PAGS": "商户收单，归到支付与金融软件行业"
+        }
+      }
+    },
+
+    {
+      "id": "construction", "name": "工程建设与专业承包",
+      "benchmark": {"symbol": "PAVE", "name": "美国基础设施 ETF PAVE"},
+      "lynch_note": "工程承包是项目制生意：收入按完工进度确认，先看在手订单（backlog / RPO）和新签订单能否覆盖未来收入，再看毛利率；固定总价合同可能出现成本超支。订单集中在数据中心时，客户资本开支的变化会直接传导过来。PWR（Quanta）同时是能源行业电网环节的龙头，两个行业都会显示它。",
+      "thesis": "美国建筑支出总额 2026 年 8 月同比小幅下降，其中数据中心建设支出同比增长七成以上、制造业厂房同比下降；电气、机电和电网类承包商的在手订单处在纪录高位。",
+      "demand": [
+        {"text": "美国人口普查局：2026 年 8 月建筑支出季调年化 2.203 万亿美元，环比 +0.9%，同比 −1.7%", "as_of": "2026-08", "tier": "primary", "url": "https://www.census.gov/construction/c30/current/index.html?sub4=Spotlight"},
+        {"text": "KPMG 解读人口普查局数据：8 月数据中心建设支出年化约 850 亿美元，创纪录，同比 +73.2%；制造业厂房建设同比 −19.8%", "as_of": "2026-08", "tier": "authoritative", "url": "https://kpmg.com/us/en/articles/2026/august-2026-construction-spending.html"}
+      ],
+      "intl": {"regions": [], "industries": []},
+      "segments": [
+        {"id": "mep", "name": "电气与机电专业承包（含数据中心）", "sic": [1700, 1711, 1731], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["EME", "FIX", "IESC"],
+         "demand": [
+           {"text": "EMCOR 2026Q2 未完成履约义务（RPO）171.4 亿美元，同比 +43.9%", "as_of": "2026Q2", "tier": "primary", "url": "https://emcorgroup.com/application/files/3517/8535/6062/2Q26_Earnings_Release_Final.pdf"},
+           {"text": "Comfort Systems 截至 2026-06-30 在手订单 140.6 亿美元，一年前为 81.2 亿美元", "as_of": "2026Q2", "tier": "primary", "url": "https://www.businesswire.com/news/home/20260723227439/en/Comfort-Systems-USA-Reports-Second-Quarter-2026-Results"}
+         ]},
+        {"id": "grid_infra", "name": "电网、管线与通信基建", "sic": [1623], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["PWR", "MTZ", "PRIM"],
+         "demand": [
+           {"text": "Quanta 2026Q2 总在手订单 534 亿美元，其中未完成履约义务（RPO）336 亿美元", "as_of": "2026Q2", "tier": "primary", "url": "https://investors.quantaservices.com/news-events/press-releases/detail/402/quanta-services-reports-second-quarter-2026-results"},
+           {"text": "MasTec 2026Q2 未来 18 个月在手订单 214 亿美元，同比 +30%", "as_of": "2026Q2", "tier": "primary", "url": "https://www.mastec.com/press-release/20451/mastec-reports-second-quarter-2026-results-and-updates-full-year-2026-financial-guidance.html"}
+         ]},
+        {"id": "civil", "name": "土木、基础设施与工业工程", "sic": [1540, 1541, 1542, 1600, 1611, 1620, 1622, 1629], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["STRL", "GVA", "FLR", "J", "ACM"],
+         "demand": [
+           {"text": "Sterling 截至 2026-06-30 签约在手订单 43.3 亿美元，同比 +116%，剔除收购后同比 +50%", "as_of": "2026Q2", "tier": "primary", "url": "https://www.prnewswire.com/news-releases/sterling-reports-record-second-quarter-results-and-raises-full-year-2026-guidance-302841538.html"}
+         ]}
+      ],
+      "overrides": {
+        "ECG": {"segment": "mep", "why": "Everus 是电气与机械承包商，SIC 1531（住宅开发商）与实际业务不符"}
+      },
+      "exclude": {
+        "name_regex": "solar|sunrun|sunpower",
+        "tickers": {
+          "ZEO": "户用光伏安装，不属于机电承包",
+          "CETX": "主营安防视频与工业服务，SIC 1700 与实际业务不符"
+        }
+      }
+    },
+
+    {
+      "id": "industrials", "name": "工业机械与航空零部件",
+      "benchmark": {"symbol": "XLI", "name": "工业 ETF XLI"},
+      "lynch_note": "工程、矿山与农业机械是典型的周期股，营收高增长往往出现在周期上行段，要看经销商库存和订单变化，不能当成快速增长股。航空零部件要看主机厂的生产速率和售后（备件、维修）收入占比，售后业务通常比新机配套更稳定。",
+      "thesis": "工程机械处在需求上行阶段，卡特彼勒 2026Q2 建筑工业板块销售同比 +35%；航空零部件需求来自主机厂交付和在役机队的维修，GE Aerospace 称其商用服务在手订单超过 1,700 亿美元。",
+      "demand": [
+        {"text": "波音 2026Q3 交付民用飞机 161 架（其中 737 共 124 架），前三季度累计 475 架", "as_of": "2026Q3", "tier": "primary", "url": "https://boeing.mediaroom.com/2026-10-13-Boeing-Announces-Third-Quarter-Deliveries"},
+        {"text": "空客 2026 年 1–9 月交付民用飞机 547 架，其中 9 月 72 架", "as_of": "2026-09", "tier": "primary", "url": "https://www.airbus.com/en/products-services/commercial-aircraft/orders-and-deliveries"}
+      ],
+      "intl": {"regions": ["jp", "kr"], "industries": ["Farm & Heavy Construction Machinery"]},
+      "segments": [
+        {"id": "machinery", "name": "工程、矿山与农业机械", "sic": [3523, 3531, 3532, 3537], "name_regex": "", "yahoo_industry": ["Farm & Heavy Construction Machinery"], "cyclical": true,
+         "leaders": ["CAT", "DE", "6301.T"],
+         "demand": [
+           {"text": "卡特彼勒 2026Q2 建筑工业板块销售 83.5 亿美元，同比 +35%（北美 +50%）；资源工业（矿山）板块同比 +20%", "as_of": "2026Q2", "tier": "primary", "url": "https://www.prnewswire.com/news-releases/caterpillar-reports-second-quarter-2026-results-302841940.html"}
+         ]},
+        {"id": "aero", "name": "航空发动机与零部件", "sic": [3724, 3728], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["GE", "HWM", "TDG", "HEI"],
+         "demand": [
+           {"text": "GE Aerospace 2026Q3 商用发动机与服务板块订单 153 亿美元，同比 +58%，营收 103 亿美元，同比 +21%；公司称商用服务在手订单超过 1,700 亿美元", "as_of": "2026Q3", "tier": "primary", "url": "https://www.geaerospace.com/news/press-releases/ge-aerospace-announces-third-quarter-2026-results"}
+         ]},
+        {"id": "general", "name": "通用工业设备（泵阀、压缩机与流体）", "sic": [3530, 3560, 3561, 3562, 3563, 3564, 3565, 3566, 3567, 3568, 3569], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["PH", "IR", "ITT"],
+         "demand": [
+           {"text": "ISM：2026 年 9 月美国制造业 PMI 54.5%，比 8 月低 0.1 个百分点，仍处扩张区间", "as_of": "2026-09", "tier": "primary", "url": "https://www.ismworld.org/supply-management-news-and-reports/reports/ism-pmi-reports/pmi/september/"}
+         ]}
+      ],
+      "overrides": {},
+      "exclude": {
+        "name_regex": "",
+        "tickers": {
+          "OUST": "激光雷达传感器，SIC 3569 与实际业务不符",
+          "SERV": "配送机器人，SIC 3569 与实际业务不符",
+          "RR": "服务机器人，SIC 3569 与实际业务不符",
+          "ZBRA": "条码与移动数据终端，SIC 3560 与实际业务不符"
+        }
+      }
+    },
+
+    {
+      "id": "payments", "name": "支付与金融软件",
+      "benchmark": {"symbol": "IPAY", "name": "数字支付 ETF IPAY"},
+      "lynch_note": "支付公司的收入跟交易量和费率挂钩，量增长不一定带来同比例的收入增长，要看费率（take rate）的变化。券商、交易所、银行、放贷和先买后付公司按金融类公司另行评估，不在本行业。部分支付公司的 SIC 同时落在软件行业，已在软件行业里排除，避免重复计数。",
+      "thesis": "卡支付量保持增长：Visa 截至 2026-06 的财季支付量按固定汇率同比 +10%，万事达卡 2026Q2 总交易额本币口径同比 +8%，跨境交易增速高于整体。",
+      "demand": [
+        {"text": "美联储支付研究：2024 年美国非现金支付 2,366 亿笔，卡支付占笔数的 79%；2021–2024 年笔数年均增长 4.9%", "as_of": "2024", "tier": "primary", "url": "https://www.federalreserve.gov/paymentsystems/frps_cy2015_24_topline.htm"},
+        {"text": "Visa 截至 2026-06-30 的财季支付量按固定汇率同比 +10%，首次单季超过 4 万亿美元；处理交易 717 亿笔，同比 +10%", "as_of": "2026Q2", "tier": "primary", "url": "https://s1.q4cdn.com/050606653/files/doc_financials/2026/q3/Q3-2026-Earnings-Release_vF.pdf"}
+      ],
+      "intl": {"regions": [], "industries": []},
+      "segments": [
+        {"id": "networks", "name": "卡组织与支付网络", "sic": [7389], "name_regex": "\\bvisa\\b|mastercard", "yahoo_industry": [],
+         "leaders": ["V", "MA"],
+         "demand": [
+           {"text": "万事达卡 2026Q2 总交易额（GDV）约 2.9 万亿美元，本币口径同比 +8%；跨境交易量同比 +12%", "as_of": "2026Q2", "tier": "primary", "url": "https://investor.mastercard.com/files/doc_financials/2026/q2/2Q26-Mastercard-Earnings-Release.pdf"}
+         ]},
+        {"id": "wallets", "name": "数字钱包与跨境汇款", "sic": [6099, 7372, 7374, 7389], "name_regex": "paypal|block,? inc|payoneer|flywire|remitly|western union|international money express|intermex|euronet|dlocal|\\bwise\\b", "yahoo_industry": [],
+         "leaders": ["PYPL", "XYZ"],
+         "demand": [
+           {"text": "PayPal 2026Q2 总支付量（TPV）4,864 亿美元，同比 +10%（剔除汇率 +9%）", "as_of": "2026Q2", "tier": "primary", "url": "https://s205.q4cdn.com/875401827/files/doc_financials/2026/q2/PYPL-2Q-26-Earnings-Release.pdf"}
+         ]},
+        {"id": "b2b", "name": "企业支付与发卡处理", "sic": [7372, 7374, 7389], "name_regex": "corpay|\\bwex\\b|bill holdings|marqeta|paysign|paymentus|cass information|avidxchange|billtrust", "yahoo_industry": [],
+         "leaders": ["CPAY", "WEX", "BILL"],
+         "demand": [
+           {"text": "Corpay 2026Q2 营收 13.4 亿美元，同比 +21%，内生增长 10%，其中企业支付内生增长 16%", "as_of": "2026Q2", "tier": "primary", "url": "https://www.corpay.com/corporate-newsroom/20371/corpay-reports-second-quarter-financial-results"}
+         ]},
+        {"id": "acquiring", "name": "商户收单与支付处理", "sic": [6099, 7372, 7374, 7389], "name_regex": "payment|merchant|fiserv|fidelity national information|toast|shift4|evertec|repay|paysafe|priority technology|usio|olb group|i3 verticals|nuvei|stoneco|pagseguro|adyen|aci worldwide", "yahoo_industry": [],
+         "leaders": ["FISV", "FIS", "GPN", "ADYEN.AS", "TOST"],
+         "demand": [
+           {"text": "Adyen 2026 上半年处理交易额 8,038 亿欧元，同比 +24%；净营收 13.0 亿欧元，同比 +19%", "as_of": "2026H1", "tier": "primary", "url": "https://www.adyen.com/press-and-media/adyen-publishes-h1-2026-financial-results-3wjne"},
+           {"text": "Toast 2026Q2 支付交易额（GPV）607 亿美元，同比 +22%，门店数约 18 万家", "as_of": "2026Q2", "tier": "primary", "url": "https://finance.yahoo.com/markets/stocks/articles/toast-announces-second-quarter-2026-200500925.html"}
+         ]}
+      ],
+      "overrides": {},
+      "exclude": {
+        "name_regex": "bitcoin|crypto|digital asset|blockchain|lending|loan|\\bbank|bancorp|brokerage|sezzle|affirm|klarna|upstart|sofi|robinhood|chime",
+        "tickers": {
+          "SEZL": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（先买后付）",
+          "AFRM": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（先买后付）",
+          "KLAR": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（先买后付）",
+          "UPST": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（放贷平台）",
+          "SOFI": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（数字银行与放贷）",
+          "AXP": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（发卡与放贷）",
+          "HOOD": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（券商）",
+          "COIN": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（加密资产交易平台）",
+          "CRCL": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（稳定币发行）",
+          "CHYM": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（数字银行）",
+          "DAVE": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（数字银行与小额放贷）",
+          "GDOT": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（银行控股公司）",
+          "NU": "券商与放贷类金融科技待金融类评估标准完成后单独覆盖（数字银行）"
+        }
+      }
     }
   ]
 }

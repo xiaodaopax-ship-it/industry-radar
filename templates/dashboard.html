@@ -88,16 +88,36 @@
   <header>
     <div>
       <h1>Industry Radar</h1>
-      <div class="sub">行业整体分析 → 细分领域拆解 → 龙头与新兴公司 → 研究机会清单</div>
+      <div class="sub">行业整体分析 → 细分领域拆解 → 龙头与新兴公司 → 研究机会清单 · <a href="cn/index.html">A 股看板（独立数据与规则）→</a></div>
     </div>
     <div class="chips" id="chips"></div>
   </header>
   <div class="banner">这是研究工具，不是投资建议。所有"机会""风险""结论"都是按数据规则自动生成的，用来决定先研究谁；业务、竞争、管理层这些判断必须人工补上。</div>
 
+  <!-- ⓪ market-wide heat -->
+  <section id="s0">
+    <h2><span class="step-tag">⓪</span>全市场行业热度（美股）</h2>
+    <p class="lead" id="hmLead"></p>
+    <div class="grid g5" id="hmKpis"></div>
+    <h3>按 SIC 大类（面积 = 最新季度营收合计；颜色 = 公司营收同比中位数；点击筛选下方细分行业）</h3>
+    <svg id="hmTree" viewBox="0 0 1300 300" width="100%" role="img" aria-label="全市场行业大类营收树图"></svg>
+    <div class="legend"><span>增速中位数</span><span>−20%</span><span class="grad"></span><span>+80%</span><span>白框 = 本工具已覆盖的大类</span></div>
+    <h3>大类排行</h3>
+    <table><thead><tr id="hmHead"></tr></thead><tbody id="hmTbl"></tbody></table>
+    <h3>细分行业（4 位 SIC）<span id="hmFilt" class="small"></span></h3>
+    <div class="toolbar">
+      <label><input type="checkbox" id="hmUncov"> 只看本工具还没覆盖的行业</label>
+      <button class="btn" type="button" id="hmClear">清除大类筛选</button>
+      <span class="small" id="hmCount"></span>
+    </div>
+    <table><thead><tr><th scope="col">SIC</th><th scope="col">行业（SEC 英文名称）</th><th scope="col" class="n">家数</th><th scope="col" class="n">加权增速</th><th scope="col" class="n">增速中位数</th><th scope="col" class="n">增速 ≥20% 占比</th><th scope="col" class="n">加速占比</th><th scope="col" class="n">毛利率变化</th><th scope="col">高增长公司（同比 ≥20%）</th><th scope="col">已覆盖</th></tr></thead><tbody id="hmInd"></tbody></table>
+    <p class="note">口径：所有在 SEC XBRL 报送可比季度营收的公司，上年同季营收 ≥ 500 万美元；单家同比封顶在 −90% ~ +300%，避免个别公司扭曲结果。每组至少 8 家公司才显示。加权增速 = 组内营收合计的同比，由大公司主导；增速中位数代表典型公司。加速占比 = 本季同比高于上季同比的公司比例。毛利率 / 营业利润率变化为同比百分点的中位数。热度只说明增长在哪里，不区分周期反弹和结构性增长，需要结合行业知识判断。</p>
+  </section>
+
   <div class="sticky">
     <div class="tabs" role="tablist" id="tabs"></div>
     <nav class="steps" aria-label="分析步骤">
-      <a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
+      <a href="#s0">⓪ 全市场热度</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
     </nav>
   </div>
 
@@ -566,6 +586,50 @@ $("fLv").onchange = e => { state.fLv = e.target.value; renderEmerging(); };
 $("fPx").onchange = e => { state.fPx = e.target.value; renderEmerging(); };
 $("fHideCyc").onchange = e => { state.hideCyc = e.target.checked; renderEmerging(); };
 renderAll();
+
+// ---------- ⓪ market-wide heat (independent of the sector tabs)
+const hs = {major: "", uncov: false, sort: "pct_20", dir: -1};
+const covTags = ids => (ids || []).map(id => `<span class="tag t-ld">${esc((D.sector_names || {})[id] || id)}</span>`).join(" ") || `<span class="small">—</span>`;
+const pp = v => v == null ? "—" : `<span class="${v < 0 ? "neg" : "pos"}">${v > 0 ? "+" : ""}${(+v).toFixed(1)}pt</span>`;
+const HCOLS = [["name", "大类", 0], ["n", "家数", 1], ["rev_q", "季度营收（亿美元）", 1], ["wgrowth", "加权增速", 1], ["med_growth", "增速中位数", 1],
+  ["pct_20", "≥20% 占比", 1], ["pct_accel", "加速占比", 1], ["med_gm_chg", "毛利率变化", 1], ["med_opm_chg", "营业利润率变化", 1], ["covered_by", "已覆盖", 0], ["top", "营收最大的公司", 0]];
+function renderHeat() {
+  const H = D.heat;
+  if (!H) { $("hmLead").textContent = "还没有全市场热度数据。运行 python -m radar heat 后重新构建。"; return; }
+  const m = H.market;
+  $("hmLead").innerHTML = `财报期 ${esc(H.period)}，${H.n} 家美股公司（SEC XBRL），抓取 ${esc(H.fetched_at.slice(0, 10))}。用来发现哪些行业的增长是普遍的、在加速的，再决定要不要为它配置行业。`;
+  $("hmKpis").innerHTML = [["公司数", H.n, ""], ["营收加权同比", pc(m.wgrowth, 1), "大公司主导"], ["增速中位数", pc(m.med_growth, 1), "典型公司"],
+    ["增速 ≥20% 的公司", m.pct_20 + "%", "全市场基准"], ["增速在加速的公司", m.pct_accel + "%", "本季同比 > 上季"]]
+    .map(([l, v, s]) => `<div class="card"><div class="label">${l}</div><div class="kpi">${v}</div><div class="small">${s}</div></div>`).join("");
+  treemap("hmTree", H.major.map(g => ({id: g.code, v: g.rev_q, g: g.med_growth, label: g.name, sub: `${g.n} 家 · 中位 ${g.med_growth > 0 ? "+" : ""}${g.med_growth}%`,
+    border: g.covered_by.length ? "#ffffff" : null,
+    tip: `<b>${esc(g.code)} ${esc(g.name)}</b><br>${g.n} 家；加权 ${g.wgrowth}%；中位 ${g.med_growth}%<br>≥20%：${g.pct_20}%；加速：${g.pct_accel}%`})), 1300, 300,
+    id => { hs.major = hs.major === id ? "" : id; renderHeatInd(); $("hmInd").scrollIntoView({behavior: "smooth", block: "start"}); });
+  $("hmHead").innerHTML = HCOLS.map(([k, t, n]) => `<th scope="col" class="${n ? "n" : ""}">${["covered_by", "top"].includes(k) ? t : `<button type="button" data-k="${k}">${t}</button>`}</th>`).join("");
+  document.querySelectorAll("#hmHead button").forEach(b => b.onclick = () => { hs.dir = hs.sort === b.dataset.k ? -hs.dir : -1; hs.sort = b.dataset.k; renderHeatMajor(); });
+  renderHeatMajor(); renderHeatInd();
+}
+function renderHeatMajor() {
+  const rows = D.heat.major.slice().sort((a, b) => { const x = a[hs.sort], y = b[hs.sort]; if (x == null) return 1; if (y == null) return -1; return (x > y ? 1 : x < y ? -1 : 0) * hs.dir; });
+  $("hmTbl").innerHTML = rows.map(g => `<tr><td><button type="button" class="btn" style="padding:1px 8px" data-g="${esc(g.code)}">${esc(g.code)} ${esc(g.name)}</button></td>
+    <td class="n">${g.n}</td><td class="n">${yi(g.rev_q)}</td><td class="n">${pc(g.wgrowth, 1)}</td><td class="n">${pc(g.med_growth, 1)}</td>
+    <td class="n">${g.pct_20 ?? "—"}%</td><td class="n">${g.pct_accel ?? "—"}%</td><td class="n">${pp(g.med_gm_chg)}</td><td class="n">${pp(g.med_opm_chg)}</td>
+    <td>${covTags(g.covered_by)}</td><td class="small">${g.top.map(t => `${esc(t.ticker || t.name)} ${t.yoy > 0 ? "+" : ""}${t.yoy.toFixed(0)}%`).join("，")}</td></tr>`).join("");
+  document.querySelectorAll("#hmTbl button[data-g]").forEach(b => b.onclick = () => { hs.major = b.dataset.g; renderHeatInd(); $("hmInd").scrollIntoView({behavior: "smooth", block: "start"}); });
+}
+function renderHeatInd() {
+  const all = D.heat.industry, list = all.filter(i => (!hs.major || i.major === hs.major) && (!hs.uncov || !i.covered_by.length));
+  const g = D.heat.major.find(x => x.code === hs.major);
+  $("hmFilt").textContent = g ? ` · 大类：${g.code} ${g.name}` : " · 按增速 ≥20% 占比排序";
+  $("hmCount").textContent = `${list.length} / ${all.length} 个行业`;
+  $("hmInd").innerHTML = list.slice(0, hs.major ? 200 : 40).map(i => `<tr><td>${i.sic}</td><td>${esc(i.desc || "")}</td><td class="n">${i.n}</td>
+    <td class="n">${pc(i.wgrowth, 1)}</td><td class="n">${pc(i.med_growth, 1)}</td><td class="n">${i.pct_20 ?? "—"}%</td><td class="n">${i.pct_accel ?? "—"}%</td><td class="n">${pp(i.med_gm_chg)}</td>
+    <td class="small">${i.fast.map(t => `${esc(t.ticker || t.name)} ${t.yoy > 0 ? "+" : ""}${t.yoy.toFixed(0)}%`).join("，") || "—"}</td><td>${covTags(i.covered_by)}</td></tr>`).join("")
+    || `<tr><td colspan="10" class="small">没有符合条件的行业</td></tr>`;
+}
+$("hmUncov").onchange = e => { hs.uncov = e.target.checked; renderHeatInd(); };
+$("hmClear").onclick = () => { hs.major = ""; renderHeatInd(); };
+renderHeat();
 $("foot").textContent = `数据：SEC EDGAR、Yahoo Finance。Form 4 统计自 ${D.form4_since} 起。研究用工具，不构成投资建议。`;
 </script>
 </body>
