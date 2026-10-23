@@ -47,59 +47,161 @@ CYC_PEG = "周期环节，盈利高点时 PE 最低，PEG 不适用"
 
 
 def _peg(r, d, cyc, fin):
-    """PEG = P/E (TTM) / EPS growth, in percent.
+    """Two PEGs (P/E TTM / EPS growth in percent) and a divergence flag.
 
-    Forward (preferred): consensus EPS of the next fiscal year (+1y) over the current fiscal year (0y) from Yahoo
-    earningsTrend; needs >= min_analysts estimates for +1y and both estimates > 0. Historical (fallback): latest
-    fiscal-year net income over the prior year, only for annual-basis rows (Yahoo's ~5 quarters cannot give a
-    year-ago TTM). Sets d["peg"] (None = not shown, reason in peg_why) and d["peg_ok"] (False = shown but unreliable,
-    reason in peg_why; such values never drive a judgement or a ranking).
+    Forward d["pegf"]: consensus EPS of the next fiscal year (+1y) over the current one (0y) from Yahoo earningsTrend; needs
+    >= min_analysts estimates for +1y and both estimates > 0. Also a forward-P/E variant: (price / FY1 EPS) / the same growth.
+    Historical d["pegh"]: TTM diluted EPS vs TTM diluted EPS one year earlier (SEC frames, r["eps_h"]); annual-basis rows (Japan)
+    use the latest fiscal-year net income growth; Yahoo quarterly rows (~5 quarters) have none.
+    Each is {"v": value or None (reason in "why"), "ok": usable for judgements, "g": growth %, ...}.
+    The judging PEG d["peg"] / d["peg_ok"] / d["peg_method"] is the forward one; annual-basis rows without consensus keep the
+    historical fallback (unchanged behaviour). US quarterly rows without consensus show the historical PEG for reference only.
+    d["peg_div"]: Chinese text when forward and historical disagree (see _peg_div), otherwise None.
     """
-    d.update(peg=None, peg_ok=False, peg_method=None, peg_g=None, peg_n=None, peg_fy=None, peg_why=None, peg_note=None)
+    F = {"v": None, "fpe": None, "ok": False, "g": None, "n": None, "fy": None, "why": None, "avail": False}
+    H = {"v": None, "ok": False, "g": None, "basis": None, "why": None, "neg": False, "note": None}
+    d.update(peg=None, peg_ok=False, peg_method=None, peg_g=None, peg_n=None, peg_fy=None, peg_why=None, peg_note=None,
+             fpe=None, pegf=F, pegh=H, peg_div=None)
     if cyc and not fin:
-        d["peg_why"] = CYC_PEG
+        F["why"] = H["why"] = d["peg_why"] = CYC_PEG
         return
     if cyc:
         d["peg_note"] = "周期环节，盈利高点时 PE 最低，PEG 参考有限"
     if d["pe"] is None:
-        d["peg_why"] = "没有市值" if not d["mcap"] else "TTM 亏损或没有 TTM 净利润，PE 不适用"
+        F["why"] = H["why"] = d["peg_why"] = "没有市值" if not d["mcap"] else "TTM 亏损或没有 TTM 净利润，PE 不适用"
         return
+    _peg_fwd(r, d, F)
+    _peg_hist(r, d, H)
+    if F["avail"]:
+        d.update(peg=F["v"], peg_ok=F["ok"], peg_method="fwd", peg_g=F["g"], peg_n=F["n"], peg_fy=F["fy"], peg_why=F["why"])
+    elif r.get("basis") == "annual" and H["g"] is not None:
+        d.update(peg=H["v"], peg_ok=H["ok"], peg_method="hist", peg_g=H["g"], peg_why=H["why"])
+    else:
+        d["peg_why"] = F["why"] + ("；历史 PEG 只作参考，不参与判断" if H["v"] is not None else f"；历史口径：{H['why']}")
+    d["peg_div"] = _peg_div(r, d, F, H)
+
+
+def _peg_fwd(r, d, F):
     est = (r.get("mkt") or {}).get("eps_est") or {}
     e0, e1 = est.get("0y") or {}, est.get("+1y") or {}
     if e0.get("avg") is None or e1.get("avg") is None:
-        fwd = "没有本财年 / 下一财年一致预期 EPS"
+        F["why"] = "没有本财年 / 下一财年一致预期 EPS"
     elif (e1.get("n") or 0) < PG["min_analysts"]:
-        fwd = f"下一财年 EPS 预期只有 {e1.get('n') or 0} 家分析师（少于 {PG['min_analysts']} 家）"
+        F["why"] = f"下一财年 EPS 预期只有 {e1.get('n') or 0} 家分析师（少于 {PG['min_analysts']} 家）"
     elif e0["avg"] <= 0 or e1["avg"] <= 0:
-        fwd = f"一致预期 EPS 不为正（本财年 {e0['avg']:.2f}，下一财年 {e1['avg']:.2f}）"
-    else:
-        fwd = None
-    ni, ly = r.get("ni_ttm"), r.get("ni_ttm_ly")
-    if fwd is None:
-        g, base = (e1["avg"] / e0["avg"] - 1) * 100, e0.get("yield_pct")
-        d.update(peg_method="fwd", peg_n=e1["n"], peg_fy=[(e0.get("end_date") or "")[:7], (e1.get("end_date") or "")[:7]])
-    elif ly is not None and ly > 0:
-        g, base = (ni / ly - 1) * 100, ly / d["mcap"] * 100
-        d.update(peg_method="hist")
-    else:
-        d["peg_why"] = fwd + ("；历史口径：上一财年净利润不为正" if ly is not None else "；没有一年前的 TTM 净利润，无法用历史增速替代")
+        F["why"] = f"一致预期 EPS 不为正（本财年 {e0['avg']:.2f}，下一财年 {e1['avg']:.2f}）"
+    if F["why"]:
         return
-    d["peg_g"] = round(g, 1)
+    g, base = (e1["avg"] / e0["avg"] - 1) * 100, e0.get("yield_pct")
+    F.update(avail=True, g=round(g, 1), n=e1["n"], fy=[(e0.get("end_date") or "")[:7], (e1.get("end_date") or "")[:7]])
     if g <= 0:
-        d["peg_why"] = f"{'预期 EPS' if d['peg_method'] == 'fwd' else '净利润'}增速 {g:+.0f}%，不为正，PEG 不适用"
+        F["why"] = f"预期 EPS 增速 {g:+.0f}%，不为正，PEG 不适用"
         return
-    d["peg"] = round(d["pe"] / g, 2)
+    F["v"] = round(d["pe"] / g, 2)
+    if e1.get("yield_pct"):  # FY1 EPS / price, both in USD: earningsCurrency and quote currency can differ (ADRs, TW / KR / JP)
+        d["fpe"] = round(100 / e1["yield_pct"], 1)
+        F["fpe"] = round(d["fpe"] / g, 2)
     if g > PG["growth_unreliable_pct"]:
-        d["peg_why"] = f"增速超过 {PG['growth_unreliable_pct']}%，多是低基数效应，PEG 不可靠"
+        F["why"] = f"增速超过 {PG['growth_unreliable_pct']}%，多是低基数效应，PEG 不可靠"
     elif base is not None and base < PG["min_eps_yield_pct"]:
-        d["peg_why"] = f"基数太低：{'本财年预期 EPS' if d['peg_method'] == 'fwd' else '上一财年净利润'}只有{'股价' if d['peg_method'] == 'fwd' else '市值'}的 {base:.2f}%，PEG 不可靠"
+        F["why"] = f"基数太低：本财年预期 EPS 只有股价的 {base:.2f}%，PEG 不可靠"
     else:
-        d["peg_ok"] = True
+        F["ok"] = True
+
+
+H_BASIS = {"eps": "过去 12 个月稀释 EPS 同比", "ni": "过去 12 个月净利润同比", "ni_fy": "最新财年净利润同比"}
+
+
+def _peg_hist(r, d, H):
+    """Historical growth. SEC rows: TTM net income / average diluted shares, current window vs one year earlier."""
+    e = r.get("eps_h")
+    if r.get("basis") == "annual":
+        ni, ly = r.get("ni_ttm"), r.get("ni_ttm_ly")
+        if ly is None:
+            H["why"] = "没有上一财年净利润"
+            return
+        if ly <= 0:
+            H["why"] = "上一财年净利润不为正，历史增速不适用"
+            return
+        g, base, H["basis"] = (ni / ly - 1) * 100, ly / d["mcap"] * 100, "ni_fy"
+    elif e is None:
+        H["why"] = ("Yahoo 只有约 5 个季度的财务数据，算不出一年前的 TTM EPS" if r.get("market") not in (None, "US")
+                    else "SEC frames 里没有这家公司的净利润")
+        return
+    elif e.get("why"):
+        H["why"] = e["why"]
+        return
+    else:
+        ni, ly, s0, s1 = e.get("ni"), e.get("ni_ly"), e.get("sh"), e.get("sh_ly")
+        if ni is None or ly is None:
+            gap = e.get("frames_gap") or e.get("miss") or []
+            H["why"] = (f"SEC 数据缺季度，TTM 算不出（缺 {'、'.join(sorted(set(gap))[:4])}）" if gap else "SEC 数据缺季度，TTM 算不出")
+            return
+        if e.get("odd"):  # both TTM windows rest on the annual figures, so a broken annual tag breaks the growth rate
+            H["why"] = f"{e['odd']}，可能是标签或单位错误，历史增速不可用"
+            return
+        if ly <= 0:
+            H["why"] = f"一年前的 TTM 净利润为亏损（{ly / 1e6:,.0f} 百万美元），历史增速不适用"
+            return
+        if e.get("stale"):
+            H["note"] = f"SEC 最新数据只到 {e['end']}"
+        if ni <= 0:
+            H.update(why=f"过去 12 个月净利润（SEC）为 {ni / 1e6:,.0f} 百万美元，EPS 不为正", neg=True)
+            return
+        if s0 and s1:
+            eps, eps_ly = ni / s0, ly / s1
+            g, H["basis"] = (eps / eps_ly - 1) * 100, "eps"
+            base = eps_ly / d["price"] * 100 if d.get("price") and (d.get("ccy") or "USD") == "USD" else ly / d["mcap"] * 100
+            H["eps"], H["eps_ly"] = round(eps, 2), round(eps_ly, 2)
+        else:
+            g, base, H["basis"] = (ni / ly - 1) * 100, ly / d["mcap"] * 100, "ni"
+            H["note"] = "，".join(x for x in (H["note"], "缺稀释股数，用 TTM 净利润增速代替") if x)
+    H["g"] = round(g, 1)
+    if g <= 0:
+        H.update(why=f"{H_BASIS[H['basis']]} {g:+.0f}%，不为正", neg=True)
+        return
+    H["v"] = round(d["pe"] / g, 2)
+    if g > PG["growth_unreliable_pct"]:
+        H["why"] = f"增速超过 {PG['growth_unreliable_pct']}%，多是低基数效应，PEG 不可靠"
+    elif base < PG["min_eps_yield_pct"]:
+        H["why"] = f"基数太低：一年前的{'TTM EPS 只有股价' if H['basis'] == 'eps' else '净利润只有市值'}的 {base:.2f}%，PEG 不可靠"
+    else:
+        H["ok"] = True
+
+
+def _peg_div(r, d, F, H):
+    """Forward vs historical disagreement; thresholds good_max, div_hist_rich, fy0_drop_pct in flags.peg."""
+    out, fv, hv = [], F["v"], H["v"]
+    if fv is not None and fv <= PG["good_max"]:
+        if H["neg"]:
+            out.append(f"今年下滑、明年反弹：{H['why']}，前瞻增速依赖预期修复")
+        elif hv is not None and hv > PG["div_hist_rich"]:
+            out.append(f"前瞻 PEG {fv} 但历史 PEG {hv}：前瞻增速明显高于过去，依赖预期兑现")
+    if hv is not None and hv <= PG["good_max"] and fv is not None and fv > PG["div_hist_rich"]:
+        out.append(f"历史 PEG {hv} 但前瞻 PEG {fv}：预期增速明显低于过去，增长可能放缓")
+    e0 = ((r.get("mkt") or {}).get("eps_est") or {}).get("0y") or {}
+    if F["avail"] and e0.get("year_ago") and e0["year_ago"] > 0 and e0["avg"] < e0["year_ago"] * (1 - PG["fy0_drop_pct"] / 100):
+        out.append(f"本财年预期 EPS {e0['avg']:.2f} 低于上一财年实际 {e0['year_ago']:.2f}（{(e0['avg'] / e0['year_ago'] - 1) * 100:+.0f}%），"
+                   "前瞻增速从下滑后的低基数算起")
+    return "；".join(out) or None
 
 
 def peg_ok(d):
-    """PEG value usable for judgements and ranking (None when not shown or unreliable)."""
+    """Judging PEG value usable for judgements and ranking (None when not shown or unreliable)."""
     return d["peg"] if d.get("peg_ok") else None
+
+
+def peg_cheap(d):
+    """PEG counts as cheap only if the forward PEG is reliable and <= good_max, the historical PEG is <= rich_min or not
+    computable for a non-negative reason, and there is no divergence flag. Annual-basis rows judged on the historical
+    fallback keep the old rule (reliable and <= good_max)."""
+    v = peg_ok(d)
+    if v is None or v > PG["good_max"]:
+        return False
+    if d["peg_method"] != "fwd":
+        return True
+    H = d["pegh"]
+    return not (H["neg"] or (H["v"] is not None and H["v"] > PG["rich_min"]) or d["peg_div"])
 
 
 def peg_label(d):
@@ -110,11 +212,24 @@ def peg_label(d):
     return "PEG"
 
 
+def peg_hist_brief(d):
+    H = d["pegh"]
+    return f"历史 PEG {H['v']}（{H_BASIS[H['basis']]} {H['g']:+.0f}%{'' if H['ok'] else '，不可靠'}）" if H["v"] is not None else None
+
+
 def peg_text(d):
-    """One phrase for the checklist: value + method, or the reason it is not shown."""
-    if d["peg"] is None:
-        return f"PEG 不适用（{d['peg_why']}）"
-    return f"{peg_label(d)} {d['peg']}" + (f"，{d['peg_why']}" if not d["peg_ok"] else "") + (f"，{d['peg_note']}" if d["peg_note"] else "")
+    """Checklist phrase: forward PEG (both P/E variants), historical PEG, divergence warning."""
+    F, H = d["pegf"], d["pegh"]
+    if F["v"] is not None:
+        f = (f"PEG 前瞻 {F['v']}（PE TTM 口径）" + (f" / {F['fpe']}（前瞻 PE 口径）" if F["fpe"] is not None else "")
+             + f"，一致预期 FY0→FY1 EPS 增速 {F['g']:+.0f}%，{F['n']} 家" + ("" if F["ok"] else f"，{F['why']}"))
+    else:
+        f = f"PEG 前瞻不适用（{F['why']}）"
+    if H["v"] is not None:
+        h = f"PEG 历史 {H['v']}（{H_BASIS[H['basis']]} {H['g']:+.0f}%" + (f"，{H['note']}" if H["note"] else "") + "）" + ("" if H["ok"] else f"，{H['why']}")
+    else:
+        h = f"PEG 历史不适用（{H['why']}）"
+    return f + "；" + h + (f"，{d['peg_note']}" if d["peg_note"] else "") + (f"。⚠ 前瞻与历史背离：{d['peg_div']}" if d["peg_div"] else "")
 
 
 def _fin_derived(r, d):
@@ -155,11 +270,15 @@ def _fin_derived(r, d):
     if (d["nci_share"] or 0) >= FF["nci_warn_pct"]:
         d["anomaly"].append("nci")
     bad_val = "ni" in d["anomaly"] or "nci" in d["anomaly"]
-    if bad_val and d["peg"] is not None:  # P/E is distorted, so is PEG: keep it visible, never judge on it
-        d["peg_ok"] = False
-        d["peg_why"] = "TTM 净利润与季度数据不匹配，市盈率失真，PEG 不可靠" if "ni" in d["anomaly"] else "少数股东权益占比高，市盈率口径不一致，PEG 不可靠"
-    # reliable PEG (forward consensus or historical), otherwise P/B; an unreliable PEG counts as missing
-    d["value_fin"] = None if "nci" in d["anomaly"] else d["pb"] if "ni" in d["anomaly"] or peg_ok(d) is None else peg_ok(d)
+    if bad_val:  # P/E is distorted, so are both PEGs: keep them visible, never judge on them
+        why = "TTM 净利润与季度数据不匹配，市盈率失真，PEG 不可靠" if "ni" in d["anomaly"] else "少数股东权益占比高，市盈率口径不一致，PEG 不可靠"
+        if d["peg"] is not None:
+            d["peg_ok"], d["peg_why"] = False, why
+        for X in (d["pegf"], d["pegh"]):
+            if X["v"] is not None:
+                X["ok"], X["why"] = False, why
+    # reliable PEG (forward consensus or historical fallback), otherwise P/B; an unreliable or divergent PEG counts as missing
+    d["value_fin"] = None if "nci" in d["anomaly"] else d["pb"] if "ni" in d["anomaly"] or peg_ok(d) is None or d["peg_div"] else peg_ok(d)
     d["roe_rankable"] = not bad_val
 
 
@@ -216,7 +335,7 @@ def _fin_checklist(r, d, cyc):
             else ("TTM 亏损，ROE 为负" if (r.get("ni_ttm") or 0) < 0 else "没有 TTM 净利润或股东权益数据"))
     pe, pb, peg = d["pe"], d["pb"], peg_ok(d)
     if pe is not None or pb is not None:
-        st = ("na" if odd_ni or nci or (d["peg"] is not None and peg is None) else "ok" if peg is not None and peg <= PG["good_max"]
+        st = ("na" if odd_ni or nci or (d["peg"] is not None and peg is None) else "ok" if peg_cheap(d)
               else "warn" if (peg or 0) > PG["rich_min"] or (peg is None and (pb or 0) > FF["rich_pb"]) else "na")
         add("估值", st, f"市盈率 {num(pe, 0)} 倍，市净率 {num(pb, 1)} 倍，" + peg_text(d)
             + ("。市值按全部股份计，净利润和股东权益只含归母部分，两个倍数都偏高，要按原始财报换算" if nci else "。市盈率受净利润异常影响，参考市净率" if odd_ni else ""))
@@ -271,7 +390,8 @@ def checklist(r, d, cyc):
         add("盈利能力", "na", "没有营业利润数据")
     if d["ps"] is not None:
         peg = peg_ok(d)
-        st = ("na" if d["peg"] is not None and peg is None else "ok" if peg is not None and peg <= PG["good_max"]
+        # forward PEG <= good_max but divergent from the historical PEG: falls through to "na" (no cheap / expensive call)
+        st = ("na" if d["peg"] is not None and peg is None else "ok" if peg_cheap(d)
               else "warn" if (peg or 0) > PG["rich_min"] or (d["ps"] > FL["rich_ps"] and peg is None) else "na")
         add("估值", st, f"市销率 {d['ps']} 倍" + (f"，市盈率 {d['pe']:.0f} 倍" if d["pe"] else "") + "，" + peg_text(d))
     else:
@@ -336,8 +456,9 @@ def _fin_bull_bear(r, d, cyc, leader):
         bear.append("收入随交易量 / 利率变化，有周期性" + (f"（净利息收入约占收入 {d['nii_share']:.0f}%）" if d.get("nii_share") is not None and d["nii_share"] > 0 else ""))
     if odd_ni or nci:
         pass  # multiples are distorted; already explained above
-    elif peg_ok(d) is not None and d["peg"] <= PG["good_max"]:
-        bull.append(f"{peg_label(d)} {d['peg']}（市盈率 {d['pe']:.0f} 倍），增速相对估值便宜" + (f"；{d['peg_note']}" if d["peg_note"] else ""))
+    elif peg_cheap(d):
+        bull.append(f"{peg_label(d)} {d['peg']}（市盈率 {d['pe']:.0f} 倍）" + (f"，{peg_hist_brief(d)}" if d["peg_method"] == "fwd" and peg_hist_brief(d) else "")
+                    + "，增速相对估值便宜" + (f"；{d['peg_note']}" if d["peg_note"] else ""))
     elif (peg_ok(d) or 0) > PG["rich_min"]:
         bear.append(f"估值偏高（市盈率 {d['pe']:.0f} 倍，{peg_label(d)} {d['peg']}" + (f"，市净率 {d['pb']} 倍" if d["pb"] else "") + "）")
     elif peg_ok(d) is None and (d["pb"] or 0) > FF["rich_pb"]:
@@ -401,10 +522,10 @@ def bull_bear(r, d, cyc, seg_id, leader=False):
     if seg_id == "biotech" and yoy >= 50:
         bear.append("生物技术公司的营收可能含授权费或里程碑款，要看收入构成")
     peg = peg_ok(d)
-    if peg is not None and peg <= PG["good_max"]:
-        bull.append(f"{peg_label(d)} {peg}，增速相对估值便宜")
-    # high P/S alone is not "expensive" when earnings growth already covers it (PEG <= good_max)
-    if (peg or 0) > PG["rich_min"] or ((d["ps"] or 0) > FL["rich_ps"] and (peg is None or peg > PG["good_max"])):
+    if peg_cheap(d):
+        bull.append(f"{peg_label(d)} {peg}" + (f"，{peg_hist_brief(d)}" if d["peg_method"] == "fwd" and peg_hist_brief(d) else "") + "，增速相对估值便宜")
+    # high P/S alone is not "expensive" when earnings growth already covers it (cheap PEG, see peg_cheap)
+    if (peg or 0) > PG["rich_min"] or ((d["ps"] or 0) > FL["rich_ps"] and not peg_cheap(d)):
         bear.append(f"估值偏高（市销率 {d['ps']} 倍" + (f"，{peg_label(d)} {peg}" if peg else "") + "）")
     if d["runway"] is not None and d["runway"] < FL["runway_warn_quarters"]:
         bear.append(f"仍在亏损，现金约够 {d['runway']} 个季度")
@@ -461,6 +582,8 @@ def _fin_verify(r, d, cyc):
         q.append("少数股东权益结构：按全部股份口径换算净利润和股东权益后再看市盈率、市净率")
     if "pretax" in d["anomaly"]:
         q.append("税前利润率异常变化：在财报附注里找一次性收益或费用")
+    if d["peg_div"]:
+        q.append("前瞻与历史 PEG 背离：一致预期的下一财年增速靠什么实现，本财年下滑是一次性还是趋势")
     if "growth" in d["anomaly"]:
         q.append("营收构成：有没有一次性收益（出售资产、公允价值变动）")
     if (d["accel"] or 0) <= -10:
@@ -505,7 +628,9 @@ def verify(r, d, cyc, seg_id):
     if d["surprise"] is not None and d["surprise"] < 0:
         q.append("EPS 低于预期的原因，管理层是否下调了指引")
     peg = peg_ok(d)
-    if (peg or 0) > PG["rich_min"] or ((d["ps"] or 0) > FL["rich_ps"] and (peg is None or peg > PG["good_max"])):
+    if d["peg_div"]:
+        q.append("前瞻与历史 PEG 背离：一致预期的下一财年增速靠什么实现，本财年下滑是一次性还是趋势")
+    if (peg or 0) > PG["rich_min"] or ((d["ps"] or 0) > FL["rich_ps"] and not peg_cheap(d)):
         q.append("当前估值隐含了多高的增速，公司能不能兑现" + ("（对照一致预期的下一财年 EPS 增速）" if d["peg_method"] == "fwd" else ""))
     if (d["ins_net"] or 0) < -0.5:
         q.append("内部人卖出是计划内减持（10b5-1）还是主动离场")

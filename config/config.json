@@ -36,7 +36,9 @@
     "few_analysts_max": 3, "many_analysts_min": 10, "dilution_warn_pct": 10, "gm_jump_warn_pp": 15,
     "runway_warn_quarters": 6, "low_gm_pct": 25, "high_gm_pct": 50, "rich_ps": 15, "eps_beat_pct": 10,
     "peg": {"_readme": "PEG = 市盈率（TTM）÷ 一致预期 EPS 增速（Yahoo earningsTrend，本财年 0y → 下一财年 +1y，只有一年）。FY1 预期分析师少于 min_analysts 家或任一预期 ≤ 0 时改用历史口径（只有年度数据的公司：最新财年净利润同比），都没有就不显示。增速 > growth_unreliable_pct 或基数 EPS / 股价 < min_eps_yield_pct 时照样显示但标为不可靠，不参与判断。标准口径的周期性环节不显示。",
-            "good_max": 1.0, "rich_min": 2.0, "growth_unreliable_pct": 100, "min_eps_yield_pct": 0.5, "min_analysts": 3},
+            "_readme_hist": "历史 PEG = 市盈率（TTM）÷ 过去 12 个月稀释 EPS 同比（SEC frames：近四季净利润 ÷ 四季平均稀释股数，对比一年前的同口径；缺股数时用 TTM 净利润增速；日本等年度口径用最新财年净利润同比；台湾、韩国等 Yahoo 季度口径算不出）。不可靠规则同上，基数用一年前的 TTM EPS ÷ 当前股价。前瞻 PEG 另给前瞻 PE 口径：（股价 ÷ FY1 一致预期 EPS）÷ 同一增速。背离提示：前瞻 ≤ good_max 而历史增速 ≤ 0 或历史 PEG > div_hist_rich；历史 ≤ good_max 而前瞻 > div_hist_rich；本财年预期 EPS 比上一财年实际低 fy0_drop_pct% 以上。有背离时 PEG 不算便宜（清单估值项为 na，不进机会），金融类估值因子改用市净率。",
+            "good_max": 1.0, "rich_min": 2.0, "growth_unreliable_pct": 100, "min_eps_yield_pct": 0.5, "min_analysts": 3,
+            "div_hist_rich": 2.0, "fy0_drop_pct": 10},
     "financial": {"_readme": "金融类口径（券商、交易所、放贷）的提示阈值", "roe_good_pct": 15, "roe_low_pct": 8, "rich_pb": 5,
                   "pretax_low_pct": 10, "pretax_high_pct": 30, "prov_up_warn_pp": 2, "prov_high_pct": 30, "nci_warn_pct": 30}
   },

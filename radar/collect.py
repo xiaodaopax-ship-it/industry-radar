@@ -7,6 +7,7 @@ from . import us, yh as Y
 from .classify import loosest, memberships, profile, sectors, view
 from .net import Yahoo
 from .paths import CFG, DATA
+from .research import ticker_map
 
 
 def log(msg):
@@ -114,7 +115,30 @@ def collect_leaders(yh, fx):
             f.update(Y.financial_fields(yh, sym, fx, f))
         c = yh.chart(sym, "1y")
         out[sym] = {"ticker": sym, "mkt": m, "fund": f, "px": (c or {}).get("px", [])}
+    _leader_hist(out)
     return out
+
+
+def _leader_hist(out):
+    """Historical EPS inputs for US-listed leaders (no exchange suffix) from SEC: the same frames as the emerging rows,
+    companyconcept facts when the frames have gaps. Stored as fund["eps_h"]; the P/E itself still comes from Yahoo."""
+    tm = ticker_map()
+    us_syms = [s for s in out if "." not in s and out[s]["fund"]]
+    ciks = {s: tm.get(s.upper()) for s in us_syms}  # SEC and Yahoo both write class shares as BRK-B
+    fr = us.hist_eps({c for c in ciks.values() if c})
+    n_fb = 0
+    for s in us_syms:
+        c = ciks[s]
+        if not c:
+            h = {"src": None, "why": "SEC 股票代码表里没有这个代码，不是 SEC 申报人"}
+        else:
+            h = fr.get(c) or {"miss": ["frames"]}
+            if h.get("ni") is None or h.get("ni_ly") is None:
+                n_fb += 1
+                h = {**us.concept_hist(c), "frames_gap": h.get("miss") or None}
+            h["cik"] = c
+        out[s]["fund"]["eps_h"] = h
+    log(f"leaders: SEC historical EPS for {len(us_syms)} US symbols ({n_fb} via companyconcept fallback)")
 
 
 def collect_benchmarks(yh):
