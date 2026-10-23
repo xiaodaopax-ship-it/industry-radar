@@ -271,8 +271,30 @@
     .side { width:min(300px,86vw); transform:translateX(-100%); visibility:hidden; transition:transform .2s ease, visibility .2s; box-shadow:12px 0 34px rgba(0,0,0,.45); z-index:50; }
     body.side-open .side { transform:none; visibility:visible; }
     body.side-open .backdrop { display:block; position:fixed; inset:0; z-index:49; background:rgba(0,0,0,.5); }
+    /* keep wide content inside its own box instead of widening the section/page */
+    .grid > * { min-width:0; }
+    table:not(.tscroll > table) { display:block; max-width:100%; overflow-x:auto; }
+    svg { max-width:100%; } td svg { max-width:none; }
   }
-  @media (max-width:640px) { .g4, .g5 { grid-template-columns:1fr; } main { padding:12px 36px 32px 10px; } section { padding:14px; } }
+  /* phones */
+  @media (max-width:640px) {
+    .g4, .g5 { grid-template-columns:1fr; }
+    main { padding:12px 22px 32px 10px; overflow-wrap:break-word; } section { padding:14px 12px; }
+    h1 { font-size:20px; } h2 { font-size:16px; } .kpi { font-size:24px; }
+    main > header { align-items:flex-start; } .chips span { margin:0 6px 4px 0; }
+    .lead, .banner, .note, .concl, .card, .tile, .dims .dim, details > summary { overflow-wrap:anywhere; }
+    .sticky { padding:8px 0; }
+    .tabs, .steps { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
+    .tabs::-webkit-scrollbar, .steps::-webkit-scrollbar { display:none; }
+    .tabs button, .steps a { flex:none; white-space:nowrap; } .steps a { padding:4px 11px; }
+    .toolbar { gap:8px 12px; } .toolbar label { max-width:100%; } select { max-width:100%; }
+    .btn { min-height:32px; } .seg-pick button { padding:4px 12px; }
+    details.ec > summary { padding:10px 12px; } .ec-nums { margin-left:0; } .ec-body { padding:12px; }
+    .notes-toggle { padding:10px 3px; font-size:11.5px; letter-spacing:1px; opacity:.92; }
+    .totop { right:14px; bottom:16px; width:40px; height:40px; }
+    .bk-toast { max-width:calc(100vw - 24px); text-align:center; border-radius:12px; }
+    .tip { max-width:calc(100vw - 24px); }
+  }
 </style>
 </head>
 <body>
@@ -314,7 +336,7 @@
     <svg id="hmTree" viewBox="0 0 1300 300" width="100%" role="img" aria-label="全市场行业大类营收树图"></svg>
     <div class="legend"><span>增速中位数</span><span>−20%</span><span class="grad"></span><span>+80%</span><span>白框 = 本工具已覆盖的大类</span></div>
     <h3>大类排行</h3>
-    <table><thead><tr id="hmHead"></tr></thead><tbody id="hmTbl"></tbody></table>
+    <div class="tscroll"><table><thead><tr id="hmHead"></tr></thead><tbody id="hmTbl"></tbody></table></div>
     <h3>细分行业（4 位 SIC）<span id="hmFilt" class="small"></span></h3>
     <div class="toolbar">
       <label><input type="checkbox" id="hmUncov"> 只看本工具还没覆盖的行业</label>

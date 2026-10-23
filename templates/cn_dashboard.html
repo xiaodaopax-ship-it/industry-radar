@@ -128,6 +128,7 @@
   details.ec h4 { margin:0 0 6px; font-size:13px; font-weight:650; } details.ec ul, details.ec ol { margin:0; padding-left:18px; font-size:13px; } details.ec li { margin:2px 0; }
   details.ec .card table { font-size:12px; } details.ec .card th, details.ec .card td { padding:4px 6px; }
   details.ec .card thead th { background:transparent; }
+  details.ec .card { overflow-x:auto; }   /* wide holder tables scroll inside the card instead of being clipped by .ec overflow:hidden */
   .card.opp { background:rgba(70,196,134,.06); border-color:rgba(70,196,134,.28); } .card.opp h4 { color:var(--pos); }
   .card.risk { background:rgba(242,114,107,.06); border-color:rgba(242,114,107,.28); } .card.risk h4 { color:var(--neg); }
   .card.opp .small b, .card.risk .small b { color:var(--text); }
@@ -276,8 +277,31 @@
     body.side-open .side { transform:none; visibility:visible; }
     body.side-open .backdrop { display:block; position:fixed; inset:0; z-index:49; background:rgba(0,0,0,.5); }
     .dwrap { max-width:calc(100vw - 100px); }
+    /* keep wide content inside its own box instead of widening the section/page */
+    .grid > * { min-width:0; }
+    table:not(.tscroll > table) { display:block; max-width:100%; overflow-x:auto; }
+    svg { max-width:100%; } td svg { max-width:none; }
   }
-  @media (max-width:640px) { .g4, .g5 { grid-template-columns:1fr; } main { padding:12px 36px 32px 10px; } section { padding:14px; } }
+  /* phones */
+  @media (max-width:640px) {
+    .g4, .g5 { grid-template-columns:1fr; }
+    main { padding:12px 22px 32px 10px; overflow-wrap:break-word; } section { padding:14px 12px; }
+    h1 { font-size:20px; } h2 { font-size:16px; } .kpi { font-size:24px; }
+    main > header { align-items:flex-start; } .chips span, .chips a { margin:0 6px 4px 0; }
+    .lead, .banner, .note, .concl, .rule, .card, .tile, .dims .dim, details > summary { overflow-wrap:anywhere; }
+    .sticky { padding:8px 0; }
+    .steps { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
+    .steps::-webkit-scrollbar { display:none; }
+    .steps a { flex:none; white-space:nowrap; padding:4px 11px; }
+    .toolbar { gap:8px 12px; } .toolbar label { max-width:100%; } select { max-width:100%; }
+    .btn { min-height:32px; }
+    details.ec > summary { padding:10px 12px; } .ec-nums { margin-left:0; } .ec-body { padding:12px; }
+    .dwrap { left:4px; max-width:calc(100vw - 72px); }
+    .notes-toggle { padding:10px 3px; font-size:11.5px; letter-spacing:1px; opacity:.92; }
+    .totop { right:14px; bottom:16px; width:40px; height:40px; }
+    .bk-toast { max-width:calc(100vw - 24px); text-align:center; border-radius:12px; }
+    .tip { max-width:calc(100vw - 24px); }
+  }
 </style>
 </head>
 <body>
