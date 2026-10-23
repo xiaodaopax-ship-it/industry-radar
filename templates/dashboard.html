@@ -114,10 +114,24 @@
     <p class="note">口径：所有在 SEC XBRL 报送可比季度营收的公司，上年同季营收 ≥ 500 万美元；单家同比封顶在 −90% ~ +300%，避免个别公司扭曲结果。每组至少 8 家公司才显示。加权增速 = 组内营收合计的同比，由大公司主导；增速中位数代表典型公司。加速占比 = 本季同比高于上季同比的公司比例。毛利率 / 营业利润率变化为同比百分点的中位数。热度只说明增长在哪里，不区分周期反弹和结构性增长，需要结合行业知识判断。</p>
   </section>
 
+  <!-- PEG screen (cross-sector) -->
+  <section id="sPeg">
+    <h2><span class="step-tag">PEG</span>PEG 筛选（跨行业）</h2>
+    <p class="lead" id="pgLead"></p>
+    <div class="toolbar">
+      <label>市场 <select id="pgMkt"><option value="US">美股</option><option value="">全部</option></select></label>
+      <label>范围 <select id="pgTier"><option value="pass">通过：前瞻与历史一致</option><option value="watch">待核实：前瞻低，但历史不支持或有背离</option><option value="all">两者都显示</option></select></label>
+      <label>类型 <select id="pgKind"><option value="">全部</option><option value="emerging">新兴</option><option value="leader">龙头</option></select></label>
+      <span class="small" id="pgCount"></span>
+    </div>
+    <table><thead><tr id="pgHead"></tr></thead><tbody id="pgBody"></tbody></table>
+    <p class="note" id="pgNote"></p>
+  </section>
+
   <div class="sticky">
     <div class="tabs" role="tablist" id="tabs"></div>
     <nav class="steps" aria-label="分析步骤">
-      <a href="#s0">⓪ 全市场热度</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
+      <a href="#s0">⓪ 全市场热度</a><a href="#sPeg">PEG 筛选</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
     </nav>
   </div>
 
@@ -687,6 +701,66 @@ function renderHeatInd() {
     <td class="small">${i.fast.map(t => `${esc(t.ticker || t.name)} ${t.yoy > 0 ? "+" : ""}${t.yoy.toFixed(0)}%`).join("，") || "—"}</td><td>${covTags(i.covered_by)}</td></tr>`).join("")
     || `<tr><td colspan="10" class="small">没有符合条件的行业</td></tr>`;
 }
+// ---------- PEG screen (cross-sector): one row per ticker; pass = peg_cheap (both PEGs agree), watch = forward only
+const pg = {mkt: "US", tier: "pass", kind: "", sort: "fwd", dir: 1};
+const PGROWS = (() => {
+  const by = {};
+  D.entries.forEach(e => {
+    if (!e.peg_pass && !e.peg_watch) return;
+    const r = by[e.ticker];
+    if (!r) { by[e.ticker] = {e, secs: [e.sector]}; return; }
+    if (!r.secs.includes(e.sector)) r.secs.push(e.sector);
+    if (e.peg_pass && !r.e.peg_pass) r.e = e;   // prefer the membership where the PEG passes
+  });
+  return Object.values(by);
+})();
+const pgUp = e => { const t = e.mkt?.target, p = e.d.price; return t && p ? (t / p - 1) * 100 : null; };
+const PGCOLS = [
+  ["t", "代码", 0, r => r.e.ticker], ["name", "公司", 0, r => r.e.name], ["sec", "行业 · 环节", 0, r => SEC[r.e.sector].name],
+  ["kind", "类型", 0, r => r.e.kind], ["px", "股价", 1, r => r.e.d.price], ["mcap", "市值（亿美元）", 1, r => r.e.d.mcap],
+  ["pe", "PE(TTM)", 1, r => r.e.d.pe], ["fwd", "PEG 前瞻（PE TTM / 前瞻 PE）", 1, r => r.e.d.pegf?.v], ["hist", "PEG 历史", 1, r => r.e.d.pegh?.v],
+  ["g", "预期 EPS 增速（分析师）", 1, r => r.e.d.pegf?.g], ["tgt", "目标价中位数（隐含空间）", 1, r => pgUp(r.e)],
+  ["warn", "⚠ 数", 1, r => r.e.warn], ["level", "结论", 0, r => r.e.level], ["next", "下次财报", 0, r => r.e.mkt?.next_date || ""]];
+function renderPeg() {
+  $("pgLead").innerHTML = esc(`把所有行业里 PEG 符合条件的公司放在一起看（同一家公司在多个行业出现时只列一次）。` +
+    `"通过" = 前瞻 PEG 可靠且 ≤ ${D.cfg.flags.peg.good_max}，历史 PEG ≤ ${D.cfg.flags.peg.rich_min} 或因非负面原因算不出，并且没有背离提示；` +
+    `"待核实" = 前瞻 PEG 可靠且 ≤ ${D.cfg.flags.peg.good_max}，但历史增速为负、历史 PEG 偏高或有背离。股价、目标价来自 ${D.fetched_at.slice(0, 10)} 的快照，不是实时报价。`);
+  $("pgHead").innerHTML = PGCOLS.map(([k, t, n]) => `<th scope="col" class="${n ? "n" : ""}"><button type="button" data-k="${k}">${t}</button></th>`).join("");
+  document.querySelectorAll("#pgHead button").forEach(b => b.onclick = () => { pg.dir = pg.sort === b.dataset.k ? -pg.dir : (["t", "name", "sec", "kind", "level", "next"].includes(b.dataset.k) ? 1 : -1); pg.sort = b.dataset.k; renderPegBody(); });
+  renderPegBody();
+}
+function renderPegBody() {
+  const get = PGCOLS.find(c => c[0] === pg.sort)[3];
+  const list = PGROWS.filter(r => (!pg.mkt || r.e.market === pg.mkt) && (pg.tier === "all" || (pg.tier === "pass" ? r.e.peg_pass : r.e.peg_watch)) && (!pg.kind || r.e.kind === pg.kind))
+    .sort((a, b) => { const x = get(a), y = get(b); if (x == null || x === "") return 1; if (y == null || y === "") return -1; return (x > y ? 1 : x < y ? -1 : 0) * pg.dir; });
+  $("pgCount").textContent = `${list.length} 家（通过 ${PGROWS.filter(r => r.e.peg_pass && (!pg.mkt || r.e.market === pg.mkt)).length} / 待核实 ${PGROWS.filter(r => r.e.peg_watch && (!pg.mkt || r.e.market === pg.mkt)).length}）`;
+  $("pgBody").innerHTML = list.map(r => { const e = r.e, d = e.d, F = d.pegf || {}, up = pgUp(e);
+    return `<tr><td><button type="button" class="btn" style="padding:1px 8px" data-pg="${esc(e.ticker)}">${esc(e.ticker)}</button></td>
+    <td class="small">${esc((e.name || "").slice(0, 28))}<div>${esc((e.oneliner || "").slice(0, 46))}</div></td>
+    <td class="small">${r.secs.map(s => esc(SEC[s].name)).join(" / ")}<div><span class="tag">${esc(SEC[e.sector].segments.find(g => g.id === e.segment)?.name || e.segment)}</span>${e.cyclical ? ' <span class="tag t-cyc">周期</span>' : ""}</div></td>
+    <td>${e.kind === "leader" ? '<span class="tag t-ld">龙头</span>' : '<span class="tag">新兴</span>'}<div class="small">${esc(e.market)}</div></td>
+    <td class="n">${d.price ? num(d.price, 2) : "—"}<div class="small">${esc(d.ccy || "")}</div></td><td class="n">${yi(d.mcap)}</td><td class="n">${num(d.pe, 1)}</td>
+    <td class="n">${pegFH(d, false)}</td><td class="n">${pegHH(d)}${divH(d)}</td>
+    <td class="n">${F.g != null ? sgn(F.g) : "—"}<div class="small">${F.n ?? "—"} 家</div></td>
+    <td class="n">${e.mkt?.target ? num(e.mkt.target, 2) : "—"}<div class="small">${up != null ? pc(up) : ""}${e.mkt?.analysts ? ` · ${e.mkt.analysts} 家` : ""}</div></td>
+    <td class="n">${e.warn ?? "—"}</td><td><span class="tag lv-${esc(e.level)}">${esc(e.level)}</span>${e.gate ? `<div class="small" data-tip="${esc(e.gate)}">未排序</div>` : ""}</td>
+    <td class="small">${esc((e.mkt?.next_date || "—").slice(0, 10))}</td></tr>`; }).join("") || `<tr><td colspan="14" class="small">没有符合条件的公司</td></tr>`;
+  // jump to the company's evaluation card in its sector tab
+  document.querySelectorAll("#pgBody button[data-pg]").forEach(b => b.onclick = () => {
+    const r = PGROWS.find(x => x.e.ticker === b.dataset.pg), e = r.e;
+    Object.assign(state, {sector: e.sector, seg: e.segment, fSeg: "", fMkt: "", fLv: "", fPx: "", hideCyc: false});
+    renderAll();
+    const id = (e.kind === "leader" ? "ldc-" : "card-") + e.sector + "-" + e.ticker, el = document.getElementById(id);
+    if (el) { el.open = true; el.scrollIntoView({behavior: "smooth", block: "start"}); }
+  });
+  $("pgNote").innerHTML = esc(`PEG 只说明增速相对估值的位置，不说明增速能否兑现，也不包括客户集中度、竞争、稀释和一次性收益这些风险；` +
+    `一致预期是 Yahoo 的非官方数据，分析师少于 5 家的公司参考价值更低。目标价是卖方观点，不是预测。点击代码打开该公司在所属行业里的评估卡。`);
+}
+$("pgMkt").onchange = e => { pg.mkt = e.target.value; renderPegBody(); };
+$("pgTier").onchange = e => { pg.tier = e.target.value; renderPegBody(); };
+$("pgKind").onchange = e => { pg.kind = e.target.value; renderPegBody(); };
+renderPeg();
+
 $("hmUncov").onchange = e => { hs.uncov = e.target.checked; renderHeatInd(); };
 $("hmClear").onclick = () => { hs.major = ""; renderHeatInd(); };
 renderHeat();

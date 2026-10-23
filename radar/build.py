@@ -122,6 +122,11 @@ def build(raw):
             e["level"] = "龙头"
             e["conclusion"] = ("龙头观察。" + ("；".join(e["bull"][:2]) or "数据上没有突出的变化") + "。风险：" + ("；".join(e["bear"][:2]) or "数据上没有明显风险点") + "。")
         e["oneliner"], e["oneliner_src"] = _oneliner(r["ticker"], r.get("mkt"), notes, zh)
+        # PEG screen (cross-sector module): pass = both PEGs agree it is cheap; watch = forward PEG reliable and
+        # <= good_max but the historical side or a divergence flag does not agree
+        F = e["d"].get("pegf") or {}
+        e["peg_pass"] = bool(S.peg_cheap(e["d"]))
+        e["peg_watch"] = (not e["peg_pass"]) and bool(F.get("ok")) and F.get("v") is not None and F["v"] <= S.PG["good_max"]
         e["opp"] = e["bull"][0] if e["bull"] else "数据上没有突出的机会信号"
         e["risk"] = e["bear"][0] if e["bear"] else "数据上没有明显的风险信号"
         e["ok"] = sum(1 for i in e["checks"] if i["status"] == "ok")
