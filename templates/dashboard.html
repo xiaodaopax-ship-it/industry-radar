@@ -5,89 +5,276 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Industry Radar · 行业 → 细分 → 龙头与新兴 → 机会</title>
 <style>
-  :root { --bg:#0f1216; --panel:#171b21; --panel2:#1d222a; --line:#2a3038; --text:#e6e9ee; --muted:#9aa3ae;
-          --cyan:#37c6e0; --blue:#4f8cff; --orange:#f0a030; --green:#3fbf7f; --red:#e5534b; --gray:#8a939e; --violet:#a78bfa; }
+  /* palette: bg < panel < raised < raised2 surface levels, one accent (cyan) + semantic colours */
+  :root { --bg:#0c1016; --side-bg:#10161d; --panel:#131a22; --raised:#1a222d; --raised2:#212b38; --line:#283240; --line2:#374354;
+          --text:#e6ebf1; --muted:#9aa6b4; --accent:#37c6e0; --accent-ink:#06222a;
+          --pos:#46c486; --neg:#f2726b; --warn:#e6b450; --cyc:#f0913a; --leader:#b19cfb; --gray:#9aa6b4;
+          /* legacy names still used in markup */
+          --panel2:var(--raised); --cyan:var(--accent); --green:var(--pos); --red:var(--neg); --orange:var(--cyc); --violet:var(--leader); --blue:#5b93ff;
+          --sp1:4px; --sp2:8px; --sp3:12px; --sp4:16px; --sp5:24px; --sp6:32px; --r1:4px; --r2:8px; --r3:12px;
+          --side:240px; --drawer:420px; --stick:120px; }
   * { box-sizing:border-box; }
   html { scroll-behavior:smooth; }
-  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.6 "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
-  main { max-width:1380px; margin:0 auto; padding:20px 24px 40px; }
-  header { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
-  h1 { font-size:22px; margin:0; } h2 { font-size:18px; margin:0 0 4px; } h3 { font-size:14px; margin:14px 0 8px; color:var(--muted); font-weight:500; }
+  @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } * { transition:none !important; } }
+  body { margin:0; background:var(--bg); color:var(--text); padding-left:var(--side);
+         font:14px/1.6 "Segoe UI Variable Text","Segoe UI","PingFang SC","Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif; }
+  main { max-width:1440px; margin:0 auto; padding:var(--sp5) 48px 48px var(--sp5); }
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+  .skip { position:absolute; left:-999px; top:8px; z-index:100; background:var(--accent); color:var(--accent-ink); padding:6px 12px; border-radius:6px; }
+  .skip:focus { left:8px; }
+
+  /* typography */
+  main > header { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:var(--sp3); margin-bottom:var(--sp4); padding-bottom:var(--sp4); border-bottom:1px solid var(--line); }
+  h1 { font-size:24px; font-weight:650; letter-spacing:.2px; margin:0 0 2px; } h1:focus { outline:none; }
+  h2 { font-size:18px; font-weight:650; margin:0 0 4px; }
+  h3 { font-size:13px; margin:20px 0 8px; color:var(--muted); font-weight:600; }
+  h3::before { content:""; display:inline-block; width:3px; height:12px; border-radius:2px; background:var(--line2); margin-right:8px; vertical-align:-1px; }
   .sub, .muted, .small { color:var(--muted); font-size:13px; } .small { font-size:12px; }
-  .chips span { display:inline-block; border:1px solid var(--line); border-radius:4px; padding:2px 8px; margin-left:6px; font-size:12px; color:var(--muted); }
-  .banner { border:1px solid var(--orange); color:var(--orange); border-radius:6px; padding:8px 12px; margin-bottom:12px; font-size:13px; }
-  .sticky { position:sticky; top:0; z-index:5; background:var(--bg); padding:8px 0; border-bottom:1px solid var(--line); margin-bottom:14px; }
-  .tabs { display:flex; gap:8px; flex-wrap:wrap; }
-  .tabs button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:7px 14px; font:inherit; cursor:pointer; }
-  .tabs button[aria-selected="true"] { border-color:var(--cyan); color:var(--cyan); }
-  .steps { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; font-size:13px; }
-  .steps a { color:var(--muted); border:1px solid var(--line); border-radius:14px; padding:2px 12px; }
-  .steps a:hover { color:var(--cyan); border-color:var(--cyan); text-decoration:none; }
-  button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline:2px solid var(--cyan); outline-offset:2px; }
-  section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; margin-bottom:14px; overflow-x:auto; scroll-margin-top:110px; }
-  .step-tag { display:inline-block; background:var(--cyan); color:#0f1216; border-radius:4px; padding:0 8px; font-size:12px; font-weight:700; margin-right:8px; vertical-align:2px; }
-  .lead { color:var(--muted); margin:4px 0 12px; }
-  .grid { display:grid; gap:12px; } .g2 { grid-template-columns:1fr 1fr; } .g3 { grid-template-columns:repeat(3,1fr); } .g4 { grid-template-columns:repeat(4,1fr); } .g5 { grid-template-columns:repeat(5,1fr); }
-  .card { background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:12px; }
-  .kpi { font-size:26px; font-weight:600; color:var(--cyan); line-height:1.2; } .kpi small { font-size:13px; color:var(--muted); font-weight:400; }
-  .label { color:var(--muted); font-size:12px; margin-bottom:4px; }
-  .neg { color:var(--red); } .pos { color:var(--green); } .ok { color:var(--green); } .warn { color:var(--orange); } .na { color:var(--muted); }
-  a { color:var(--cyan); text-decoration:none; } a:hover { text-decoration:underline; }
-  svg text { fill:var(--muted); font-size:11px; } svg .lbl { fill:#0f1216; font-weight:600; } svg .lbl2 { fill:#0f1216; font-size:10px; }
-  svg rect.tm, svg circle.bub { cursor:pointer; } svg rect.tm:hover, svg circle.bub:hover { stroke:#fff; stroke-width:2; }
+  a { color:var(--accent); text-decoration:none; } a:hover { text-decoration:underline; }
+  .chips span { display:inline-block; border:1px solid var(--line2); background:var(--raised); border-radius:999px; padding:1px 10px; margin-left:6px; font-size:12px; color:var(--muted); }
+  .banner { border:1px solid rgba(230,180,80,.3); border-left:3px solid var(--warn); background:rgba(230,180,80,.07); color:#f0dcb0; border-radius:var(--r2); padding:9px 14px; margin-bottom:var(--sp4); font-size:13px; }
+  .neg { color:var(--neg); } .pos { color:var(--pos); } .ok { color:var(--pos); } .warn { color:var(--warn); } .na { color:var(--muted); }
+  button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+  /* sticky sector tabs + steps */
+  .sticky { position:sticky; top:0; z-index:5; background:rgba(12,16,22,.94); backdrop-filter:blur(6px); padding:10px 0; border-bottom:1px solid var(--line); margin-bottom:var(--sp4); }
+  .tabs { display:flex; gap:6px; flex-wrap:wrap; }
+  .tabs button { background:var(--raised); color:var(--text); border:1px solid var(--line); border-radius:var(--r2); padding:6px 12px; font:inherit; font-size:13px; cursor:pointer; }
+  .tabs button:hover { border-color:var(--line2); background:var(--raised2); }
+  .tabs button[aria-selected="true"] { border-color:var(--accent); color:var(--accent); background:rgba(55,198,224,.1); }
+  .tabs button .small { background:var(--bg); border-radius:999px; padding:0 6px; margin-left:4px; }
+  .steps { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; font-size:12.5px; }
+  .steps a { color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:1px 11px; }
+  .steps a:hover, .steps a.on { color:var(--accent); border-color:rgba(55,198,224,.55); text-decoration:none; }
+  .steps a.on { background:rgba(55,198,224,.1); }
+
+  /* sections */
+  section { background:var(--panel); border:1px solid var(--line); border-radius:var(--r3); padding:20px 22px; margin-bottom:var(--sp4); overflow-x:auto; scroll-margin-top:var(--stick); }
+  section > h2 { padding-bottom:12px; margin-bottom:10px; border-bottom:1px solid var(--line); }
+  .step-tag { display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:24px; padding:0 8px; margin-right:10px; vertical-align:1px;
+              border-radius:6px; background:rgba(55,198,224,.13); color:var(--accent); border:1px solid rgba(55,198,224,.4); font-size:13px; font-weight:700; }
+  .lead { color:var(--muted); margin:4px 0 12px; max-width:110ch; }
+  .grid { display:grid; gap:var(--sp3); } .g2 { grid-template-columns:1fr 1fr; } .g3 { grid-template-columns:repeat(3,1fr); } .g4 { grid-template-columns:repeat(4,1fr); } .g5 { grid-template-columns:repeat(5,1fr); }
+  .card { background:var(--raised); border:1px solid var(--line); border-radius:var(--r2); padding:14px; min-width:0; }
+  #kpis > .card, #hmKpis > .card { border-top:2px solid var(--accent); }
+  .kpi { font-size:28px; font-weight:650; letter-spacing:-.3px; line-height:1.25; font-variant-numeric:tabular-nums; } .kpi small { font-size:13px; color:var(--muted); font-weight:400; letter-spacing:0; }
+  .label { color:var(--muted); font-size:12px; font-weight:500; margin-bottom:4px; }
+
+  /* charts */
+  svg text { fill:var(--muted); font-size:11px; } svg .lbl { fill:#0c1016; font-weight:600; } svg .lbl2 { fill:#0c1016; font-size:10px; }
+  svg rect.tm, svg circle.bub { cursor:pointer; } svg rect.tm:hover, svg circle.bub:hover, svg rect.tm:focus, svg circle.bub:focus { stroke:#fff; stroke-width:2; outline:none; }
   .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:6px; align-items:center; }
   .grad { display:inline-block; width:120px; height:8px; border-radius:4px; background:linear-gradient(90deg,#b8443d,#4a515b,#2f9e6a); vertical-align:middle; }
   .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:middle; }
-  table { width:100%; border-collapse:collapse; font-size:12.5px; }
-  th, td { text-align:left; padding:6px 5px; border-bottom:1px solid var(--line); vertical-align:top; }
-  th { color:var(--muted); font-weight:500; white-space:nowrap; }
+
+  /* tables: zebra + hover, right-aligned tabular numbers, sticky header inside .tscroll */
+  table { width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; font-variant-numeric:tabular-nums; }
+  th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; white-space:nowrap; font-size:12px; }
+  thead th { background:var(--panel); border-bottom-color:var(--line2); }
+  tbody tr:nth-child(even) > td { background:rgba(255,255,255,.022); }
+  tbody tr:hover > td { background:rgba(55,198,224,.065); }
   th button { background:none; border:none; color:inherit; font:inherit; cursor:pointer; padding:0; } th button:hover { color:var(--text); }
-  td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  .tag { display:inline-block; padding:1px 7px; border-radius:3px; font-size:12px; white-space:nowrap; background:rgba(138,147,158,.18); color:var(--gray); }
-  .t-cyc { background:rgba(240,160,48,.15); color:var(--orange); } .t-ld { background:rgba(167,139,250,.18); color:var(--violet); }
-  .lv-优先研究 { background:rgba(55,198,224,.18); color:var(--cyan); } .lv-可以观察 { background:rgba(63,191,127,.15); color:var(--green); } .lv-暂不优先 { background:rgba(138,147,158,.18); color:var(--gray); } .lv-龙头 { background:rgba(167,139,250,.18); color:var(--violet); }
+  td.n, th.n { text-align:right; white-space:nowrap; }
+  .tscroll { max-height:72vh; overflow:auto; border:1px solid var(--line); border-radius:var(--r2); margin:6px 0; }
+  .tscroll thead th { position:sticky; top:0; z-index:1; background:var(--raised); }
+  .tscroll tbody tr:last-child > td { border-bottom:none; }
+
+  /* tags / pills */
+  .tag { display:inline-block; padding:0 8px; border-radius:999px; font-size:12px; line-height:19px; white-space:nowrap; background:rgba(154,166,180,.13); color:#c5cdd7; border:1px solid rgba(154,166,180,.22); }
+  .t-cyc { background:rgba(240,145,58,.12); color:var(--cyc); border-color:rgba(240,145,58,.35); }
+  .t-ld, .lv-龙头 { background:rgba(177,156,251,.13); color:var(--leader); border-color:rgba(177,156,251,.38); }
+  .t-warn { background:rgba(230,180,80,.12); color:var(--warn); border-color:rgba(230,180,80,.38); }
+  .t-q { background:rgba(91,147,255,.13); color:#9cbcff; border-color:rgba(91,147,255,.38); }
+  .lv-优先研究 { background:rgba(55,198,224,.13); color:var(--accent); border-color:rgba(55,198,224,.4); }
+  .lv-可以观察 { background:rgba(70,196,134,.12); color:var(--pos); border-color:rgba(70,196,134,.36); }
+  .lv-暂不优先 { background:rgba(154,166,180,.12); color:var(--muted); border-color:rgba(154,166,180,.26); }
   .tier { font-size:11px; color:var(--muted); margin-left:4px; }
+
   .seg-pick { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
-  .seg-pick button { background:var(--panel2); color:var(--text); border:1px solid var(--line); border-radius:14px; padding:3px 12px; font:inherit; font-size:13px; cursor:pointer; }
-  .seg-pick button[aria-pressed="true"] { border-color:var(--cyan); color:var(--cyan); }
+  .seg-pick button { background:var(--raised); color:var(--text); border:1px solid var(--line); border-radius:999px; padding:2px 12px; font:inherit; font-size:12.5px; font-weight:400; cursor:pointer; }
+  .seg-pick button:hover { border-color:var(--line2); }
+  .seg-pick button[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); background:rgba(55,198,224,.1); }
+
+  /* company cards (leaders, pool) */
   .co { display:flex; flex-direction:column; gap:5px; }
-  .co .tk { font-size:18px; font-weight:700; color:var(--cyan); } .co .nm { font-size:12px; color:var(--muted); }
-  .co .one { font-size:12.5px; } .co .kv { display:flex; justify-content:space-between; font-size:12px; gap:8px; } .co .kv b { font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .co .tk { font-size:20px; font-weight:700; color:var(--accent); letter-spacing:.3px; line-height:1.2; } .co .nm { font-size:12px; color:var(--muted); }
+  .co .one { font-size:12.5px; } .co .kv { display:flex; justify-content:space-between; font-size:12px; gap:8px; padding:2px 0; border-bottom:1px dashed rgba(255,255,255,.06); }
+  .co .kv span:first-child { color:var(--muted); } .co .kv b { font-variant-numeric:tabular-nums; white-space:nowrap; font-weight:600; }
   .co .or { font-size:12px; } .co .or b { font-weight:600; }
+  #leaders > .card { border-top:2px solid var(--leader); } #pool > .card { border-top:2px solid var(--accent); }
   .fbar { display:grid; grid-template-columns:96px 1fr 26px; gap:6px; align-items:center; font-size:11px; color:var(--muted); }
-  .fbar .t { height:6px; background:#22303a; border-radius:3px; overflow:hidden; } .fbar .t i { display:block; height:100%; background:var(--cyan); }
-  details { border:1px solid var(--line); border-radius:6px; padding:10px 12px; margin:8px 0; background:var(--panel2); }
+  .fbar .t { height:6px; background:#22303a; border-radius:3px; overflow:hidden; } .fbar .t i { display:block; height:100%; background:var(--accent); }
+
+  details { border:1px solid var(--line); border-radius:var(--r2); padding:10px 12px; margin:8px 0; background:var(--raised); }
   summary { cursor:pointer; } summary b { margin-right:8px; }
   .check { display:grid; grid-template-columns:90px 20px 1fr; gap:4px; padding:3px 0; border-bottom:1px solid var(--line); font-size:12.5px; }
   .bb ul { margin:4px 0; padding-left:18px; font-size:13px; }
-  .manual { border:1px dashed var(--line); border-radius:6px; padding:10px; font-size:13px; } .todo { color:var(--orange); }
-  .concl { background:rgba(55,198,224,.07); border-radius:6px; padding:8px 10px; font-size:13px; margin:6px 0; }
-  details.ec { padding:12px 14px; } details.ec[open] { border-color:#3a4552; }
-  .ec-head .one { font-size:14px; margin:8px 0 2px; }
-  .tile { background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--gray); border-radius:6px; padding:8px 10px; }
-  .tile.ok { border-left-color:var(--green); } .tile.warn { border-left-color:var(--orange); }
-  .tile .tv { font-size:20px; font-weight:600; line-height:1.3; } .tile .tv small { font-size:12px; color:var(--muted); font-weight:400; }
-  details.ec h4 { margin:0 0 6px; font-size:13px; } details.ec ul, details.ec ol { margin:0; padding-left:18px; font-size:13px; } details.ec li { margin:2px 0; }
-  .dims .dim { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:12.5px; }
+  .manual { border:1px dashed var(--line2); border-radius:6px; padding:10px; font-size:13px; } .todo { color:var(--warn); }
+  .concl { background:rgba(55,198,224,.07); border:1px solid rgba(55,198,224,.2); border-left:3px solid var(--accent); border-radius:var(--r2); padding:10px 12px; font-size:13px; margin:8px 0; }
+
+  /* evaluation card */
+  details.ec { padding:0; margin:10px 0; border-radius:var(--r3); overflow:hidden; scroll-margin-top:var(--stick); }
+  details.ec[open] { border-color:var(--line2); box-shadow:0 8px 28px rgba(0,0,0,.28); }
+  details.ec > summary { list-style:none; display:flex; align-items:center; flex-wrap:wrap; gap:6px 8px; padding:11px 16px; }
+  details.ec > summary::-webkit-details-marker { display:none; }
+  details.ec > summary::before { content:"▸"; color:var(--muted); width:12px; transition:transform .15s; }
+  details.ec[open] > summary::before { transform:rotate(90deg); }
+  details.ec > summary:hover, details.ec[open] > summary { background:var(--raised2); }
+  details.ec[open] > summary { border-bottom:1px solid var(--line); }
+  .ec-tk { font-weight:700; font-size:13.5px; letter-spacing:.3px; color:var(--accent-ink); background:var(--accent); border-radius:6px; padding:0 8px; line-height:22px; }
+  .ec-tk.ld { background:var(--leader); color:#1b1236; }
+  .ec-nm { font-weight:600; margin-right:2px; }
+  .ec-meta { color:var(--muted); font-size:12px; }
+  .ec-nums { margin-left:auto; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .np { font-size:12px; line-height:20px; padding:0 8px; border-radius:999px; background:var(--bg); border:1px solid var(--line); color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .np b { color:var(--text); font-weight:600; margin:0; } .np.good b { color:var(--pos); } .np.unrel b { color:var(--warn); }
+  .ec-body { padding:14px 16px 16px; }
+  .ec-head .one { font-size:14px; margin:0 0 4px; }
+  .tile { background:var(--raised2); border:1px solid var(--line); border-top:3px solid var(--line2); border-radius:var(--r2); padding:10px 12px; min-width:0; }
+  .tile.ok, .tile.warn, .tile.na { color:var(--text); }
+  .tile.ok { border-top-color:var(--pos); } .tile.warn { border-top-color:var(--warn); }
+  .tile .tv { font-size:22px; font-weight:650; line-height:1.3; font-variant-numeric:tabular-nums; } .tile .tv small { font-size:12px; color:var(--muted); font-weight:400; }
+  details.ec h4 { margin:0 0 6px; font-size:13px; font-weight:650; } details.ec ul, details.ec ol { margin:0; padding-left:18px; font-size:13px; } details.ec li { margin:2px 0; }
+  .card.opp { background:rgba(70,196,134,.06); border-color:rgba(70,196,134,.28); } .card.opp h4 { color:var(--pos); }
+  .card.risk { background:rgba(242,114,107,.06); border-color:rgba(242,114,107,.28); } .card.risk h4 { color:var(--neg); }
+  .card.opp .small b, .card.risk .small b { color:var(--text); }
+  details.grp { background:transparent; border:1px solid var(--line); border-radius:var(--r2); padding:0; margin:12px 0 0; }
+  details.grp > summary { list-style:none; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:9px 12px; font-size:13px; font-weight:650; }
+  details.grp > summary::-webkit-details-marker { display:none; }
+  details.grp > summary::before { content:"▸"; color:var(--muted); transition:transform .15s; } details.grp[open] > summary::before { transform:rotate(90deg); }
+  details.grp > summary:hover { background:var(--raised2); }
+  details.grp[open] > summary { border-bottom:1px solid var(--line); }
+  details.grp > summary .small { font-weight:400; }
+  .grp-body { padding:12px; }
+  .dims .dim { background:var(--raised2); border:1px solid var(--line); border-radius:var(--r2); padding:9px 11px; font-size:12.5px; min-width:0; }
   .dims .dh { margin-bottom:4px; } .dims .dv { margin-bottom:4px; }
   .dims ul { font-size:12px !important; color:var(--muted); } .dims .src { margin-top:4px; }
-  .quote { font-size:12px; color:var(--muted); border-left:2px solid var(--line); padding-left:8px; max-height:110px; overflow:auto; }
+  .quote { font-size:12px; color:var(--muted); border-left:2px solid var(--line2); padding-left:8px; max-height:110px; overflow:auto; }
   details.sub { border:none; padding:0; margin:4px 0 0; background:none; }
-  .chk { display:grid; grid-template-columns:16px 76px 1fr; gap:4px; font-size:12.5px; padding:2px 0; border-bottom:1px solid var(--line); }
+  .chk { display:grid; grid-template-columns:16px 76px 1fr; gap:4px; font-size:12.5px; padding:3px 0; border-bottom:1px solid var(--line); }
+
+  /* controls */
   .toolbar { display:flex; gap:12px; align-items:center; margin:10px 0; flex-wrap:wrap; font-size:13px; }
-  select, input { background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:4px; padding:4px 8px; font:inherit; }
-  .btn { background:var(--panel2); color:var(--cyan); border:1px solid var(--cyan); border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer; }
-  .note { border-left:3px solid var(--line); padding:4px 0 4px 12px; color:var(--muted); font-size:13px; margin:8px 0; }
-  .tip { position:fixed; pointer-events:none; background:#000c; border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-size:12px; display:none; z-index:20; max-width:280px; }
+  select, input, textarea { background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px; padding:4px 8px; font:inherit; }
+  input[type=checkbox] { accent-color:var(--accent); padding:0; }
+  .btn { background:var(--raised2); color:var(--accent); border:1px solid rgba(55,198,224,.45); border-radius:6px; padding:4px 10px; font:inherit; cursor:pointer; }
+  .btn:hover { background:rgba(55,198,224,.12); }
+  .btn.primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600; }
+  .btn.ghost { color:var(--muted); border-color:var(--line2); }
+  .note { border-left:3px solid var(--line2); padding:4px 0 4px 12px; color:var(--muted); font-size:13px; margin:8px 0; }
+  .tip { position:fixed; pointer-events:none; background:rgba(8,11,15,.96); border:1px solid var(--line2); border-radius:6px; padding:6px 9px; font-size:12px; display:none; z-index:60; max-width:280px; box-shadow:0 6px 18px rgba(0,0,0,.4); }
   footer { color:var(--muted); font-size:12px; }
+  .addn { font:inherit; font-size:11.5px; line-height:20px; padding:0 8px; border-radius:999px; border:1px dashed var(--line2); background:transparent; color:var(--muted); cursor:pointer; white-space:nowrap; }
+  .addn:hover { color:var(--accent); border-color:var(--accent); border-style:solid; }
+  .nbadge { font:inherit; font-size:11.5px; line-height:20px; padding:0 8px; border-radius:999px; border:1px solid rgba(230,180,80,.42); background:rgba(230,180,80,.13); color:var(--warn); cursor:pointer; white-space:nowrap; }
+  .nbadge[hidden] { display:none; }
+  #hmTbl .btn { white-space:nowrap; }
+  .pgtk { display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
+
+  /* left sidebar */
+  .side { position:fixed; left:0; top:0; bottom:0; width:var(--side); z-index:30; overflow-y:auto; background:var(--side-bg); border-right:1px solid var(--line);
+          padding:16px 12px 28px; display:flex; flex-direction:column; gap:14px; }
+  .side .brand { font-weight:700; font-size:15px; padding:0 8px; } .side .brand span { display:block; font-weight:400; font-size:11.5px; color:var(--muted); }
+  .side ul { list-style:none; margin:0; padding:0; }
+  .side .gt { font-size:11.5px; color:var(--muted); font-weight:600; letter-spacing:.5px; margin:0 8px 4px; }
+  .side a.sl, .side button.sl { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; text-align:left; padding:5px 10px; margin:1px 0;
+          border-radius:6px; color:var(--text); background:none; border:1px solid transparent; border-left-width:2px; font:inherit; font-size:13px; cursor:pointer; text-decoration:none; }
+  .side a.sl:hover, .side button.sl:hover { background:var(--raised); text-decoration:none; }
+  .side button.sl.cur { background:rgba(55,198,224,.1); color:var(--accent); border-color:rgba(55,198,224,.28); }
+  .side a.sl.on { border-left-color:var(--accent); color:var(--accent); background:rgba(55,198,224,.07); }
+  .side .cnt { font-size:11px; color:var(--muted); background:var(--raised); border-radius:999px; padding:0 7px; flex:none; }
+  .side .substeps { margin:2px 0 6px 12px; padding-left:6px; border-left:1px solid var(--line); }
+  .side .substeps a.sl { font-size:12.5px; padding:3px 8px; color:var(--muted); }
+  .side .substeps a.sl.on { color:var(--accent); }
+  .qs input { width:100%; }
+  .qs-res { margin-top:4px; display:flex; flex-direction:column; gap:2px; }
+  .qs-res button { display:block; width:100%; text-align:left; background:var(--raised); border:1px solid var(--line); border-radius:6px; padding:4px 8px; color:var(--text); font:inherit; font-size:12px; cursor:pointer; }
+  .qs-res button:hover, .qs-res button:focus-visible { border-color:var(--accent); }
+  .qs-res button b { color:var(--accent); margin-right:6px; } .qs-res button span { color:var(--muted); }
+  .topbar { display:none; }
+  .backdrop { display:none; }
+
+  /* back to top + notes toggle + notes drawer */
+  .totop { position:fixed; right:20px; bottom:20px; z-index:35; width:42px; height:42px; border-radius:50%; border:1px solid var(--line2); background:var(--raised2); color:var(--text);
+           font-size:18px; line-height:1; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.35); opacity:0; visibility:hidden; transition:opacity .2s, visibility .2s; }
+  .totop.show { opacity:1; visibility:visible; } .totop:hover { color:var(--accent); border-color:var(--accent); }
+  .notes-toggle { position:fixed; right:0; top:50%; transform:translateY(-50%); z-index:40; writing-mode:vertical-rl; letter-spacing:2px; background:var(--raised2); color:var(--text);
+                  border:1px solid var(--line2); border-right:none; border-radius:8px 0 0 8px; padding:12px 7px; font:inherit; font-size:13px; cursor:pointer; box-shadow:-4px 0 14px rgba(0,0,0,.3); }
+  .notes-toggle:hover { color:var(--accent); border-color:var(--accent); }
+  body.notes-open .notes-toggle, body.notes-open .totop { display:none; }
+  .drawer { position:fixed; top:0; right:0; bottom:0; width:min(var(--drawer),100vw); z-index:45; background:#111820; border-left:1px solid var(--line2); box-shadow:-14px 0 34px rgba(0,0,0,.4);
+            display:flex; flex-direction:column; transform:translateX(100%); visibility:hidden; transition:transform .2s ease, visibility .2s; }
+  .drawer.open { transform:none; visibility:visible; }
+  .dw-head { display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line); }
+  .dw-head h2 { margin:0; font-size:16px; } .dw-head .small { flex:1; }
+  .icon-btn { background:none; border:1px solid transparent; color:var(--muted); font-size:16px; border-radius:6px; width:32px; height:32px; cursor:pointer; }
+  .icon-btn:hover { color:var(--text); border-color:var(--line2); }
+  .dw-body { flex:1; overflow-y:auto; padding:14px 16px; }
+  .dw-foot { border-top:1px solid var(--line); padding:10px 16px 14px; font-size:12px; color:var(--muted); }
+  .dw-foot .row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; align-items:center; }
+  .nform { background:var(--raised); border:1px solid var(--line); border-radius:var(--r2); padding:12px; display:flex; flex-direction:column; gap:8px; }
+  .nform .nf-t { font-weight:650; font-size:13px; }
+  .nform textarea { width:100%; min-height:84px; resize:vertical; line-height:1.5; }
+  .nf-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; font-size:12.5px; color:var(--muted); }
+  .nf-anchor { display:flex; gap:6px; flex-wrap:wrap; align-items:center; font-size:12px; color:var(--muted); }
+  .achip { color:var(--text); background:var(--bg); border:1px solid var(--line2); border-radius:999px; padding:0 8px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lnk { background:none; border:none; color:var(--accent); font:inherit; font-size:12px; cursor:pointer; padding:0 2px; }
+  .lnk:hover { text-decoration:underline; }
+  .nfilters { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:14px 0 8px; font-size:12.5px; color:var(--muted); }
+  .nfilters input[type=search] { flex:1 1 100%; }
+  .nlist { display:flex; flex-direction:column; gap:8px; }
+  .nlist:focus { outline:none; }
+  .nitem { background:var(--raised); border:1px solid var(--line); border-left:3px solid var(--warn); border-radius:var(--r2); padding:9px 11px; }
+  .nitem.done { border-left-color:var(--pos); } .nitem.done .ntext { color:var(--muted); }
+  .nmeta { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:4px; }
+  .nanchor { display:block; max-width:100%; background:none; border:none; padding:0; margin:2px 0 4px; color:var(--accent); font:inherit; font-size:12px; text-align:left; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nanchor:hover { text-decoration:underline; }
+  .ntext { white-space:pre-wrap; word-break:break-word; font-size:13px; }
+  .nfoot { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; align-items:center; margin-top:6px; }
+  .nacts { display:flex; gap:4px; }
+  .nacts button { background:none; border:1px solid var(--line2); color:var(--muted); border-radius:6px; font:inherit; font-size:12px; padding:0 8px; line-height:22px; cursor:pointer; }
+  .nacts button:hover { color:var(--text); border-color:var(--muted); } .nacts button.danger:hover { color:var(--neg); border-color:var(--neg); }
+  @media (min-width:1760px) { body.notes-open { padding-right:var(--drawer); } }
+
   @media (max-width:1100px) { .g4, .g5 { grid-template-columns:repeat(2,1fr); } .g2, .g3 { grid-template-columns:1fr; } }
+  /* narrow: sidebar becomes an off-canvas drawer opened from a top bar */
+  @media (max-width:1099.98px) {
+    body { padding-left:0; } :root { --stick:176px; }
+    main { padding:16px 40px 40px 16px; }
+    .topbar { display:flex; position:sticky; top:0; z-index:25; height:48px; align-items:center; gap:10px; padding:0 16px; background:rgba(16,22,29,.97); border-bottom:1px solid var(--line); }
+    .topbar b { font-size:14px; } .topbar .small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .sticky { top:48px; }
+    .side { width:min(300px,86vw); transform:translateX(-100%); visibility:hidden; transition:transform .2s ease, visibility .2s; box-shadow:12px 0 34px rgba(0,0,0,.45); z-index:50; }
+    body.side-open .side { transform:none; visibility:visible; }
+    body.side-open .backdrop { display:block; position:fixed; inset:0; z-index:49; background:rgba(0,0,0,.5); }
+  }
+  @media (max-width:640px) { .g4, .g5 { grid-template-columns:1fr; } main { padding:12px 36px 32px 10px; } section { padding:14px; } }
 </style>
 </head>
 <body>
+<a class="skip" href="#s0">跳到主要内容</a>
+<div class="topbar">
+  <button type="button" class="btn" id="sideBtn" aria-controls="side" aria-expanded="false">☰ 导航</button>
+  <b>Industry Radar</b><span class="small" id="topCtx"></span>
+</div>
+<nav class="side" id="side" aria-label="页面导航">
+  <div class="brand">Industry Radar<span>行业 → 细分 → 龙头与新兴 → 机会</span></div>
+  <div class="qs" role="search">
+    <div class="gt"><label for="qs">公司快速跳转</label></div>
+    <input type="search" id="qs" placeholder="代码或公司名，如 NVDA" autocomplete="off" aria-describedby="qsHint" aria-controls="qsRes">
+    <div class="sr-only" id="qsHint">输入后按回车跳到第一条结果，或用下方向键选择</div>
+    <div class="qs-res" id="qsRes" aria-live="polite"></div>
+  </div>
+  <div><div class="gt">全市场</div>
+    <ul><li><a class="sl" href="#s0" data-sec="s0">⓪ 全市场热度</a></li><li><a class="sl" href="#sPeg" data-sec="sPeg">PEG 筛选</a></li></ul></div>
+  <div><div class="gt">行业</div><ul id="sideSecs"></ul></div>
+</nav>
+<div class="backdrop" id="sideBack"></div>
 <main>
   <header>
     <div>
-      <h1>Industry Radar</h1>
+      <h1 id="pageTop" tabindex="-1">Industry Radar</h1>
       <div class="sub">行业整体分析 → 细分领域拆解 → 龙头与新兴公司 → 研究机会清单 · <a href="cn/index.html">A 股看板（独立数据与规则）→</a></div>
     </div>
     <div class="chips" id="chips"></div>
@@ -110,7 +297,7 @@
       <button class="btn" type="button" id="hmClear">清除大类筛选</button>
       <span class="small" id="hmCount"></span>
     </div>
-    <table><thead><tr><th scope="col">SIC</th><th scope="col">行业（SEC 英文名称）</th><th scope="col" class="n">家数</th><th scope="col" class="n">加权增速</th><th scope="col" class="n">增速中位数</th><th scope="col" class="n">增速 ≥20% 占比</th><th scope="col" class="n">加速占比</th><th scope="col" class="n">毛利率变化</th><th scope="col">高增长公司（同比 ≥20%）</th><th scope="col">配置判断</th><th scope="col">已覆盖</th></tr></thead><tbody id="hmInd"></tbody></table>
+    <div class="tscroll"><table><thead><tr><th scope="col">SIC</th><th scope="col">行业（SEC 英文名称）</th><th scope="col" class="n">家数</th><th scope="col" class="n">加权增速</th><th scope="col" class="n">增速中位数</th><th scope="col" class="n">增速 ≥20% 占比</th><th scope="col" class="n">加速占比</th><th scope="col" class="n">毛利率变化</th><th scope="col">高增长公司（同比 ≥20%）</th><th scope="col">配置判断</th><th scope="col">已覆盖</th></tr></thead><tbody id="hmInd"></tbody></table></div>
     <p class="note" id="hmRule"></p>
     <p class="note">口径：所有在 SEC XBRL 报送可比季度营收的公司，上年同季营收 ≥ 500 万美元；单家同比封顶在 −90% ~ +300%，避免个别公司扭曲结果。每组至少 8 家公司才显示。加权增速 = 组内营收合计的同比，由大公司主导；增速中位数代表典型公司。加速占比 = 本季同比高于上季同比的公司比例。毛利率 / 营业利润率变化为同比百分点的中位数。热度只说明增长在哪里，不区分周期反弹和结构性增长，需要结合行业知识判断。</p>
   </section>
@@ -124,7 +311,7 @@
       <label>类型 <select id="pgKind"><option value="">全部</option><option value="emerging">新兴</option><option value="leader">龙头</option></select></label>
       <span class="small" id="pgCount"></span>
     </div>
-    <table><thead><tr id="pgHead"></tr></thead><tbody id="pgBody"></tbody></table>
+    <div class="tscroll"><table><thead><tr id="pgHead"></tr></thead><tbody id="pgBody"></tbody></table></div>
     <p class="note" id="pgNote"></p>
   </section>
 
@@ -194,7 +381,7 @@
       <label><input type="checkbox" id="fHideCyc"> 隐藏周期性环节</label>
       <span class="small" id="count"></span>
     </div>
-    <table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table>
+    <div class="tscroll"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
     <h3>评估卡</h3>
     <div id="cards"></div>
   </section>
@@ -205,12 +392,12 @@
     <p class="lead">把前面四步合在一起：哪些细分环节值得看，每个环节里先研究谁，各自的机会和风险是什么。</p>
     <div id="oppSeg"></div>
     <h3>全部行业的研究优先池 <button class="btn" id="csv" type="button">导出 CSV</button></h3>
-    <table><thead><tr><th scope="col">行业</th><th scope="col">环节</th><th scope="col">代码</th><th scope="col">一句话</th><th scope="col">机会</th><th scope="col">风险</th><th scope="col" class="n">下次财报</th></tr></thead><tbody id="oppAll"></tbody></table>
+    <div class="tscroll"><table><thead><tr><th scope="col">行业</th><th scope="col">环节</th><th scope="col">代码</th><th scope="col">一句话</th><th scope="col">机会</th><th scope="col">风险</th><th scope="col" class="n">下次财报</th></tr></thead><tbody id="oppAll"></tbody></table></div>
   </section>
 
   <!-- data & method -->
   <section id="s6">
-    <h2>数据与方法</h2>
+    <h2><span class="step-tag">i</span>数据与方法</h2>
     <div class="grid g2">
       <div><h3>筛选漏斗</h3><table><tbody id="funnel"></tbody></table><h3>本行业已排除的公司</h3><table><tbody id="excl"></tbody></table></div>
       <div>
@@ -228,6 +415,42 @@
   <footer id="foot"></footer>
 </main>
 <div class="tip" id="tip" role="tooltip"></div>
+<button type="button" class="totop" id="toTop" aria-label="返回顶部" title="返回顶部">↑</button>
+<button type="button" class="notes-toggle" id="notesBtn" aria-controls="notes" aria-expanded="false">备注 (<span id="notesN">0</span>)</button>
+<aside class="drawer" id="notes" role="dialog" aria-modal="false" aria-labelledby="notesTitle">
+  <div class="dw-head"><h2 id="notesTitle">我的备注</h2><span class="small" id="notesStat"></span>
+    <button type="button" class="icon-btn" id="notesClose" aria-label="关闭备注面板（Esc）">✕</button></div>
+  <div class="dw-body">
+    <form class="nform" id="nForm" novalidate>
+      <div class="nf-t" id="nfTitle">新建备注</div>
+      <div class="nf-anchor"><span>关联：</span><span class="achip" id="nfAnchor"></span>
+        <button type="button" class="lnk" id="nfHere">用当前位置</button><button type="button" class="lnk" id="nfNoA">不关联</button></div>
+      <label class="sr-only" for="nfText">备注内容</label>
+      <textarea id="nfText" rows="4" placeholder="写下想法、问题或待核实的点……（Ctrl+Enter 保存）"></textarea>
+      <div class="nf-row">
+        <label>类型 <select id="nfTag"><option>想法</option><option>问题</option><option>待核实</option><option>结论</option></select></label>
+        <label>状态 <select id="nfStatus"><option>待跟进</option><option>已完成</option></select></label>
+        <label>跟进日期 <input type="date" id="nfDue"></label>
+      </div>
+      <div class="nf-row"><button type="submit" class="btn primary" id="nfSave">保存</button>
+        <button type="button" class="btn ghost" id="nfCancel" hidden>取消编辑</button><span class="small" id="nfMsg" role="status" aria-live="polite"></span></div>
+    </form>
+    <div class="nfilters" role="group" aria-label="筛选备注">
+      <label class="sr-only" for="nfQ">搜索备注</label><input type="search" id="nfQ" placeholder="搜索备注内容、代码或位置">
+      <label class="sr-only" for="nfFS">状态</label><select id="nfFS"><option value="">全部状态</option><option>待跟进</option><option>已完成</option></select>
+      <label class="sr-only" for="nfFT">类型</label><select id="nfFT"><option value="">全部类型</option><option>想法</option><option>问题</option><option>待核实</option><option>结论</option></select>
+      <label><input type="checkbox" id="nfCur"> 只看当前行业</label>
+      <span class="small" id="nfCount"></span>
+    </div>
+    <div class="nlist" id="nList" tabindex="-1" aria-label="备注列表"></div>
+  </div>
+  <div class="dw-foot">
+    <div class="row"><button type="button" class="btn" id="nExport">导出 JSON</button>
+      <button type="button" class="btn" id="nImportBtn">导入 JSON</button><input type="file" id="nImport" accept="application/json,.json" hidden>
+      <span id="nIoMsg" role="status" aria-live="polite"></span></div>
+    <div id="nHint">备注只保存在当前浏览器的本地存储（localStorage）里，不会写进页面文件，重新构建页面不会丢失；换浏览器或清理浏览器数据前请先导出备份。</div>
+  </div>
+</aside>
 
 <script>
 const D = /*__DATA__*/null;
@@ -301,6 +524,241 @@ const spark = (vals, w = 120, h = 28, c = "#37c6e0") => { if (!vals || vals.leng
 $("chips").innerHTML = [`美股财报期 ${D.periods.q0}`, `抓取 ${D.fetched_at.slice(0, 10)}`, `构建 ${D.built_at}`].map(t => `<span>${esc(t)}</span>`).join("");
 $("tabs").innerHTML = D.sectors.map(s => `<button role="tab" data-s="${s.id}">${esc(s.name)} <span class="small">${D.entries.filter(e => e.sector === s.id).length}</span></button>`).join("");
 document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => { state.sector = b.dataset.s; state.seg = null; state.fSeg = ""; state.fMkt = ""; renderAll(); });
+// same as clicking a sector tab
+const switchSector = id => { if (!SEC[id]) return; state.sector = id; state.seg = null; state.fSeg = ""; state.fMkt = ""; renderAll(); };
+const debounce = (fn, ms) => { let t = 0; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+const narrow = () => matchMedia("(max-width:1099.98px)").matches;
+
+// ---------- jump to a company's evaluation card (shared by the PEG screen, quick search and notes)
+// switches sector, selects the company's segment (leaders), clears the emerging-table filters so the card is rendered, opens it and scrolls
+function jumpCompany(sector, ticker, kind) {
+  const e = D.entries.find(x => x.sector === sector && x.ticker === ticker && (!kind || x.kind === kind)) || D.entries.find(x => x.sector === sector && x.ticker === ticker);
+  if (!e) return false;
+  Object.assign(state, {sector: e.sector, seg: e.segment, fSeg: "", fMkt: "", fLv: "", fPx: "", hideCyc: false});
+  $("fLv").value = ""; $("fPx").value = ""; $("fHideCyc").checked = false;
+  renderAll();
+  const el = document.getElementById((e.kind === "leader" ? "ldc-" : "card-") + e.sector + "-" + e.ticker);
+  if (!el) return false;
+  el.open = true; el.scrollIntoView({behavior: "smooth", block: "start"});
+  el.querySelector("summary")?.focus({preventScroll: true});
+  return true;
+}
+
+// ---------- left sidebar: sections, sectors (with counts) and the step links of the active sector
+const SECTS = [["s0", "⓪ 全市场热度", 0], ["sPeg", "PEG 筛选", 0], ["s1", "① 行业总览", 1], ["s2", "② 细分拆解", 1], ["s3", "③ 龙头分析", 1],
+  ["s4", "④ 新兴机会", 1], ["s5", "⑤ 机会清单", 1], ["s6", "数据与方法", 1]];
+const SCNT = D.entries.reduce((a, e) => (a[e.sector] = (a[e.sector] || 0) + 1, a), {});
+let curSec = "s0";
+function renderSide() {
+  $("sideSecs").innerHTML = D.sectors.map(s => { const on = s.id === state.sector;
+    return `<li><button type="button" class="sl ${on ? "cur" : ""}" data-side-s="${esc(s.id)}" aria-current="${on ? "true" : "false"}"><span>${esc(s.name)}</span><span class="cnt">${SCNT[s.id] || 0}</span></button>
+      ${on ? `<div class="substeps">${SECTS.filter(x => x[2]).map(([id, t]) => `<a class="sl" href="#${id}" data-sec="${id}">${t}</a>`).join("")}</div>` : ""}</li>`; }).join("");
+  $("topCtx").textContent = "· " + S().name;
+  markSec();
+}
+function markSec() {
+  document.querySelectorAll("#side a[data-sec], .steps a").forEach(a => { const on = (a.dataset.sec || a.getAttribute("href").slice(1)) === curSec;
+    a.classList.toggle("on", on); if (on) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current"); });
+}
+$("side").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-side-s]");
+  if (b) { switchSector(b.dataset.sideS); $("s1").scrollIntoView({behavior: "smooth", block: "start"}); if (narrow()) sideClose(false); return; }
+  if (ev.target.closest("a[href^='#']") && narrow()) sideClose(false);
+});
+function sideOpen() { document.body.classList.add("side-open"); $("sideBtn").setAttribute("aria-expanded", "true"); requestAnimationFrame(() => $("qs").focus()); }
+function sideClose(refocus = true) { if (!document.body.classList.contains("side-open")) return; document.body.classList.remove("side-open"); $("sideBtn").setAttribute("aria-expanded", "false"); if (refocus) $("sideBtn").focus(); }
+$("sideBtn").onclick = () => document.body.classList.contains("side-open") ? sideClose() : sideOpen();
+$("sideBack").onclick = () => sideClose();
+// current section: the last observed section whose box overlaps the band just below the sticky bar
+const secVis = new Map();
+const secIO = new IntersectionObserver(es => {
+  es.forEach(x => secVis.set(x.target.id, x.isIntersecting));
+  const hit = SECTS.filter(([id]) => secVis.get(id)).at(-1);
+  if (hit && hit[0] !== curSec) { curSec = hit[0]; markSec(); }
+}, {rootMargin: "-140px 0px -60% 0px"});
+SECTS.forEach(([id]) => $(id) && secIO.observe($(id)));
+
+// ---------- quick company search (debounced; ticker matches rank first)
+const QIDX = D.entries.map(e => ({e, t: e.ticker.toLowerCase(), k: (e.ticker + " " + (e.name || "")).toLowerCase()}));
+let qsHits = [];
+function qsRender() {
+  const q = $("qs").value.trim().toLowerCase();
+  if (!q) { qsHits = []; $("qsRes").innerHTML = ""; return; }
+  const rk = x => x.t === q ? 0 : x.t.startsWith(q) ? 1 : x.k.includes(" " + q) ? 2 : 3;
+  qsHits = QIDX.filter(x => x.k.includes(q)).sort((a, b) => rk(a) - rk(b) || (b.e.d.mcap || 0) - (a.e.d.mcap || 0)).slice(0, 12);
+  $("qsRes").innerHTML = qsHits.map((x, i) => `<button type="button" data-qi="${i}"><b>${esc(x.e.ticker)}</b>${esc((x.e.name || "").slice(0, 22))}<br><span>${esc(SEC[x.e.sector]?.name || x.e.sector)} · ${x.e.kind === "leader" ? "龙头" : "新兴"}</span></button>`).join("")
+    || `<span class="small">没有匹配的公司</span>`;
+}
+const qsGo = i => { const x = qsHits[i]; if (!x) return; if (narrow()) sideClose(false); jumpCompany(x.e.sector, x.e.ticker, x.e.kind); };
+$("qs").addEventListener("input", debounce(qsRender, 150));
+$("qs").addEventListener("keydown", ev => {
+  if (ev.key === "Enter") { ev.preventDefault(); qsRender(); qsGo(0); }
+  else if (ev.key === "ArrowDown") { const b = $("qsRes").querySelector("button"); if (b) { ev.preventDefault(); b.focus(); } }
+  else if (ev.key === "Escape" && $("qs").value) { ev.stopPropagation(); $("qs").value = ""; qsRender(); }
+});
+$("qsRes").addEventListener("click", ev => { const b = ev.target.closest("[data-qi]"); if (b) qsGo(+b.dataset.qi); });
+$("qsRes").addEventListener("keydown", ev => {
+  const bs = [...$("qsRes").querySelectorAll("button")], i = bs.indexOf(document.activeElement);
+  if (ev.key === "ArrowDown" && i >= 0) { ev.preventDefault(); bs[Math.min(bs.length - 1, i + 1)].focus(); }
+  if (ev.key === "ArrowUp" && i >= 0) { ev.preventDefault(); (i ? bs[i - 1] : $("qs")).focus(); }
+});
+
+// ---------- back to top
+let ttRaf = 0;
+addEventListener("scroll", () => { if (ttRaf) return; ttRaf = requestAnimationFrame(() => { ttRaf = 0; $("toTop").classList.toggle("show", scrollY > 700); }); }, {passive: true});
+$("toTop").onclick = () => { scrollTo({top: 0, behavior: "smooth"}); $("pageTop").focus({preventScroll: true}); };
+
+// ---------- user notes: stored only in this browser (localStorage, one key), never in the generated HTML
+// note = {id, text, tag, status, due, created, updated, anchor: {type: company|section, sector, ticker, kind, section, label} | null}
+const NKEY = "industry-radar-notes-v1", NTAGS = ["想法", "问题", "待核实", "结论"], NSTAT = ["待跟进", "已完成"];
+const NTAGCLS = {"想法": "", "问题": "t-q", "待核实": "t-cyc", "结论": "lv-优先研究"};
+let NOTES = [], nEdit = null, nAnchor = null, nOpener = null;
+const nStr = (v, n) => typeof v === "string" ? v.slice(0, n) : "";
+const nIso = v => typeof v === "string" && !isNaN(Date.parse(v)) ? v : null;
+const nId = () => "n" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+function nClean(x) {
+  if (!x || typeof x !== "object" || typeof x.id !== "string" || !x.id.trim() || typeof x.text !== "string") return null;
+  const a = x.anchor && typeof x.anchor === "object" ? x.anchor : null, now = new Date().toISOString();
+  return {id: x.id.slice(0, 80), text: x.text.slice(0, 20000), tag: NTAGS.includes(x.tag) ? x.tag : NTAGS[0], status: NSTAT.includes(x.status) ? x.status : NSTAT[0],
+    due: /^\d{4}-\d{2}-\d{2}$/.test(x.due || "") ? x.due : "", created: nIso(x.created) || now, updated: nIso(x.updated) || nIso(x.created) || now,
+    anchor: a ? {type: a.type === "company" ? "company" : "section", sector: nStr(a.sector, 80), ticker: nStr(a.ticker, 40), kind: nStr(a.kind, 20), section: nStr(a.section, 20), label: nStr(a.label, 200)} : null};
+}
+function nLoad() {
+  try { const raw = localStorage.getItem(NKEY), j = raw ? JSON.parse(raw) : null; NOTES = (Array.isArray(j) ? j : (j && j.notes) || []).map(nClean).filter(Boolean); }
+  catch (err) { NOTES = []; $("nHint").textContent = "这个浏览器不允许读取本地存储，备注无法保存。可以先写好后用“导出 JSON”保存。"; }
+}
+function nSave() {
+  try { localStorage.setItem(NKEY, JSON.stringify({version: 1, saved_at: new Date().toISOString(), notes: NOTES})); return true; }
+  catch (err) { $("nfMsg").textContent = "保存失败：浏览器不允许本地存储或空间已满，请导出备份"; return false; }
+}
+const fmtT = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleString("zh-CN", {hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"}); };
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+const companyAnchor = e => ({type: "company", sector: e.sector, ticker: e.ticker, kind: e.kind, section: e.kind === "leader" ? "s3" : "s4", label: `${e.ticker} · ${e.name || ""} · ${SEC[e.sector]?.name || e.sector}`});
+const ctxAnchor = () => { const s = SECTS.find(x => x[0] === curSec) || SECTS[2];
+  return {type: "section", sector: s[2] ? state.sector : "", ticker: "", kind: "", section: s[0], label: s[2] ? `${S().name} · ${s[1]}` : s[1]}; };
+// "＋备注" button and count badge used on evaluation cards and PEG rows (counted per ticker across sectors)
+const noteCtl = e => `<button type="button" class="nbadge" data-nbt="${esc(e.ticker)}" hidden></button><button type="button" class="addn" data-addnote data-ns="${esc(e.sector)}" data-nt="${esc(e.ticker)}" data-nk="${esc(e.kind)}" aria-label="为 ${esc(e.ticker)} 添加备注">＋备注</button>`;
+function nBadges() {
+  const c = {}; NOTES.forEach(n => { if (n.anchor?.type === "company" && n.anchor.ticker) { const k = n.anchor.ticker; c[k] = c[k] || [0, 0]; c[k][0]++; if (n.status !== "已完成") c[k][1]++; } });
+  document.querySelectorAll("[data-nbt]").forEach(b => { const v = c[b.dataset.nbt];
+    b.hidden = !v; if (v) { b.textContent = `备注 ${v[0]}`; b.setAttribute("aria-label", `查看 ${b.dataset.nbt} 的 ${v[0]} 条备注（${v[1]} 条待跟进）`); } });
+  $("notesN").textContent = NOTES.length;
+  const open = NOTES.filter(n => n.status !== "已完成").length;
+  $("notesBtn").title = `${NOTES.length} 条备注，${open} 条待跟进`;
+  $("notesStat").textContent = `${NOTES.length} 条 · 待跟进 ${open}`;
+}
+function nFormSet(note, anchor) {
+  nEdit = note ? note.id : null; nAnchor = note ? note.anchor : anchor === undefined ? ctxAnchor() : anchor;
+  $("nfTitle").textContent = note ? "编辑备注" : "新建备注";
+  $("nfText").value = note ? note.text : ""; $("nfTag").value = note ? note.tag : NTAGS[0]; $("nfStatus").value = note ? note.status : NSTAT[0]; $("nfDue").value = note ? note.due : "";
+  $("nfCancel").hidden = !note; $("nfSave").textContent = note ? "保存修改" : "保存";
+  $("nfAnchor").textContent = nAnchor ? nAnchor.label : "（不关联）";
+}
+const isOpen = () => $("notes").classList.contains("open");
+function nOpen(anchor, opener, focusText = true) {
+  if (!isOpen()) { nOpener = opener || document.activeElement; $("notes").classList.add("open"); document.body.classList.add("notes-open"); $("notesBtn").setAttribute("aria-expanded", "true"); }
+  if (anchor !== false) nFormSet(null, anchor);
+  nRenderList();
+  if (focusText) requestAnimationFrame(() => $("nfText").focus());
+}
+function nClose(refocus = true) {
+  if (!isOpen()) return;
+  $("notes").classList.remove("open"); document.body.classList.remove("notes-open"); $("notesBtn").setAttribute("aria-expanded", "false");
+  if (refocus) (nOpener && document.contains(nOpener) && nOpener.offsetParent !== null ? nOpener : $("notesBtn")).focus();
+}
+function nRenderList() {
+  if (!isOpen()) return;
+  const q = $("nfQ").value.trim().toLowerCase(), st = $("nfFS").value, tg = $("nfFT").value, cur = $("nfCur").checked, td = today();
+  const list = NOTES.filter(n => (!st || n.status === st) && (!tg || n.tag === tg) && (!cur || n.anchor?.sector === state.sector)
+      && (!q || (n.text + " " + (n.anchor?.label || "") + " " + (n.anchor?.ticker || "")).toLowerCase().includes(q)))
+    .sort((a, b) => b.updated.localeCompare(a.updated));
+  $("nfCount").textContent = `${list.length} / ${NOTES.length} 条`;
+  $("nList").innerHTML = list.map(n => { const done = n.status === "已完成", late = !done && n.due && n.due < td;
+    return `<article class="nitem ${done ? "done" : ""}" data-id="${esc(n.id)}">
+      <div class="nmeta"><span class="tag ${NTAGCLS[n.tag] || ""}">${esc(n.tag)}</span><span class="tag ${done ? "lv-可以观察" : "t-warn"}">${esc(n.status)}</span>
+        ${n.due ? `<span class="small ${late ? "neg" : ""}">跟进 ${esc(n.due)}${late ? "（已过期）" : ""}</span>` : ""}</div>
+      ${n.anchor ? `<button type="button" class="nanchor" data-act="go" title="跳转到关联位置">${n.anchor.type === "company" ? "◆" : "§"} ${esc(n.anchor.label)}</button>` : ""}
+      <div class="ntext">${esc(n.text)}</div>
+      <div class="nfoot"><span class="small">更新 ${esc(fmtT(n.updated))}${n.created !== n.updated ? ` · 创建 ${esc(fmtT(n.created))}` : ""}</span>
+        <span class="nacts"><button type="button" data-act="done">${done ? "重新打开" : "标记完成"}</button><button type="button" data-act="edit">编辑</button><button type="button" data-act="del" class="danger">删除</button></span></div>
+    </article>`; }).join("") || `<p class="small">${NOTES.length ? "没有符合筛选条件的备注。" : "还没有备注。可以直接在上面写，或点评估卡、PEG 表里的“＋备注”。"}</p>`;
+}
+function nChanged() { nBadges(); nRenderList(); }
+function nGo(a) {
+  if (!a) return;
+  if (a.type === "company") {
+    if (!jumpCompany(a.sector, a.ticker, a.kind)) { $("nfMsg").textContent = "当前数据里找不到这家公司（可能已不在该行业）"; return; }
+  } else {
+    const s = SECTS.find(x => x[0] === a.section); if (!s) return;
+    if (s[2] && a.sector && SEC[a.sector] && a.sector !== state.sector) switchSector(a.sector);
+    $(s[0]).scrollIntoView({behavior: "smooth", block: "start"});
+  }
+  if (innerWidth < 1280) nClose(false);   // the drawer would cover the target
+}
+$("nForm").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const text = $("nfText").value.trim();
+  if (!text) { $("nfMsg").textContent = "请先写备注内容"; $("nfText").focus(); return; }
+  const now = new Date().toISOString(), f = {text, tag: $("nfTag").value, status: $("nfStatus").value, due: $("nfDue").value, anchor: nAnchor}, wasEdit = !!nEdit;
+  const cur = nEdit && NOTES.find(x => x.id === nEdit);
+  if (cur) Object.assign(cur, f, {updated: now}); else NOTES.push(nClean({id: nId(), ...f, created: now, updated: now}));
+  nSave(); nFormSet(null, nAnchor); nChanged();
+  $("nfMsg").textContent = wasEdit ? "已更新" : "已保存";
+  $("nfText").focus();
+});
+$("nfText").addEventListener("keydown", ev => { if (ev.key === "Enter" && (ev.ctrlKey || ev.metaKey)) { ev.preventDefault(); $("nForm").requestSubmit(); } });
+$("nfCancel").onclick = () => { nFormSet(null); $("nfMsg").textContent = ""; $("nfText").focus(); };
+$("nfHere").onclick = () => { nAnchor = ctxAnchor(); $("nfAnchor").textContent = nAnchor.label; };
+$("nfNoA").onclick = () => { nAnchor = null; $("nfAnchor").textContent = "（不关联）"; };
+$("nList").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-act]"), it = b && b.closest("[data-id]"); if (!it) return;
+  const n = NOTES.find(x => x.id === it.dataset.id); if (!n) return;
+  const act = b.dataset.act;
+  if (act === "go") nGo(n.anchor);
+  else if (act === "edit") { nFormSet(n); $("nfMsg").textContent = ""; $("notes").querySelector(".dw-body").scrollTop = 0; $("nfText").focus(); }
+  else if (act === "done") { n.status = n.status === "已完成" ? "待跟进" : "已完成"; n.updated = new Date().toISOString(); nSave(); nChanged();
+    const again = $("nList").querySelector(`[data-id="${CSS.escape(n.id)}"] [data-act="done"]`); (again || $("nList")).focus(); }
+  else if (act === "del" && confirm("删除这条备注？删除后不能恢复（除非之前导出过）。")) {
+    NOTES = NOTES.filter(x => x.id !== n.id); if (nEdit === n.id) nFormSet(null); nSave(); nChanged(); $("nList").focus(); }
+});
+const nListDeb = debounce(nRenderList, 200);
+$("nfQ").addEventListener("input", nListDeb);
+["nfFS", "nfFT", "nfCur"].forEach(id => $(id).addEventListener("change", nRenderList));
+$("notesBtn").onclick = () => isOpen() ? nClose() : nOpen(undefined, $("notesBtn"));
+$("notesClose").onclick = () => nClose();
+// delegated: "＋备注" opens the drawer with the company anchor; the count badge opens it filtered to that ticker.
+// preventDefault stops the click from also toggling the <details> when the button sits in a <summary>
+document.addEventListener("click", ev => {
+  const add = ev.target.closest("[data-addnote]"), bd = ev.target.closest("[data-nbt]");
+  if (!add && !bd) return;
+  ev.preventDefault(); ev.stopPropagation();
+  if (add) { const e = D.entries.find(x => x.sector === add.dataset.ns && x.ticker === add.dataset.nt && x.kind === add.dataset.nk); nOpen(e ? companyAnchor(e) : null, add); }
+  else { $("nfQ").value = bd.dataset.nbt; $("nfFS").value = ""; $("nfFT").value = ""; $("nfCur").checked = false; nOpen(false, bd, false); $("nfQ").focus(); }
+});
+document.addEventListener("keydown", ev => {
+  if (ev.key !== "Escape") return;
+  if (isOpen()) { ev.preventDefault(); nClose(); } else if (document.body.classList.contains("side-open")) sideClose();
+});
+// export / import (merge by note id; the newer "updated" wins, no duplicates)
+$("nExport").onclick = () => {
+  const blob = new Blob([JSON.stringify({app: "industry-radar", version: 1, exported_at: new Date().toISOString(), notes: NOTES}, null, 2)], {type: "application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `industry-radar-notes-${today()}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  $("nIoMsg").textContent = `已导出 ${NOTES.length} 条`;
+};
+$("nImportBtn").onclick = () => $("nImport").click();
+$("nImport").onchange = async ev => {
+  const file = ev.target.files[0]; ev.target.value = ""; if (!file) return;
+  if (file.size > 5e6) { $("nIoMsg").textContent = "文件太大（超过 5 MB）"; return; }
+  let j; try { j = JSON.parse(await file.text()); } catch (err) { $("nIoMsg").textContent = "不是有效的 JSON 文件"; return; }
+  const inc = (Array.isArray(j) ? j : (j && Array.isArray(j.notes) ? j.notes : [])).map(nClean).filter(Boolean);
+  let add = 0, upd = 0, same = 0; const by = new Map(NOTES.map(n => [n.id, n]));
+  inc.forEach(n => { const o = by.get(n.id); if (!o) { by.set(n.id, n); add++; } else if (n.updated > o.updated) { by.set(n.id, n); upd++; } else same++; });
+  NOTES = [...by.values()]; nSave(); nChanged();
+  $("nIoMsg").textContent = `导入：新增 ${add} 条，更新 ${upd} 条，跳过 ${same} 条`;
+};
+addEventListener("storage", ev => { if (ev.key === NKEY) { nLoad(); nChanged(); } });   // another tab changed the notes
+nLoad(); nFormSet(null, null);
 
 // ---------- ① overview
 function renderOverview() {
@@ -502,6 +960,7 @@ function renderEmerging() {
     <td class="n">${e.mkt?.analysts ?? "—"}</td><td class="n">${e.insider ? `<span class="${e.insider.buys ? "pos" : ""}">${e.insider.buys}</span> / ${e.insider.sells}` : "—"}</td>
     <td class="n"><span class="tag lv-${e.level}">${e.level}</span><div class="small">${e.rank ? "排第 " + e.rank : esc(e.gate || "")}</div></td></tr>`; }).join("");
   $("cards").innerHTML = list.map(e => evalCard(e, "card", e.pool)).join("");
+  nBadges();
 }
 
 // ---------- evaluation card (shared by leaders and emerging companies)
@@ -565,8 +1024,9 @@ function qualBlock(e) {
       ${d && au ? `<details class="sub"><summary class="small">申报原文摘录</summary>${au}</details>` : ""}</div>`;
   }).join("");
   const links = Object.entries(e.auto?.links || {}).map(([k, v]) => `<a href="${esc(v.url)}" target="_blank" rel="noopener noreferrer">${esc(k)}${v.date ? " " + esc(v.date) : ""}</a>`).join(" · ");
-  return `<div class="card" style="margin-top:10px"><h4>综合评估：业务、客户、管理层、行业、产品、风险</h4><div style="margin-bottom:8px">${head}</div>
-    <div class="grid g3 dims">${cells}</div>${links ? `<div class="small" style="margin-top:6px">原始申报：${links}</div>` : ""}</div>`;
+  // collapsible group: open by default when a research file exists, collapsed when it only holds raw filing extracts
+  return `<details class="grp" ${rs ? "open" : ""}><summary>综合评估 <span class="small">业务 · 客户 · 管理层 · 行业 · 产品 · 风险</span></summary><div class="grp-body"><div style="margin-bottom:8px">${head}</div>
+    <div class="grid g3 dims">${cells}</div>${links ? `<div class="small" style="margin-top:6px">原始申报：${links}</div>` : ""}</div></details>`;
 }
 function evalCard(e, prefix, open) {
   const d = e.d, n = D.notes[e.ticker] || {}, nq = e.mkt?.next_q, ld = e.kind === "leader";
@@ -586,33 +1046,41 @@ function evalCard(e, prefix, open) {
   ].join("");
   // checklist without repeating what the opportunity / risk lists already say: one short line per dimension
   const compact = e.checks.map(c => `<div class="chk"><span class="${c.status}">${ICON[c.status]}</span><span>${esc(c.key)}</span><span class="small">${esc(c.text.split(/[。；]/)[0])}</span></div>`).join("");
+  // summary row: ticker badge, name, segment / level pills, market, then key numbers (price, market cap, PEG) and the note controls
+  const PF = d.pegf || {}, PH = d.pegh || {}, good = (D.cfg.flags.peg || {}).good_max;
+  const pegPill = (l, v, ok) => v == null ? "" : `<span class="np ${!ok ? "unrel" : good != null && v <= good ? "good" : ""}"${ok ? "" : ' data-tip="不可靠，只作参考，不参与判断"'}>${l} <b>${num(v, 2)}</b></span>`;
   return `<details class="ec" id="${prefix}-${state.sector}-${esc(e.ticker)}" ${open ? "open" : ""}>
-    <summary><b>${esc(e.ticker)}</b>${esc(e.name)} <span class="tag">${esc(segName(e.segment))}</span> <span class="tag lv-${e.level}">${e.level}</span>
-      <span class="small">${esc(e.market)}${e.rank ? ` · 排第 ${e.rank}，综合百分位 ${(e.score * 100).toFixed(0)}` : e.gate ? ` · 未排序：${esc(e.gate)}` : ""}</span></summary>
+    <summary><span class="ec-tk ${ld ? "ld" : ""}">${esc(e.ticker)}</span><span class="ec-nm">${esc(e.name)}</span><span class="tag">${esc(segName(e.segment))}</span><span class="tag lv-${esc(e.level)}">${esc(e.level)}</span>
+      <span class="ec-meta">${esc(e.market)}${e.rank ? ` · 排第 ${e.rank}，综合百分位 ${(e.score * 100).toFixed(0)}` : e.gate ? ` · 未排序：${esc(e.gate)}` : ""}</span>
+      <span class="ec-nums"><span class="np">股价 <b>${d.price ? num(d.price, 2) + " " + esc(d.ccy || "") : "—"}</b></span><span class="np">市值 <b>${yi(d.mcap)} 亿</b></span>${pegPill("PEG 前瞻", PF.v, PF.ok)}${pegPill("历史", PH.v, PH.ok)}
+        ${noteCtl(e)}</span></summary>
+    <div class="ec-body">
     <div class="ec-head">
       <div class="one">${esc(e.oneliner) || "—"}${e.oneliner_src === "en" ? ' <span class="tier">（英文原文）</span>' : ""}</div>
       <div class="concl"><b>综合结论：</b>${esc(e.final)}<div class="small" style="margin-top:4px"><b>数据面依据：</b>${esc(e.conclusion)}</div></div>
     </div>
     <div class="grid g4">${tiles}</div>
     <div class="grid g2" style="margin-top:10px">
-      <div class="card"><h4 class="ok">机会</h4>
+      <div class="card opp"><h4>机会</h4>
         ${(e.research?.bull || []).length || n.bull ? `<div class="small"><b>业务层面</b></div><ul>${(e.research?.bull || []).map(x => `<li>${esc(x)}</li>`).join("")}${n.bull ? `<li>${esc(n.bull)}</li>` : ""}</ul><div class="small" style="margin-top:4px"><b>数据层面</b></div>` : ""}
         <ul>${e.bull.map(x => `<li>${esc(x)}</li>`).join("") || "<li>数据上没有突出的机会信号</li>"}</ul></div>
-      <div class="card"><h4 class="warn">风险</h4>
+      <div class="card risk"><h4>风险</h4>
         ${(e.research?.bear || []).length || n.bear ? `<div class="small"><b>业务层面</b></div><ul>${(e.research?.bear || []).map(x => `<li>${esc(x)}</li>`).join("")}${n.bear ? `<li>${esc(n.bear)}</li>` : ""}</ul><div class="small" style="margin-top:4px"><b>数据层面</b></div>` : ""}
         <ul>${e.bear.map(x => `<li>${esc(x)}</li>`).join("") || "<li>数据上没有明显的风险信号</li>"}</ul></div>
     </div>
     ${qualBlock(e)}
-    <div class="grid g3" style="margin-top:10px">
+    <details class="grp" open><summary>证据与下一步 <span class="small">${ld ? "价格位置" : "因子画像"} · 林奇清单 · 待验证问题 · 研究笔记</span></summary>
+    <div class="grid g3 grp-body">
       <div class="card"><h4>${ld ? "价格位置" : "因子画像"}</h4>${ld ? "" : radar(e.factors)}${rangeBar(e)}${ld && e.ret1y != null ? `<div class="small" style="margin-top:6px">一年 ${pc(e.ret1y)}，同期 ${esc(S().benchmark.symbol)} ${pc(e.bench1y)}</div>${spark(e.spark, 260, 40)}` : ""}</div>
       <div class="card"><h4>林奇清单</h4>${compact}
         ${e.insider?.rows?.length ? `<div class="small" style="margin-top:6px"><b>内部人公开市场交易：</b><br>${e.insider.rows.slice(0, 4).map(r => `${r.date} ${esc(r.owner)} <span class="${r.code === "P" ? "pos" : "neg"}">${r.code === "P" ? "买入" : "卖出"}</span> ${Math.round(r.shares).toLocaleString()} 股 @ ${r.price.toFixed(2)}`).join("<br>")}</div>` : ""}</div>
       <div class="card"><h4>下一步要验证</h4><ol class="small">${(e.research?.open_questions || []).map(x => `<li>${esc(x)} <span class="tier">调研</span></li>`).join("")}${(e.verify || []).slice(0, e.research ? 3 : 6).map(x => `<li>${esc(x)}</li>`).join("")}</ol>
         <h4 style="margin-top:8px">研究笔记 <span class="tier">config/notes.json</span></h4><div class="manual">${f("category", "林奇分类")}${f("story", "两分钟故事")}${f("falsify", "反证条件")}${f("customers", "客户集中度")}</div></div>
-    </div>
+    </div></details>
     <div class="small" style="margin-top:8px">${links}<a href="https://finance.yahoo.com/quote/${encodeURIComponent(e.ticker)}" target="_blank" rel="noopener noreferrer">Yahoo Finance</a>${e.deep ? ` · <a href="${esc(e.deep)}">个股深度看板</a>` : ""}
       · 财报期截止 ${esc(e.q_end || "—")} · ${e.sic ? "SIC " + e.sic + " " + esc(e.sic_desc) : esc(e.industry || (e.mkt?.profile?.industry) || "")} · 分析师 ${e.mkt?.analysts ?? "—"} 家 · 机构持股 ${e.mkt?.institutions != null ? (e.mkt.institutions * 100).toFixed(0) + "%" : "—"}
       ${e.override ? ` · <span class="warn">环节为人工调整：${esc(e.override)}（需复核）</span>` : ""}</div>
+    </div>
   </details>`;
 }
 
@@ -653,6 +1121,7 @@ function renderMeta() {
 function renderAll() {
   document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.s === state.sector));
   renderOverview(); renderSegments(); renderLeaders(); renderBubble(); renderEmerging(); renderOpp(); renderMeta();
+  renderSide(); nBadges(); if ($("nfCur").checked) nRenderList();
 }
 $("fSeg").onchange = e => { state.fSeg = e.target.value; renderEmerging(); };
 $("fMkt").onchange = e => { state.fMkt = e.target.value; renderEmerging(); };
@@ -743,7 +1212,7 @@ function renderPegBody() {
     .sort((a, b) => { const x = get(a), y = get(b); if (x == null || x === "") return 1; if (y == null || y === "") return -1; return (x > y ? 1 : x < y ? -1 : 0) * pg.dir; });
   $("pgCount").textContent = `${list.length} 家（通过 ${PGROWS.filter(r => r.e.peg_pass).length} / 待核实 ${PGROWS.filter(r => r.e.peg_watch).length}）`;
   $("pgBody").innerHTML = list.map(r => { const e = r.e, d = e.d, F = d.pegf || {}, up = pgUp(e);
-    return `<tr><td><button type="button" class="btn" style="padding:1px 8px" data-pg="${esc(e.ticker)}">${esc(e.ticker)}</button></td>
+    return `<tr><td><div class="pgtk"><button type="button" class="btn" style="padding:1px 8px" data-pg="${esc(e.ticker)}">${esc(e.ticker)}</button>${noteCtl(e)}</div></td>
     <td class="small">${esc((e.name || "").slice(0, 28))}<div>${esc((e.oneliner || "").slice(0, 46))}</div></td>
     <td class="small">${r.secs.map(s => esc(SEC[s].name)).join(" / ")}<div><span class="tag">${esc(SEC[e.sector].segments.find(g => g.id === e.segment)?.name || e.segment)}</span>${e.cyclical ? ' <span class="tag t-cyc">周期</span>' : ""}</div></td>
     <td>${e.kind === "leader" ? '<span class="tag t-ld">龙头</span>' : '<span class="tag">新兴</span>'}<div class="small">${esc(e.market)}</div></td>
@@ -756,11 +1225,9 @@ function renderPegBody() {
   // jump to the company's evaluation card in its sector tab
   document.querySelectorAll("#pgBody button[data-pg]").forEach(b => b.onclick = () => {
     const r = PGROWS.find(x => x.e.ticker === b.dataset.pg), e = r.e;
-    Object.assign(state, {sector: e.sector, seg: e.segment, fSeg: "", fMkt: "", fLv: "", fPx: "", hideCyc: false});
-    renderAll();
-    const id = (e.kind === "leader" ? "ldc-" : "card-") + e.sector + "-" + e.ticker, el = document.getElementById(id);
-    if (el) { el.open = true; el.scrollIntoView({behavior: "smooth", block: "start"}); }
+    jumpCompany(e.sector, e.ticker, e.kind);
   });
+  nBadges();
   $("pgNote").innerHTML = esc(`PEG 只说明增速相对估值的位置，不说明增速能否兑现，也不包括客户集中度、竞争、稀释和一次性收益这些风险；` +
     `一致预期是 Yahoo 的非官方数据，分析师少于 5 家的公司参考价值更低。目标价是卖方观点，不是预测。点击代码打开该公司在所属行业里的评估卡。`);
 }

@@ -51,6 +51,11 @@ def profile(g):
     return g.get("profile", "standard")
 
 
+def no_peg(g):
+    """Reason text when the segment sets "peg": false (PEG not meaningful there), otherwise None."""
+    return (g.get("peg_why") or "本环节不适用 PEG") if g.get("peg") is False else None
+
+
 def view(r, prof):
     """The row as seen by one evaluation profile.
 
@@ -87,5 +92,5 @@ def memberships(r, only_sector=None):
         if passes(view(r, profile(g)), t):
             out.append({"sector": s["id"], "segment": g["id"], "override": why_override,
                         "cyclical": bool(g.get("cyclical")), "mcap_max": t["market_cap_max"],
-                        "profile": profile(g), "credit": bool(g.get("credit")), "verify": g.get("verify", [])})
+                        "profile": profile(g), "credit": bool(g.get("credit")), "verify": g.get("verify", []), "no_peg": no_peg(g)})
     return out, excluded

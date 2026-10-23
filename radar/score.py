@@ -9,7 +9,8 @@ FACTOR_CN = {"growth": "增速", "accel": "加速", "gm": "毛利率", "gm_trend
 
 
 def derived(r, prof=None):
-    """prof: {"profile": "standard" | "financial", "credit": bool, "verify": [...]} from the segment config."""
+    """prof: {"profile": "standard" | "financial", "credit": bool, "verify": [...], "cyclical": bool, "no_peg": reason or None}
+    from the segment config."""
     prof = prof or {}
     m = r.get("mkt") or {}
     d = {"mcap": m.get("mcap"), "price": m.get("price"), "ccy": m.get("currency")}
@@ -26,7 +27,7 @@ def derived(r, prof=None):
         d["pe"] = round(d["mcap"] / r["ni_ttm"], 1) if r.get("ni_ttm") and r["ni_ttm"] > 0 else None
     else:
         d.update(ps=None, ps_g=None, pe=None)
-    _peg(r, d, bool(prof.get("cyclical")), prof.get("profile") == "financial")
+    _peg(r, d, bool(prof.get("cyclical")), prof.get("profile") == "financial", prof.get("no_peg"))
     d["runway"] = round(r["cash"] / (-r["ni_ttm"] / 4), 1) if r.get("ni_ttm") is not None and r["ni_ttm"] < 0 and r.get("cash") else None
     ins = r.get("insider")
     d["ins_net"] = (ins["buy_val"] - ins["sell_val"]) / d["mcap"] * 100 if d["mcap"] and ins else None
@@ -46,8 +47,11 @@ PG = FL["peg"]
 CYC_PEG = "周期环节，盈利高点时 PE 最低，PEG 不适用"
 
 
-def _peg(r, d, cyc, fin):
+def _peg(r, d, cyc, fin, no_peg=None):
     """Two PEGs (P/E TTM / EPS growth in percent) and a divergence flag.
+
+    no_peg: reason text when the segment config sets "peg": false (e.g. REITs: net income carries large depreciation,
+    valued on FFO / AFFO); PEG is then not shown for any profile, the same way as standard cyclical segments.
 
     Forward d["pegf"]: consensus EPS of the next fiscal year (+1y) over the current one (0y) from Yahoo earningsTrend; needs
     >= min_analysts estimates for +1y and both estimates > 0. Also a forward-P/E variant: (price / FY1 EPS) / the same growth.
@@ -62,6 +66,9 @@ def _peg(r, d, cyc, fin):
     H = {"v": None, "ok": False, "g": None, "basis": None, "why": None, "neg": False, "note": None}
     d.update(peg=None, peg_ok=False, peg_method=None, peg_g=None, peg_n=None, peg_fy=None, peg_why=None, peg_note=None,
              fpe=None, pegf=F, pegh=H, peg_div=None)
+    if no_peg:
+        F["why"] = H["why"] = d["peg_why"] = no_peg
+        return
     if cyc and not fin:
         F["why"] = H["why"] = d["peg_why"] = CYC_PEG
         return

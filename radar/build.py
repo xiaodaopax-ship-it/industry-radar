@@ -8,7 +8,7 @@ import statistics as st
 from . import heat, research
 from . import score as S
 from .yh import first_sentence
-from .classify import memberships, profile, sectors, view
+from .classify import memberships, no_peg, profile, sectors, view
 from .paths import CFG, DATA, ROOT, SITE, TEMPLATES, load
 
 
@@ -102,7 +102,8 @@ def build(raw):
                 r = {"ticker": t, "name": (L.get("mkt") or {}).get("name") or t, "market": MARKET.get(t.split(".")[-1], "US") if "." in t else "US",
                      "mkt": L.get("mkt"), "insider": None, **f}
                 r = view(r, profile(g))
-                d = S.derived(r, {"profile": profile(g), "credit": bool(g.get("credit")), "verify": g.get("verify", []), "cyclical": bool(g.get("cyclical"))})
+                d = S.derived(r, {"profile": profile(g), "credit": bool(g.get("credit")), "verify": g.get("verify", []), "cyclical": bool(g.get("cyclical")),
+                                  "no_peg": no_peg(g)})
                 bull, bear = S.bull_bear(r, d, bool(g.get("cyclical")), g["id"], leader=True)
                 px = L.get("px") or []
                 b = bench.get(s["benchmark"]["symbol"]) or []

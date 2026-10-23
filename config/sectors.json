@@ -221,7 +221,7 @@
     {
       "id": "payments", "name": "支付与金融软件",
       "benchmark": {"symbol": "IPAY", "name": "数字支付 ETF IPAY"},
-      "lynch_note": "支付公司的收入跟交易量和费率挂钩，量增长不一定带来同比例的收入增长，要看费率（take rate）的变化。券商、交易所、放贷和先买后付公司归到「券商、交易平台与放贷科技」行业，按金融类口径评估；银行不在覆盖范围。部分支付公司的 SIC 同时落在软件行业，已在软件行业里排除，避免重复计数。",
+      "lynch_note": "支付公司的收入跟交易量和费率挂钩，量增长不一定带来同比例的收入增长，要看费率（take rate）的变化。券商、交易所、放贷和先买后付公司归到「券商、交易平台与放贷科技」行业，按金融类口径评估；银行归到「银行」行业，保险和保险经纪归到「保险与保险经纪」行业。部分支付公司的 SIC 同时落在软件行业，已在软件行业里排除，避免重复计数。",
       "thesis": "卡支付量保持增长：Visa 截至 2026-06 的财季支付量按固定汇率同比 +10%，万事达卡 2026Q2 总交易额本币口径同比 +8%，跨境交易增速高于整体。",
       "demand": [
         {"text": "美联储支付研究：2024 年美国非现金支付 2,366 亿笔，卡支付占笔数的 79%；2021–2024 年笔数年均增长 4.9%", "as_of": "2024", "tier": "primary", "url": "https://www.federalreserve.gov/paymentsystems/frps_cy2015_24_topline.htm"},
@@ -264,10 +264,10 @@
           "COIN": "归到券商、交易平台与放贷科技行业（加密资产交易平台）",
           "CRCL": "归到券商、交易平台与放贷科技行业（稳定币发行）",
           "DAVE": "归到券商、交易平台与放贷科技行业（小额现金预支与数字账户）",
-          "AXP": "发卡与放贷，银行控股公司，不在本工具覆盖范围",
-          "CHYM": "数字银行（收入以借记卡交换费为主），金融类行业暂未覆盖数字银行",
-          "GDOT": "银行控股公司，不在本工具覆盖范围",
-          "NU": "数字银行，不在本工具覆盖范围"
+          "AXP": "发卡与放贷，银行控股公司；SIC 为 6199（金融服务），不在「银行」行业按 SIC 覆盖的范围（6021/6022/6029/6035/6036），暂未覆盖",
+          "CHYM": "数字银行服务（收入以借记卡交换费为主）；SIC 为 6199，不在「银行」行业按 SIC 覆盖的范围，暂未覆盖",
+          "GDOT": "银行控股公司；SIC 为 6199，不在「银行」行业按 SIC 覆盖的范围，暂未覆盖",
+          "NU": "数字银行；SIC 为 6199，不在「银行」行业按 SIC 覆盖的范围，暂未覆盖"
         }
       }
     },
@@ -275,7 +275,7 @@
     {
       "id": "fin", "name": "券商、交易平台与放贷科技",
       "benchmark": {"symbol": "KCE", "name": "资本市场 ETF KCE"},
-      "lynch_note": "金融类公司的财务结构和产品公司不同：券商、交易所和放贷公司没有毛利，资产负债表上的现金大多是客户资金，所以本行业不看毛利率和现金跑道，改看税前利润率、ROE、市盈率与市净率、股东权益增长；放贷环节另看信用损失拨备占收入的比例和变化。券商、交易平台和加密资产交易的收入随交易量和利率变化，有周期性，这些环节标为周期但不剔除，只作提示。投行、银行、保险和资产管理公司不在本行业。IBKR 这类有大量少数股东权益的公司，归母口径的净利润和股东权益与市值口径不一致，市盈率、市净率要回到原始财报核对。",
+      "lynch_note": "金融类公司的财务结构和产品公司不同：券商、交易所和放贷公司没有毛利，资产负债表上的现金大多是客户资金，所以本行业不看毛利率和现金跑道，改看税前利润率、ROE、市盈率与市净率、股东权益增长；放贷环节另看信用损失拨备占收入的比例和变化。券商、交易平台和加密资产交易的收入随交易量和利率变化，有周期性，这些环节标为周期但不剔除，只作提示。投行、银行、保险和资产管理公司不在本行业（银行、保险分别见「银行」「保险与保险经纪」行业）。IBKR 这类有大量少数股东权益的公司，归母口径的净利润和股东权益与市值口径不一致，市盈率、市净率要回到原始财报核对。",
       "thesis": "券商与交易平台的客户活跃度处在高位：嘉信理财 2026Q3 日均交易量 1,070 万笔，同比 +44%；盈透证券 9 月客户账户 558 万个，同比 +35%。芝商所 Q3 日均成交量创同期纪录。放贷端，美联储数据显示 8 月消费信贷总额增速放缓，循环信贷按年化下降 4.2%。",
       "demand": [
         {"text": "嘉信理财 2026Q3 日均交易量 1,070 万笔，同比 +44%；客户总资产 13.33 万亿美元，同比 +15%；当季新开经纪账户 120 万个", "as_of": "2026Q3", "tier": "primary", "url": "https://pressroom.aboutschwab.com/press-releases/press-release/2026/Schwab-Delivers-Record-Net-New-Assets--Earnings/default.aspx"},
@@ -331,6 +331,235 @@
           "BLK": "资产管理公司，不在本行业范围"
         }
       }
+    },
+
+    {
+      "id": "oilgas", "name": "油气开采、油服与炼化",
+      "benchmark": {"symbol": "XLE", "name": "能源 ETF XLE"},
+      "lynch_note": "油气公司的收入和利润主要随油价、气价和炼油价差变化，是典型的周期股：营收高增长多出现在价格上行段，盈利高点时市盈率反而最低，PEG 会显得最便宜。所以本行业所有环节都标为周期，不进研究优先池，也不显示 PEG。判断时要看产量、单位成本、套期保值、储量和资本开支；油服看钻井和压裂活动、国际与北美收入结构；炼化看开工率和裂解价差（crack spread）。这些数据本工具不采集，要读公司公告和 EIA 数据。本行业只记录价格和量的数据，不解读价格变化的原因。COP 的 SEC 行业代码是 2911（炼油），但主营勘探开发，作为勘探与开采环节的龙头列出。",
+      "thesis": "EIA 10 月短期能源展望：9 月布伦特原油现货均价 114 美元/桶，预计 2026 年四季度均价 105 美元/桶、2027 年降到 84 美元/桶；美国柴油和汽油的裂解价差处在高位。油服方面，哈里伯顿三季度北美收入环比下降 5%，国际收入环比增长 3%。",
+      "demand": [
+        {"text": "EIA 10 月 STEO：2026 年 9 月布伦特原油现货均价 114 美元/桶，比 8 月高 23 美元；预计 4Q26 均价 105 美元/桶，比上月预测高 14 美元", "as_of": "2026-10", "tier": "primary", "url": "https://www.eia.gov/outlooks/steo/report/global_oil.php"},
+        {"text": "EIA 10 月 STEO：预计 2027 年布伦特现货均价 84 美元/桶", "as_of": "2026-10", "tier": "primary", "url": "https://www.eia.gov/outlooks/steo/"},
+        {"text": "EIA 10 月 STEO：估计 3Q26 全球石油库存平均每天减少 190 万桶，预计 4Q26 平均每天再减少 70 万桶", "as_of": "2026-10", "tier": "primary", "url": "https://www.eia.gov/outlooks/steo/report/global_oil.php"}
+      ],
+      "intl": {"regions": [], "industries": []},
+      "segments": [
+        {"id": "upstream", "name": "油气勘探与开采", "sic": [1311], "name_regex": "", "yahoo_industry": [], "cyclical": true,
+         "leaders": ["COP", "EOG", "OXY"],
+         "demand": []},
+        {"id": "integrated", "name": "综合油气公司", "sic": [2911], "name_regex": "exxon|chevron", "yahoo_industry": [], "cyclical": true,
+         "leaders": ["XOM", "CVX"],
+         "demand": []},
+        {"id": "refining", "name": "炼油与成品油销售", "sic": [2911], "name_regex": "", "yahoo_industry": [], "cyclical": true,
+         "leaders": ["MPC", "VLO", "PSX"],
+         "demand": [
+           {"text": "EIA 10 月 STEO：2026 年 9 月美国零售汽油均价 4.35 美元/加仑、柴油 6.29 美元/加仑，裂解价差上升；EIA 预计价差回落但仍高于历史均值", "as_of": "2026-09", "tier": "primary", "url": "https://www.eia.gov/outlooks/steo/report/petro_prod.php"},
+           {"text": "EIA：9 月美国东海岸（PADD 1）馏分油库存比 2021–2025 年同期均值低 32%", "as_of": "2026-09", "tier": "primary", "url": "https://www.eia.gov/outlooks/steo/report/petro_prod.php"}
+         ]},
+        {"id": "services", "name": "油服与油气设备", "sic": [1381, 1382, 1389, 3533], "name_regex": "", "yahoo_industry": [], "cyclical": true,
+         "leaders": ["SLB", "HAL", "BKR"],
+         "demand": [
+           {"text": "哈里伯顿 2026Q3 营收 57 亿美元，与二季度持平；北美收入 22 亿美元，环比 −5%（美国陆上压裂服务减少）；国际收入 35 亿美元，环比 +3%", "as_of": "2026Q3", "tier": "primary", "url": "https://www.halliburton.com/en/about-us/press-release/halliburton-announces-third-quarter-2026-results"}
+         ]}
+      ],
+      "overrides": {
+        "PARR": {"segment": "refining", "why": "Par Pacific 主营炼油与燃料零售，SIC 1311（原油与天然气开采）与主要业务不符"}
+      },
+      "exclude": {"name_regex": "", "tickers": {
+        "GPUS": "Hyperscale Data 主营数据中心、比特币挖矿等多元业务，SIC 3533（油气田机械设备）与实际业务不符"
+      }}
+    },
+
+    {
+      "id": "metals", "name": "金属、矿业与煤炭",
+      "benchmark": {"symbol": "XME", "name": "金属与矿业 ETF XME"},
+      "lynch_note": "金属、矿业和煤炭公司的收入主要随金属价格和煤价变化，是典型的周期股：价格上行时营收和利润同时放大，盈利高点时市盈率最低、PEG 显得最便宜。所以本行业所有环节都标为周期，不进研究优先池，也不显示 PEG。要看产量、单位现金成本（铜的单位净现金成本、黄金的全维持成本 AISC）、储量和资本开支，这些本工具不采集。钢铁和铝是加工环节，利润取决于售价和原料（废钢、铁矿石、氧化铝、电力）之间的价差。铀矿公司按名称归在能源行业的「核能与替代燃料」环节，本行业排除；SIC 3357（有色金属拉丝与绝缘线）已用于 AI 行业的光互连环节，本行业不包含，避免重复计数。SEC 把 SIC 1220 的说明写成 Silver Ores，实际是烟煤与褐煤开采，CNR、HCC 等煤炭公司用这个代码。",
+      "thesis": "金属价格处在高位：自由港预计三季度铜实现均价超过 6.50 美元/磅，纽蒙特三季度黄金实现均价 4,317 美元/盎司；Steel Dynamics 三季度钢材发货量创纪录。煤炭方面，EIA 估计 9 月底美国电厂存煤 1 亿短吨，低于上年同期，并预计今冬燃煤发电低于去年冬季。",
+      "demand": [
+        {"text": "自由港 2026Q3 经营更新：预计三季度铜平均实现价格超过 6.50 美元/磅；铜产量约 8.3 亿磅，铜销量约 7.5 亿磅（公司公告转载）", "as_of": "2026Q3", "tier": "primary", "url": "https://finviz.com/news/398245/freeport-provides-third-quarter-2026-operational-update"},
+        {"text": "纽蒙特 2026Q3 黄金平均实现价格 4,317 美元/盎司，比二季度低 97 美元；权益黄金产量 130 万盎司，环比 +7%（据 Kitco 对公司财报的报道）", "as_of": "2026Q3", "tier": "general", "url": "https://www.kitco.com/news/article/2026-10-22/newmont-beats-third-quarter-earnings-expectations-higher-gold-sales-boost"}
+      ],
+      "intl": {"regions": [], "industries": []},
+      "segments": [
+        {"id": "base", "name": "铜、稀土与多金属矿", "sic": [1000, 1090], "name_regex": "", "yahoo_industry": [], "cyclical": true,
+         "leaders": ["FCX", "SCCO"],
+         "demand": []},
+        {"id": "precious", "name": "金银矿", "sic": [1040], "name_regex": "", "yahoo_industry": [], "cyclical": true,
+         "leaders": ["NEM", "AEM"],
+         "demand": []},
+        {"id": "steel", "name": "钢铁", "sic": [3310, 3312, 3317], "name_regex": "", "yahoo_industry": [], "cyclical": true,
+         "leaders": ["NUE", "STLD", "CLF"],
+         "demand": [
+           {"text": "Steel Dynamics 2026Q3 钢材发货量 380 万吨，创纪录；净销售额 65 亿美元，净利润 7.56 亿美元（上年同期 4.04 亿美元）", "as_of": "2026Q3", "tier": "primary", "url": "https://ir.steeldynamics.com/steel-dynamics-reports-third-quarter-2026-results/"}
+         ]},
+        {"id": "nonferrous", "name": "铝与有色金属冶炼加工", "sic": [3330, 3334, 3341, 3350, 3360, 3390], "name_regex": "", "yahoo_industry": [], "cyclical": true,
+         "leaders": ["AA", "CENX", "KALU"],
+         "demand": []},
+        {"id": "coal", "name": "煤炭", "sic": [1220, 1221], "name_regex": "", "yahoo_industry": [], "cyclical": true,
+         "leaders": ["CNR", "BTU", "HCC"],
+         "demand": [
+           {"text": "EIA 10 月 STEO：估计 9 月底美国电力行业存煤约 1 亿短吨，上年同期 1.05 亿短吨；预计今冬（11 月–3 月）燃煤发电低于去年冬季", "as_of": "2026-09", "tier": "primary", "url": "https://www.eia.gov/outlooks/steo/report/elec_coal_renew.php"}
+         ]}
+      ],
+      "overrides": {
+        "CLF": {"segment": "steel", "why": "Cleveland-Cliffs 以钢铁冶炼与轧制为主（自有铁矿石球团），SIC 1000（金属采矿）与主要业务不符"}
+      },
+      "exclude": {
+        "name_regex": "uranium",
+        "tickers": {
+          "HWM": "航空发动机与结构件，归到工业机械与航空零部件行业",
+          "URG": "铀矿开采；铀企按名称归在能源行业的核燃料环节，本行业排除（Ur-Energy 的名称未被该环节匹配，归属需人工决定）"
+        }
+      }
+    },
+
+    {
+      "id": "shipping", "name": "航运与邮轮",
+      "benchmark": {"symbol": "BOAT", "name": "全球航运 ETF BOAT（不含邮轮）"},
+      "lynch_note": "货运航运的收入随运价变化，运价由船队供给和货量决定，波动很大，是典型的周期股：运价高点时营收和利润同时放大，市盈率最低，所以货运环节标为周期，不进研究优先池，也不显示 PEG。要看租约结构（期租还是即期市场）、船龄、新船订单和负债，这些本工具不采集。邮轮靠休闲出行需求，负债高、对燃油价格敏感，景气上行时营收和利润同样会放大，这里也按周期处理。部分国际航运公司是外国私人发行人（报 20-F / 6-K），SEC 季度数据不全，新兴公司名单可能偏少。Tidewater（TDW）是海上油气支持船公司，SIC 4400，归在货运环节。基准 ETF BOAT 持有航运股，不含邮轮公司。",
+      "thesis": "EIA 10 月短期能源展望提到 9 月油轮运价达到纪录水平。邮轮需求保持增长：嘉年华截至 8 月的财季按固定汇率计算的净收益率（net yields）同比 +2.4%，客户预付款 76 亿美元，为三季度纪录；公司称 2027 年已预订的入住率和价格处在纪录水平。",
+      "demand": [
+        {"text": "EIA 10 月 STEO：9 月油轮运价达到纪录水平", "as_of": "2026-09", "tier": "primary", "url": "https://www.eia.gov/outlooks/steo/report/global_oil.php"},
+        {"text": "嘉年华 2026 财年三季度（截至 8 月）净收益率按固定汇率同比 +2.4%；客户预付款 76 亿美元，为三季度纪录；2027 年已预订入住率和价格处在纪录水平（公司公告转载）", "as_of": "2026Q3", "tier": "primary", "url": "https://finviz.com/news/396596/carnival-corporation-outperforms-guidance-delivering-best-ever-revenues-net-yields-and-net-income"}
+      ],
+      "intl": {"regions": [], "industries": []},
+      "segments": [
+        {"id": "cruise", "name": "邮轮", "sic": [4400], "name_regex": "carnival|royal caribbean|norwegian cruise|viking holdings|lindblad|cruise", "yahoo_industry": [], "cyclical": true,
+         "leaders": ["RCL", "CCL", "NCLH"],
+         "demand": []},
+        {"id": "freight", "name": "货运航运（油轮、干散货、集装箱、气体船）", "sic": [4400, 4412], "name_regex": "", "yahoo_industry": [], "cyclical": true,
+         "leaders": ["MATX", "KEX", "FRO", "SBLK"],
+         "demand": []}
+      ],
+      "overrides": {},
+      "exclude": {"name_regex": "", "tickers": {}}
+    },
+
+    {
+      "id": "insurance", "name": "保险与保险经纪",
+      "benchmark": {"symbol": "KIE", "name": "保险 ETF KIE"},
+      "lynch_note": "保险公司按金融类口径评估：没有毛利，看税前利润率、ROE、市盈率与市净率、股东权益增长。财产险最关键的综合成本率（combined ratio）、准备金变动、巨灾损失和投资收益，本工具都不采集，要读季报；保费增速高可能来自提价，提价通常发生在承保亏损之后，不等于业务扩张。寿险看利差、准备金假设和投资组合，利率变化会影响账面价值。抵押贷款保险和产权保险的业务量跟房贷发放和房屋交易走，标为周期（金融类口径只提示，不剔除）。管理式医疗（SIC 6324）的关键指标是医疗赔付率（benefit expense ratio / MLR），联合健康（UNH）作为医药与医疗行业的龙头列出，本行业不重复。保险经纪不承担承保风险，收入是佣金和服务费，看内生收入增长（organic growth）和并购贡献。",
+      "thesis": "财产险承保利润处在较好水平：Progressive 三季度综合成本率 88.7%，Travelers 86.8%；保费增速放缓，Travelers 三季度净承保保费与上年同期持平。经纪方面，Marsh 三季度内生收入增长 5%。管理式医疗方面，Elevance 三季度医疗赔付率同比改善 0.7 个百分点，医疗会员同比减少。",
+      "demand": [
+        {"text": "Travelers 2026Q3 综合成本率 86.8%（上年同期 87.3%），剔除巨灾和准备金变动的基础综合成本率 84.1%；净承保保费 114.8 亿美元，与上年同期持平；净投资收益 10.98 亿美元（税前），同比 +6%", "as_of": "2026Q3", "tier": "primary", "url": "https://investor.travelers.com/newsroom/press-releases/news-details/2026/Travelers-Reports-Excellent-Third-Quarter-and-Year-to-Date-Results/default.aspx"}
+      ],
+      "intl": {"regions": [], "industries": []},
+      "segments": [
+        {"id": "pc", "name": "财产险与意外险", "profile": "financial",
+         "sic": [6331, 6399], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["PGR", "CB", "TRV"],
+         "verify": ["综合成本率，以及其中巨灾损失和上年准备金变动各占多少（读季报）", "净承保保费增速里费率和保单数量各贡献多少", "投资收益占税前利润的比例，以及债券浮亏对账面价值的影响"],
+         "demand": [
+           {"text": "Progressive 2026Q3 净承保保费 223 亿美元，同比 +4%；季度综合成本率 88.7%（上年同期 89.5%）；9 月末有效保单 4,049 万份，同比 +6%", "as_of": "2026Q3", "tier": "primary", "url": "https://investors.progressive.com/financials/financial-news-releases/news-details/2026/Progressive-Reports-September-2026-Results/default.aspx"}
+         ]},
+        {"id": "life", "name": "寿险、年金与意外健康险", "profile": "financial",
+         "sic": [6311, 6321], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["MET", "PRU", "AFL"],
+         "verify": ["新单保费与年金销售的变化（读季报）", "投资收益率与负债成本之间的利差", "利率变化对账面价值（AOCI）的影响"],
+         "demand": []},
+        {"id": "mortgage_title", "name": "抵押贷款保险与产权保险", "profile": "financial", "cyclical": true,
+         "sic": [6351, 6361], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["MTG", "ESNT", "FNF"],
+         "verify": ["在保保险金额（insurance in force）与新增保单（NIW）的变化", "拖欠率和赔付准备金的变化", "产权险：开立订单数与房屋交易、再融资量的变化"],
+         "demand": []},
+        {"id": "managed_care", "name": "健康险与管理式医疗", "profile": "financial",
+         "sic": [6324], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["ELV", "CI", "HUM"],
+         "verify": ["医疗赔付率（MLR）同比变化，按商业保险、Medicare Advantage、Medicaid 拆分（读季报）", "医疗会员数的变化", "理赔应付天数（days in claims payable）的变化"],
+         "demand": [
+           {"text": "Elevance 2026Q3 营业收入 504 亿美元；医疗赔付率（benefit expense ratio）90.6%，同比改善 0.7 个百分点；9 月末医疗会员约 4,490 万，同比减少 48.7 万", "as_of": "2026Q3", "tier": "primary", "url": "https://www.elevancehealth.com/newsroom/elv-quarterly-earnings-q3-2026"}
+         ]},
+        {"id": "brokers", "name": "保险经纪与服务", "profile": "financial",
+         "sic": [6411], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["MRSH", "AON", "AJG"],
+         "verify": ["内生收入增长（organic growth）和并购贡献各占多少（读季报）", "佣金收入对保险费率周期的敏感度", "并购带来的商誉和债务"],
+         "demand": [
+           {"text": "Marsh（原 Marsh & McLennan，代码 MRSH）2026Q3 营收增长 8%，内生收入增长 5%；调整后 EPS 2.03 美元，同比 +10%", "as_of": "2026Q3", "tier": "primary", "url": "https://www.marsh.com/en/corp/about/news/marsh-reports-third-quarter-2026-results.html"}
+         ]}
+      ],
+      "overrides": {
+        "EQH": {"segment": "life", "why": "Equitable Holdings 主营寿险、年金与资产管理，SIC 6411（保险代理与经纪）与主要业务不符"}
+      },
+      "exclude": {
+        "name_regex": "",
+        "tickers": {"UNH": "联合健康已作为医药与医疗行业医疗服务环节的龙头列出，本行业不重复"}
+      }
+    },
+
+    {
+      "id": "banks", "name": "银行",
+      "benchmark": {"symbol": "KBE", "name": "银行 ETF KBE"},
+      "lynch_note": "银行按金融类口径评估：没有毛利，看税前利润率、ROE、市净率、股东权益增长和信用损失拨备。银行最关键的净息差（NIM）、存款成本与结构、贷款质量（逾期、不良、核销）和资本充足率（CET1），本工具只覆盖拨备占收入的比例，其余要读季报和监管报表。银行在林奇的分类里多是稳定增长或缓慢增长股，营收同比 20% 以上的银行往往来自并购或利率变化，不一定是业务扩张，所以门槛不放宽。利率上升时银行持有的债券会产生浮亏（AOCI），影响账面价值。SIC 6021（联邦牌照）和 6022（州牌照）只是牌照类型的区别，不代表规模；托管银行的收入以托管和资产服务费为主，单独列出。SIC 不是银行代码的银行控股公司（如 AXP、GDOT、NU 的 SIC 是 6199）不在本行业。",
+      "thesis": "FDIC 数据显示 2026 年二季度美国银行业净利润 901 亿美元、ROA 1.37%，净息差 3.32%，贷款同比增长 6.8%，逾期、不良和核销率环比下降。美联储 H.8 数据显示三季度商业银行贷款按年化增长 6.1%。",
+      "demand": [
+        {"text": "FDIC 季度银行业概况：2026Q2 参保机构净利润 901 亿美元，环比 +12.0%；ROA 1.37%；净息差 3.32%，环比 +1 个基点；贷款环比 +1.8%、同比 +6.8%；逾期与不良率、净核销率环比下降", "as_of": "2026Q2", "tier": "primary", "url": "https://www.fdic.gov/news/press-releases/2026/fdic-insured-institutions-reported-return-assets-137-percent-and-net"},
+        {"text": "美联储 H.8：美国商业银行贷款与租赁 2026Q3 按年化增长 6.1%（季调），其中工商业贷款 +7.4%；9 月单月按年化 +7.3%", "as_of": "2026-09", "tier": "primary", "url": "https://www.federalreserve.gov/releases/h8/current/default.htm"}
+      ],
+      "intl": {"regions": [], "industries": []},
+      "segments": [
+        {"id": "custody", "name": "托管银行", "profile": "financial",
+         "sic": [6021, 6022], "name_regex": "state street|northern trust|bank of new york|\\bbny\\b", "yahoo_industry": [],
+         "leaders": ["BNY", "STT", "NTRS"],
+         "verify": ["托管与管理资产规模（AUC/A）的变化", "手续费收入与净利息收入各占多少", "存款余额变化对净利息收入的影响"],
+         "demand": []},
+        {"id": "national", "name": "联邦牌照商业银行", "profile": "financial", "credit": true,
+         "sic": [6021], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["JPM", "BAC", "WFC", "PNC"],
+         "verify": ["净息差（NIM）和存款成本的变化（读季报）", "逾期率、不良贷款率和净核销率（读 10-Q 信用质量附注）", "CET1 资本充足率和债券浮亏（AOCI）"],
+         "demand": [
+           {"text": "PNC 2026Q3 净利息收入 42.06 亿美元（上年同期 36.48 亿美元），净息差 2.94%；平均贷款 3,722 亿美元，环比 +2%；净核销 2.57 亿美元", "as_of": "2026Q3", "tier": "primary", "url": "https://pnc.mediaroom.com/2026-10-15-PNC-Reports-Third-Quarter-2026-Net-Income-of-2-1-Billion,-4-97-Diluted-EPS-or-5-09-as-Adjusted"}
+         ]},
+        {"id": "state", "name": "州牌照商业银行", "profile": "financial", "credit": true,
+         "sic": [6022, 6029], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["MTB", "FITB", "CFG"],
+         "verify": ["净息差（NIM）和存款成本的变化（读季报）", "逾期率、不良贷款率和净核销率（读 10-Q 信用质量附注）", "商业地产贷款的占比和集中度"],
+         "demand": []},
+        {"id": "savings", "name": "储蓄机构", "profile": "financial", "credit": true,
+         "sic": [6035, 6036], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["FLG", "BKU"],
+         "verify": ["净息差（NIM）和存款成本的变化（读季报）", "住宅与多户住宅贷款的逾期和不良变化", "批发融资（FHLB 借款、经纪存款）占比"],
+         "demand": []}
+      ],
+      "overrides": {},
+      "exclude": {"name_regex": "", "tickers": {}}
+    },
+
+    {
+      "id": "reits", "name": "REIT（房地产投资信托）",
+      "benchmark": {"symbol": "VNQ", "name": "房地产 ETF VNQ"},
+      "lynch_note": "REIT 的净利润里有大额房产折旧，和经营现金流差距很大（例如 Prologis 三季度每股净利润 0.86 美元，核心 FFO 每股 1.60 美元）。行业惯例看 FFO / AFFO 和资产净值（NAV），本工具不采集这两项，所以本行业不显示 PEG，市盈率只作参考，营收增速里常含收购带来的增长。REIT 要把大部分应税收入分红，扩张主要靠增发和借债，稀释提示在这里是常态，要结合每股 FFO 是否增长来看。REIT 对利率敏感：利率上升时融资成本和资本化率上升、估值承压；这里不标为周期，但要留意。抵押贷款 REIT（mREIT）持有贷款和抵押贷款证券，按金融类口径评估，关键看每股有形净资产和杠杆。SIC 67 里的空白支票公司（SPAC，6770）没有经营业务，特许权使用费（6792、6795）和专利授权（6794）公司业务性质不同，都不在本行业。",
+      "thesis": "物流地产需求稳定：Prologis 三季度平均出租率 95.1%，续租净有效租金涨幅 38%，核心 FFO 每股同比 +7%。三季度利率上升对按市值计量的抵押贷款证券影响明显，AGNC 每股有形净资产环比下降 16.9%。",
+      "demand": [
+        {"text": "Prologis 2026Q3 核心 FFO 每股 1.60 美元（上年同期 1.49 美元），每股净利润 0.86 美元；平均出租率 95.1%，净有效租金变化 +38.0%，现金同店 NOI 增长 5.9%", "as_of": "2026Q3", "tier": "primary", "url": "https://ir.prologis.com/news-events/press-releases/detail/1055/prologis-reports-third-quarter-2026-results"}
+      ],
+      "intl": {"regions": [], "industries": []},
+      "segments": [
+        {"id": "mortgage", "name": "抵押贷款 REIT", "profile": "financial",
+         "peg": false, "peg_why": "抵押贷款 REIT 的净利润含大额按公允价值计量的证券和对冲损益，波动大；行业看每股有形净资产和可分配收益，PE 和 PEG 不适用",
+         "sic": [6798], "name_regex": "mortgage|real estate finance|agnc|annaly|starwood property|arbor realty|ladder capital|rithm capital|two harbors|ellington|dynex|armour residential|chimera|redwood trust|ready capital|claros|franklin bsp|orchid island|commercial real estate", "yahoo_industry": [],
+         "leaders": ["NLY", "STWD"],
+         "verify": ["每股有形净资产的季度变化", "杠杆倍数和回购（repo）融资成本", "信用类资产的逾期和减值"],
+         "demand": [
+           {"text": "AGNC 2026Q3 每股有形净资产 7.13 美元，环比 −16.9%；季度经济回报 −12.7%；杠杆 7.9 倍；年化净利差 1.86%（公司公告转载）", "as_of": "2026Q3", "tier": "primary", "url": "https://finviz.com/news/404161/agnc-investment-corp-announces-third-quarter-2026-financial-results"}
+         ]},
+        {"id": "digital", "name": "数据中心与通信塔 REIT", "peg": false, "peg_why": "REIT 看 FFO / AFFO，净利润含大额折旧，PE 和 PEG 不适用",
+         "sic": [6798], "name_regex": "equinix|digital realty|american tower|crown castle|sba communications|iron mountain|uniti", "yahoo_industry": [],
+         "leaders": ["EQIX", "DLR", "AMT"],
+         "demand": []},
+        {"id": "healthcare", "name": "医疗健康与养老 REIT", "peg": false, "peg_why": "REIT 看 FFO / AFFO，净利润含大额折旧，PE 和 PEG 不适用",
+         "sic": [6798], "name_regex": "welltower|ventas|healthpeak|omega healthcare|sabra|caretrust|medical properties|healthcare realty|national health investors|ltc properties|american healthcare reit|community healthcare|global medical reit|universal health realty|diversified healthcare", "yahoo_industry": [],
+         "leaders": ["WELL", "VTR"],
+         "demand": []},
+        {"id": "equity", "name": "其他权益 REIT（物流、零售、住宅、办公、仓储等）", "peg": false, "peg_why": "REIT 看 FFO / AFFO，净利润含大额折旧，PE 和 PEG 不适用",
+         "sic": [6798], "name_regex": "", "yahoo_industry": [],
+         "leaders": ["PLD", "O", "SPG"],
+         "demand": []}
+      ],
+      "overrides": {},
+      "exclude": {"name_regex": "", "tickers": {
+        "CXW": "CoreCivic 自 2021 年起不再是 REIT，主营监狱与拘留设施运营，SIC 6798 与现状不符"
+      }}
     }
   ]
 }
