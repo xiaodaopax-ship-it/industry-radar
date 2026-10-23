@@ -116,10 +116,9 @@
 
   <!-- PEG screen (cross-sector) -->
   <section id="sPeg">
-    <h2><span class="step-tag">PEG</span>PEG 筛选（跨行业）</h2>
+    <h2><span class="step-tag">PEG</span>PEG 筛选（美股，跨行业）</h2>
     <p class="lead" id="pgLead"></p>
     <div class="toolbar">
-      <label>市场 <select id="pgMkt"><option value="US">美股</option><option value="">全部</option></select></label>
       <label>范围 <select id="pgTier"><option value="pass">通过：前瞻与历史一致</option><option value="watch">待核实：前瞻低，但历史不支持或有背离</option><option value="all">两者都显示</option></select></label>
       <label>类型 <select id="pgKind"><option value="">全部</option><option value="emerging">新兴</option><option value="leader">龙头</option></select></label>
       <span class="small" id="pgCount"></span>
@@ -702,11 +701,12 @@ function renderHeatInd() {
     || `<tr><td colspan="10" class="small">没有符合条件的行业</td></tr>`;
 }
 // ---------- PEG screen (cross-sector): one row per ticker; pass = peg_cheap (both PEGs agree), watch = forward only
-const pg = {mkt: "US", tier: "pass", kind: "", sort: "fwd", dir: 1};
+// US-listed companies only (TW / JP / KR rows are excluded from this module)
+const pg = {tier: "pass", kind: "", sort: "fwd", dir: 1};
 const PGROWS = (() => {
   const by = {};
   D.entries.forEach(e => {
-    if (!e.peg_pass && !e.peg_watch) return;
+    if (e.market !== "US" || (!e.peg_pass && !e.peg_watch)) return;
     const r = by[e.ticker];
     if (!r) { by[e.ticker] = {e, secs: [e.sector]}; return; }
     if (!r.secs.includes(e.sector)) r.secs.push(e.sector);
@@ -722,7 +722,7 @@ const PGCOLS = [
   ["g", "预期 EPS 增速（分析师）", 1, r => r.e.d.pegf?.g], ["tgt", "目标价中位数（隐含空间）", 1, r => pgUp(r.e)],
   ["warn", "⚠ 数", 1, r => r.e.warn], ["level", "结论", 0, r => r.e.level], ["next", "下次财报", 0, r => r.e.mkt?.next_date || ""]];
 function renderPeg() {
-  $("pgLead").innerHTML = esc(`把所有行业里 PEG 符合条件的公司放在一起看（同一家公司在多个行业出现时只列一次）。` +
+  $("pgLead").innerHTML = esc(`把所有行业里 PEG 符合条件的美股上市公司放在一起看（台股、日股、韩股不在这里；同一家公司在多个行业出现时只列一次）。` +
     `"通过" = 前瞻 PEG 可靠且 ≤ ${D.cfg.flags.peg.good_max}，历史 PEG ≤ ${D.cfg.flags.peg.rich_min} 或因非负面原因算不出，并且没有背离提示；` +
     `"待核实" = 前瞻 PEG 可靠且 ≤ ${D.cfg.flags.peg.good_max}，但历史增速为负、历史 PEG 偏高或有背离。股价、目标价来自 ${D.fetched_at.slice(0, 10)} 的快照，不是实时报价。`);
   $("pgHead").innerHTML = PGCOLS.map(([k, t, n]) => `<th scope="col" class="${n ? "n" : ""}"><button type="button" data-k="${k}">${t}</button></th>`).join("");
@@ -731,9 +731,9 @@ function renderPeg() {
 }
 function renderPegBody() {
   const get = PGCOLS.find(c => c[0] === pg.sort)[3];
-  const list = PGROWS.filter(r => (!pg.mkt || r.e.market === pg.mkt) && (pg.tier === "all" || (pg.tier === "pass" ? r.e.peg_pass : r.e.peg_watch)) && (!pg.kind || r.e.kind === pg.kind))
+  const list = PGROWS.filter(r => (pg.tier === "all" || (pg.tier === "pass" ? r.e.peg_pass : r.e.peg_watch)) && (!pg.kind || r.e.kind === pg.kind))
     .sort((a, b) => { const x = get(a), y = get(b); if (x == null || x === "") return 1; if (y == null || y === "") return -1; return (x > y ? 1 : x < y ? -1 : 0) * pg.dir; });
-  $("pgCount").textContent = `${list.length} 家（通过 ${PGROWS.filter(r => r.e.peg_pass && (!pg.mkt || r.e.market === pg.mkt)).length} / 待核实 ${PGROWS.filter(r => r.e.peg_watch && (!pg.mkt || r.e.market === pg.mkt)).length}）`;
+  $("pgCount").textContent = `${list.length} 家（通过 ${PGROWS.filter(r => r.e.peg_pass).length} / 待核实 ${PGROWS.filter(r => r.e.peg_watch).length}）`;
   $("pgBody").innerHTML = list.map(r => { const e = r.e, d = e.d, F = d.pegf || {}, up = pgUp(e);
     return `<tr><td><button type="button" class="btn" style="padding:1px 8px" data-pg="${esc(e.ticker)}">${esc(e.ticker)}</button></td>
     <td class="small">${esc((e.name || "").slice(0, 28))}<div>${esc((e.oneliner || "").slice(0, 46))}</div></td>
@@ -756,7 +756,6 @@ function renderPegBody() {
   $("pgNote").innerHTML = esc(`PEG 只说明增速相对估值的位置，不说明增速能否兑现，也不包括客户集中度、竞争、稀释和一次性收益这些风险；` +
     `一致预期是 Yahoo 的非官方数据，分析师少于 5 家的公司参考价值更低。目标价是卖方观点，不是预测。点击代码打开该公司在所属行业里的评估卡。`);
 }
-$("pgMkt").onchange = e => { pg.mkt = e.target.value; renderPegBody(); };
 $("pgTier").onchange = e => { pg.tier = e.target.value; renderPegBody(); };
 $("pgKind").onchange = e => { pg.kind = e.target.value; renderPegBody(); };
 renderPeg();
