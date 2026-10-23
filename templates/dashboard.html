@@ -1466,9 +1466,26 @@ const PGROWS = (() => {
   return Object.values(by);
 })();
 const pgUp = e => { const t = e.mkt?.target, p = e.d.price; return t && p ? (t / p - 1) * 100 : null; };
+// 52-week position from the same Yahoo snapshot as the price (display only; not used in any screen or label)
+const pgPos = e => { const m = e.mkt || {}, lo = m.lo52, hi = m.hi52, p = m.price;
+  return lo != null && hi != null && p != null && hi > lo ? Math.round((p - lo) / (hi - lo) * 100) : null; };
+function pgPosCell(e) {
+  const m = e.mkt || {}, lo = m.lo52, hi = m.hi52, p = m.price, t = m.target, v = pgPos(e);
+  if (v == null) return "—";
+  const a = Math.min(lo, t || lo), b = Math.max(hi, t || hi), x = u => 3 + 84 * (u - a) / (b - a || 1);
+  const tip = `52 周区间（${esc(e.d.ccy || "")}）${num(lo, 2)} ~ ${num(hi, 2)}；现价 ${num(p, 2)}，位于区间 ${v}%，` +
+    `距最高 ${num((p / hi - 1) * 100, 1)}%，距最低 +${num((p / lo - 1) * 100, 1)}%` +
+    (t ? `<br>橙线 = 分析师目标价中位数 ${num(t, 2)}（卖方观点，不是预测）` : "") +
+    `<br>52 周位置只说明股价在过去一年区间的位置，不代表低估或高估`;
+  return `<span data-tip="${esc(tip)}" style="display:inline-flex;align-items:center;gap:6px">` +
+    `<svg viewBox="0 0 90 12" width="90" height="12" role="img" aria-label="52 周位置 ${v}%">` +
+    `<line x1="${x(lo)}" x2="${x(hi)}" y1="6" y2="6" stroke="#2a3038" stroke-width="4" stroke-linecap="round"/>` +
+    (t ? `<line x1="${x(t)}" x2="${x(t)}" y1="1" y2="11" stroke="#f0a030" stroke-width="1.5"/>` : "") +
+    `<circle cx="${x(p)}" cy="6" r="3.5" fill="#37c6e0"/></svg><b>${v}%</b></span>`;
+}
 const PGCOLS = [
   ["t", "代码", 0, r => r.e.ticker], ["name", "公司", 0, r => r.e.name], ["sec", "行业 · 环节", 0, r => SEC[r.e.sector].name],
-  ["kind", "类型", 0, r => r.e.kind], ["px", "股价", 1, r => r.e.d.price], ["mcap", "市值（亿美元）", 1, r => r.e.d.mcap],
+  ["kind", "类型", 0, r => r.e.kind], ["px", "股价", 1, r => r.e.d.price], ["pos52", "52 周位置", 1, r => pgPos(r.e)], ["mcap", "市值（亿美元）", 1, r => r.e.d.mcap],
   ["pe", "PE(TTM)", 1, r => r.e.d.pe], ["fwd", "PEG 前瞻（PE TTM / 前瞻 PE）", 1, r => r.e.d.pegf?.v], ["hist", "PEG 历史", 1, r => r.e.d.pegh?.v],
   ["g", "预期 EPS 增速（分析师）", 1, r => r.e.d.pegf?.g], ["tgt", "目标价中位数（隐含空间）", 1, r => pgUp(r.e)],
   ["warn", "⚠ 数", 1, r => r.e.warn], ["level", "结论", 0, r => r.e.level], ["next", "下次财报", 0, r => r.e.mkt?.next_date || ""]];
@@ -1490,12 +1507,12 @@ function renderPegBody() {
     <td class="small">${esc((e.name || "").slice(0, 28))}<div>${esc((e.oneliner || "").slice(0, 46))}</div></td>
     <td class="small">${r.secs.map(s => esc(SEC[s].name)).join(" / ")}<div><span class="tag">${esc(SEC[e.sector].segments.find(g => g.id === e.segment)?.name || e.segment)}</span>${e.cyclical ? ' <span class="tag t-cyc">周期</span>' : ""}</div></td>
     <td>${e.kind === "leader" ? '<span class="tag t-ld">龙头</span>' : '<span class="tag">新兴</span>'}<div class="small">${esc(e.market)}</div></td>
-    <td class="n">${d.price ? num(d.price, 2) : "—"}<div class="small">${esc(d.ccy || "")}</div></td><td class="n">${yi(d.mcap)}</td><td class="n">${num(d.pe, 1)}</td>
+    <td class="n">${d.price ? num(d.price, 2) : "—"}<div class="small">${esc(d.ccy || "")}</div></td><td class="n nw">${pgPosCell(e)}</td><td class="n">${yi(d.mcap)}</td><td class="n">${num(d.pe, 1)}</td>
     <td class="n">${pegFH(d, false)}</td><td class="n">${pegHH(d)}${divH(d)}</td>
     <td class="n">${F.g != null ? sgn(F.g) : "—"}<div class="small">${F.n ?? "—"} 家</div></td>
     <td class="n">${e.mkt?.target ? num(e.mkt.target, 2) : "—"}<div class="small">${up != null ? pc(up) : ""}${e.mkt?.analysts ? ` · ${e.mkt.analysts} 家` : ""}</div></td>
     <td class="n">${e.warn ?? "—"}</td><td><span class="tag lv-${esc(e.level)}">${esc(e.level)}</span>${e.gate ? `<div class="small" data-tip="${esc(e.gate)}">未排序</div>` : ""}</td>
-    <td class="small">${esc((e.mkt?.next_date || "—").slice(0, 10))}</td></tr>`; }).join("") || `<tr><td colspan="14" class="small">没有符合条件的公司</td></tr>`;
+    <td class="small">${esc((e.mkt?.next_date || "—").slice(0, 10))}</td></tr>`; }).join("") || `<tr><td colspan="${PGCOLS.length}" class="small">没有符合条件的公司</td></tr>`;
   // jump to the company's evaluation card in its sector tab
   document.querySelectorAll("#pgBody button[data-pg]").forEach(b => b.onclick = () => {
     const r = PGROWS.find(x => x.e.ticker === b.dataset.pg), e = r.e;
@@ -1503,7 +1520,7 @@ function renderPegBody() {
   });
   nBadges(); bkSync();
   $("pgNote").innerHTML = esc(`PEG 只说明增速相对估值的位置，不说明增速能否兑现，也不包括客户集中度、竞争、稀释和一次性收益这些风险；` +
-    `一致预期是 Yahoo 的非官方数据，分析师少于 5 家的公司参考价值更低。目标价是卖方观点，不是预测。点击代码打开该公司在所属行业里的评估卡。`);
+    `一致预期是 Yahoo 的非官方数据，分析师少于 5 家的公司参考价值更低。目标价是卖方观点，不是预测。52 周位置 = (现价 − 52 周最低) ÷ (最高 − 最低)，只说明股价在过去一年区间的位置，不代表低估或高估；估值看 PE 和 PEG。点击代码打开该公司在所属行业里的评估卡。`);
 }
 $("pgTier").onchange = e => { pg.tier = e.target.value; renderPegBody(); };
 $("pgKind").onchange = e => { pg.kind = e.target.value; renderPegBody(); };
