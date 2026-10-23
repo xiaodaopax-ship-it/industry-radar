@@ -158,6 +158,31 @@
   .nbadge { font:inherit; font-size:11.5px; line-height:20px; padding:0 8px; border-radius:999px; border:1px solid rgba(230,180,80,.42); background:rgba(230,180,80,.13); color:var(--warn); cursor:pointer; white-space:nowrap; margin-right:4px; }
   .nbadge[hidden] { display:none; }
   td .addn, td .nbadge { line-height:18px; }
+  /* 对比池: per-company toggle, toast, comparison table */
+  .bkt { font:inherit; font-size:11.5px; line-height:20px; padding:0 8px; border-radius:999px; border:1px dashed var(--line2); background:transparent; color:var(--muted); cursor:pointer; white-space:nowrap; }
+  .bkt:hover { color:var(--accent); border-color:var(--accent); border-style:solid; }
+  .bkt.on { color:var(--accent); background:rgba(55,198,224,.13); border:1px solid rgba(55,198,224,.5); font-weight:600; }
+  td .bkt { line-height:18px; }
+  .bk-toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:70; background:var(--raised2); color:var(--text); border:1px solid rgba(55,198,224,.45);
+              border-radius:999px; padding:6px 16px; font-size:13px; box-shadow:0 6px 20px rgba(0,0,0,.4); opacity:0; visibility:hidden; transition:opacity .2s, visibility .2s; pointer-events:none; }
+  .bk-toast.show { opacity:1; visibility:visible; }
+  .bk-w { display:inline-flex; gap:4px; align-items:center; color:var(--muted); font-size:12.5px; }
+  .bk-w select { padding:2px 4px; width:auto; }
+  #bkWs { display:flex; flex-wrap:wrap; gap:6px 14px; }
+  .bk-ws { display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; padding:8px 10px; border:1px solid var(--line); border-radius:var(--r2); background:var(--raised); }
+  .bk-ws .gt { font-size:12px; color:var(--muted); font-weight:600; }
+  tr.bk-gh > td, tr.bk-gh:hover > td { background:var(--raised2); color:var(--text); font-weight:650; font-size:12.5px; }
+  tr.bk-gh .small { font-weight:400; }
+  tr.bk-miss > td { color:var(--muted); }
+  td.bk-best { box-shadow:inset 0 -2px 0 rgba(70,196,134,.55); }
+  td.bk-worst { box-shadow:inset 0 -2px 0 rgba(242,114,107,.55); }
+  .bk-score { font-size:14px; font-weight:650; }
+  .bk-bars { display:flex; gap:3px; align-items:flex-end; height:22px; }
+  .bk-bar { position:relative; display:inline-block; width:10px; height:22px; background:var(--bg); border:1px solid var(--line2); border-radius:2px; overflow:hidden; }
+  .bk-bar i { position:absolute; left:0; right:0; bottom:0; background:var(--accent); opacity:.85; }
+  .bk-bar.off { opacity:.35; } .bk-bar.na { border-style:dashed; }
+  .bk-legend { display:flex; flex-wrap:wrap; gap:4px 10px; font-size:11.5px; color:var(--muted); }
+  .bk-empty { border:1px dashed var(--line2); border-radius:var(--r2); padding:16px; color:var(--muted); font-size:13px; }
 
   /* left sidebar */
   .side { position:fixed; left:0; top:0; bottom:0; width:var(--side); z-index:30; overflow-y:auto; background:var(--side-bg); border-right:1px solid var(--line);
@@ -269,6 +294,7 @@
       <li><a class="sl" href="#s2" data-sec="s2">② 新兴筛选</a></li>
       <li><a class="sl" href="#s3" data-sec="s3">③ 价值·博弈</a></li>
       <li><a class="sl" href="#s4" data-sec="s4">④ 研究优先级</a><div class="substeps"><a class="sl" href="#s4cy">周期行业单列</a></div></li>
+      <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li>
       <li><a class="sl" href="#s6" data-sec="s6">⑤ 个股评估卡</a></li>
       <li><a class="sl" href="#s5" data-sec="s5">数据与方法</a></li>
     </ul></div>
@@ -287,7 +313,7 @@
 
   <div class="sticky">
     <nav class="steps" aria-label="页面分节">
-      <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#s3">③ 价值 / 博弈标签</a><a href="#s4">④ 研究优先级</a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
+      <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#s3">③ 价值 / 博弈标签</a><a href="#s4">④ 研究优先级</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
     </nav>
   </div>
 
@@ -334,7 +360,26 @@
     <p class="note">排序只表示"按这四个数据维度，先看谁"，没有做过回测，不代表后续表现。估值分位只描述相对自身近几年的位置，不是估值结论。点击代码打开该公司的评估卡。<br>PEG 列只作参考，<b>不参与排序，也不影响价值 / 博弈标签和 ⚠ 数</b>：标签「前瞻」= PE(TTM) ÷ 机构一致预期 EPS 年化增速，「历史」= PE(TTM) ÷ 扣非年初至今同比增速，「—」= 不适用（周期行业、PE ≤ 0、增速 ≤ 0 或无数据）；数值后带 ⚠ = 不可靠（基数低、增速 &gt; 100% 或一致预期年度间大幅下降）。鼠标悬停看原因，口径见"数据与方法"。</p>
     <h3 id="s4cy">周期行业的高增长公司（单独列出，不参与排序）</h3>
     <p class="small" id="cyLead"></p>
-    <div class="tscroll"><table><thead><tr><th scope="col">代码</th><th scope="col">名称</th><th scope="col">行业</th><th scope="col" class="n">营收同比</th><th scope="col" class="n">净利同比</th><th scope="col" class="n">毛利率变化（pp）</th><th scope="col" class="n">现金流/净利</th><th scope="col" class="n">PE(TTM)</th><th scope="col">业绩预告</th><th scope="col">要先核实</th></tr></thead><tbody id="cyBody"></tbody></table></div>
+    <div class="tscroll"><table><thead><tr><th scope="col">代码</th><th scope="col">名称</th><th scope="col">对比</th><th scope="col">行业</th><th scope="col" class="n">营收同比</th><th scope="col" class="n">净利同比</th><th scope="col" class="n">毛利率变化（pp）</th><th scope="col" class="n">现金流/净利</th><th scope="col" class="n">PE(TTM)</th><th scope="col">业绩预告</th><th scope="col">要先核实</th></tr></thead><tbody id="cyBody"></tbody></table></div>
+  </section>
+
+  <section id="sBk" aria-labelledby="bkTitle">
+    <h2 id="bkTitle" tabindex="-1"><span class="step-tag">⇄</span>对比池 · <span id="bkN">0</span> / 30 家</h2>
+    <p class="lead">把想放在一起看的公司加进来（② 筛选表、④ 研究优先级与周期行业单列、⑤ 评估卡里的“＋对比”），在同一张表里比较增长、现金流、估值位置和风险门禁。名单只保存在本浏览器（localStorage），重新构建页面不会丢失。</p>
+    <div id="bkEmpty" class="bk-empty">对比池还是空的。在 ② 新兴筛选、④ 研究优先级（含周期行业单列）或 ⑤ 个股评估卡里点“＋对比”加入公司，最多 30 家；再点一次“✓ 对比”移出。<span class="warn" id="bkEmptyErr"></span></div>
+    <div id="bkMain" hidden>
+      <div class="toolbar">
+        <button type="button" class="btn primary" id="bkRank" aria-describedby="bkDisc">评分排序</button>
+        <button type="button" class="btn" id="bkCsv" aria-label="把对比表和评分导出为 CSV 文件">导出 CSV</button>
+        <button type="button" class="btn ghost" id="bkClear" aria-label="清空对比池">清空</button>
+        <span class="small" id="bkMeta" role="status" aria-live="polite"></span>
+      </div>
+      <div class="bk-ws" role="group" aria-label="评分维度权重"><span class="gt">维度权重</span><span id="bkWs"></span>
+        <button type="button" class="btn ghost" id="bkWReset">恢复默认权重</button></div>
+      <div class="tscroll"><table><thead><tr id="bkHead"></tr></thead><tbody id="bkBody"></tbody></table></div>
+      <p class="note" id="bkDisc">池内相对排序：只反映所选这几家在下列口径上的相对位置，换一批公司分数就会变。不是买卖建议，不预测股价；PEG 只展示、不计分。</p>
+      <details class="grp"><summary>评分规则 <span class="small">维度 · 方向 · 百分位 · 加权 · 分组</span></summary><div class="grp-body rule" id="bkRules" style="margin:0"></div></details>
+    </div>
   </section>
 
   <section id="s6">
@@ -387,6 +432,7 @@
   <footer id="foot"></footer>
 </main>
 <div class="tip" id="tip" role="tooltip"></div>
+<div class="bk-toast" id="bkToast" role="status" aria-live="polite"></div>
 <button type="button" class="totop" id="toTop" aria-label="返回顶部" title="返回顶部">↑</button>
 <button type="button" class="notes-toggle" id="notesBtn" aria-controls="notes" aria-expanded="false">备注 (<span id="notesN">0</span>)</button>
 <aside class="drawer" id="notes" role="dialog" aria-modal="false" aria-labelledby="notesTitle">
@@ -439,7 +485,7 @@ const growthColor = v => { if (v == null) return "#4a515b"; const t = Math.max(-
 const BYCODE = Object.fromEntries(D.screen.map(r => [r.code, r]));
 const GATES = [["ocf", "现金流/净利"], ["ar", "应收增速"], ["inv", "存货增速"], ["goodwill", "商誉/权益"], ["pledge", "质押比例"],
   ["selling", "6 月净增减持"], ["unlock", "90 天解禁"], ["reg", "监管类标题"], ["val", "PE 分位"], ["fc", "业绩预告"]];
-const state = {indAll: false, ind: "", lb: "", w: "", q: "", limit: 150, open: new Set(), hl: "", sideIndAll: false, sort: {ind: ["revenue", -1], sc: ["rev_yoy", -1], p: ["rank", 1]}};
+const state = {indAll: false, ind: "", lb: "", w: "", q: "", limit: 150, open: new Set(), hl: "", sideIndAll: false, sort: {ind: ["revenue", -1], sc: ["rev_yoy", -1], p: ["rank", 1], bk: ["added", 1]}};
 const debounce = (fn, ms) => { let t = 0; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 const narrow = () => matchMedia("(max-width:1099.98px)").matches;
 // scroll to a section; setting the same hash again would not scroll, so fall back to scrollIntoView
@@ -547,6 +593,7 @@ function renderScreen() {
     {k: "code", t: "代码", cls: "nw", f: r => codeCell(r.code)},
     {k: "name", t: "名称", cls: "nw", f: r => `<button type="button" class="linkbtn" data-open="${esc(r.code)}" aria-expanded="${state.open.has(r.code)}">${esc(r.name)}</button>`},
     {k: "note", t: "备注", nosort: 1, cls: "nw", f: r => noteCtl(r.code)},
+    {k: "bk", t: "对比", nosort: 1, cls: "nw", f: r => bkCtl(r.code)},
     {k: "industry", t: "行业", cls: "nw", f: r => `<span class="small">${esc(r.industry)}</span>${r.cyclical ? ' <span class="tag t-cyc">周期</span>' : ""}`},
     {k: "revenue", t: "营收（亿）", n: 1, f: r => yi(r.revenue)},
     {k: "rev_yoy", t: "营收同比", n: 1, f: r => pc(r.rev_yoy)},
@@ -569,7 +616,7 @@ function renderScreen() {
     `质押比例（公司整体，统计日 ${D.pledge_date || "—"}）> ${R.pledge_warn}% 提示；近 ${R.holder_months} 个月董监高与股东净减持 ≥ ${R.net_sell_warn}% 总股本提示；` +
     `${(D.unlock_window || []).join(" ~ ")} 解禁可流通股数 > 当前流通股 ${R.unlock_float_warn}% 提示；${(D.reg_window || []).join(" ~ ")} 巨潮公告标题命中监管类关键词（${D.reg_kinds.join("、")}）≥ 1 条提示（仅标题匹配）；` +
     `PE 分位 ≥ ${R.pe_pct_high}% 提示（近 ${R.valuation_years} 年日频，仅短名单）；业绩预告为预减 / 略减 / 首亏 / 续亏 / 增亏时提示。⚠ 数只统计前 8 项（估值分位和业绩预告不计入）。`);
-  renderSideInd(); nBadges();
+  renderSideInd(); nBadges(); bkSync();
 }
 
 function renderLabels() {
@@ -594,6 +641,7 @@ function renderPriority() {
     {k: "code", t: "代码", v: p => p.code, f: p => codeCell(p.code)},
     {k: "name", t: "名称", cls: "nw", v: p => BYCODE[p.code].name, f: p => esc(BYCODE[p.code].name)},
     {k: "note", t: "备注", nosort: 1, cls: "nw", f: p => noteCtl(p.code)},
+    {k: "bk", t: "对比", nosort: 1, cls: "nw", f: p => bkCtl(p.code)},
     {k: "industry", t: "行业", v: p => BYCODE[p.code].industry, f: p => `<span class="small">${esc(BYCODE[p.code].industry)}</span>`},
     {k: "score", t: "综合分", n: 1, f: p => num(p.score)},
     {k: "fg", t: "增长分位", n: 1, v: p => p.f.growth, f: p => `${num(p.f.growth, 0)} <span class="small">(${num(BYCODE[p.code].rev_yoy, 0)}%)</span>`},
@@ -613,10 +661,10 @@ function renderPriority() {
   $("cyLead").textContent = `同样满足"盈利、风险门槛 ⚠ ≤ ${R.priority_max_warn}"的周期行业公司共 ${c.eligible_cyclical ?? 0} 家，按营收同比列前 ${cy.length} 家。` +
     `这些公司的增长常来自产品价格上涨，毛利率同比大幅提升是常见信号；PE 低位在周期高点并不代表便宜，所以不和其他公司一起排序。`;
   const ask = r => (r.gm_chg != null && r.gm_chg >= 5 ? `毛利率 +${num(r.gm_chg, 1)}pp：多少来自产品价格` : "量与价各贡献多少") + "；产品价格现在处在近几年什么位置";
-  $("cyBody").innerHTML = cy.map(r => `<tr><td class="nw">${codeCell(r.code)}</td><td class="nw">${esc(r.name)}</td><td class="nw"><span class="small">${esc(r.industry)}</span> <span class="tag t-cyc">周期</span></td>
+  $("cyBody").innerHTML = cy.map(r => `<tr><td class="nw">${codeCell(r.code)}</td><td class="nw">${esc(r.name)}</td><td class="nw">${bkCtl(r.code)}</td><td class="nw"><span class="small">${esc(r.industry)}</span> <span class="tag t-cyc">周期</span></td>
     <td class="n">${pc(r.rev_yoy)}</td><td class="n">${pc(r.np_yoy)}</td><td class="n">${pp(r.gm_chg, 1)}</td><td class="n">${num(r.ocf_np, 2)}</td><td class="n">${num(r.pe_ttm)}</td>
-    <td>${gateCell(r.gates.fc)}</td><td class="small">${esc(ask(r))}</td></tr>`).join("") || `<tr><td colspan="10" class="small">没有符合条件的周期行业公司</td></tr>`;
-  nBadges();
+    <td>${gateCell(r.gates.fc)}</td><td class="small">${esc(ask(r))}</td></tr>`).join("") || `<tr><td colspan="11" class="small">没有符合条件的周期行业公司</td></tr>`;
+  nBadges(); bkSync();
 }
 
 function renderMethod() {
@@ -798,7 +846,7 @@ function evalCardCN(c) {
       <span class="ec-nums"><span class="np">股价 <b>${f.price != null ? num(f.price, 2) + " 元" : "—"}</b></span><span class="np">总市值 <b>${yi(f.mcap)} 亿</b></span><span class="np">PE(TTM) <b>${num(f.pe_ttm)}</b></span>
         <span class="np ${vs === "warn" ? "unrel" : vs === "ok" ? "good" : ""}">PE 分位 <b>${f.pe_pct == null ? "—" : num(f.pe_pct, 0) + "%"}</b></span>${pegNp}
         <span class="np ${c.warn_n ? "unrel" : "good"}" data-tip="前 8 项风险门槛中触发提示的项数">⚠ <b>${esc(c.warn_n)}</b></span>
-        ${noteCtl(c.code)}</span></summary>
+        ${noteCtl(c.code)}${bkCtl(c.code)}</span></summary>
     <div class="ec-body">
     <div class="ec-head"><div class="one">${esc(c.oneliner) || '<span class="muted">没有取到主营业务描述</span>'}</div>
       <div class="concl"><b>结论（规则生成）：</b>${esc(c.conclusion)}</div></div>
@@ -848,7 +896,7 @@ function renderCards() {
   $("ecList").innerHTML = cs.map(evalCardCN).join("") || `<div class="small">没有评估卡</div>`;
   $("ecOpen").onclick = () => document.querySelectorAll("details.ec").forEach(d => d.open = true);
   $("ecClose").onclick = () => document.querySelectorAll("details.ec").forEach(d => d.open = false);
-  nBadges();
+  nBadges(); bkSync();
 }
 document.addEventListener("click", ev => { const a = ev.target.closest && ev.target.closest("a[data-card]"); if (a) openCard(a.dataset.card, false); });
 window.addEventListener("hashchange", () => { if (location.hash.startsWith("#card-")) openCard(decodeURIComponent(location.hash.slice(6)), true); });
@@ -871,7 +919,7 @@ function jumpCN(code) {
 }
 
 // ---------- left sidebar: section links with scroll-spy, industries (by number of screened companies)
-const SECTS = [["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["s3", "③ 价值·博弈"], ["s4", "④ 研究优先级"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
+const SECTS = [["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["s3", "③ 价值·博弈"], ["s4", "④ 研究优先级"], ["sBk", "对比池"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
 let curSec = "s1";
 function markSec() {
   document.querySelectorAll("#side a[data-sec], .steps a").forEach(a => { const on = (a.dataset.sec || a.getAttribute("href").slice(1)) === curSec;
@@ -1107,7 +1155,246 @@ $("nImport").onchange = async ev => {
 addEventListener("storage", ev => { if (ev.key === NKEY) { nLoad(); nChanged(); } });   // another tab changed the notes
 nLoad(); nFormSet(null, null);
 
-function render() { renderHeat(); renderScreen(); renderPriority(); }
+// ---------- 对比池 (comparison basket): a short list of companies compared side by side, stored only in this browser.
+//   localStorage["industry-radar-basket-cn-v1"] = {version: 1, saved_at, items: [{code, added}], weights: {dimKey: number}}
+// The optional "评分排序" ranks the pool against itself (percentiles inside the pool). It never uses price, PEG, labels,
+// the ④ priority rank or consensus data, and cyclical-industry companies are listed but not scored (same rule as ④).
+const BKEY = "industry-radar-basket-cn-v1", BK_MAX = 30, BK_WOPTS = [0, 0.5, 1, 2, 3];
+const BK_DIMS = [
+  {k: "growth", t: "营收同比", s: "增", dir: 1, d: "年初至今营收同比（%），越高越好"},
+  {k: "accel", t: "增速变化", s: "加", dir: 1, d: "加速 = 本期累计营收同比 − 上期累计营收同比（pp），越高越好"},
+  {k: "ocf", t: "现金流/净利", s: "现", dir: 1, d: "经营现金流净额 ÷ 归母净利润，越高越好；只在归母净利润 > 0 时计算，亏损公司该项记为缺失（亏损，现金流比不可比）"},
+  {k: "gm_chg", t: "毛利率变化", s: "毛", dir: 1, d: "毛利率同比变化（pp），越高越好；无毛利率的公司记为缺失"},
+  {k: "val", t: "估值", s: "估", dir: -1, d: "越低越好，口径见下"},
+  {k: "risk", t: "风险门禁", s: "险", dir: -1, d: "前 8 项风险门禁 ⚠ 数，越少越好"},
+];
+const BK_CYC = "周期行业：盈利高点时估值最低，不参与排序";
+const PRANK = Object.fromEntries(D.priority.map(p => [p.code, p.rank]));
+let BK = {items: [], weights: {}}, bkScored = false, bkErr = "", bkView = [];
+const bkFin = v => typeof v === "number" && isFinite(v);
+const bkW = k => BK_WOPTS.includes(BK.weights[k]) ? BK.weights[k] : 1;
+const bkName = code => coOf(code)?.name || "";
+function bkClean(j) {
+  const items = [], seen = new Set();
+  (j && Array.isArray(j.items) ? j.items : []).forEach(x => { const code = typeof x === "string" ? x : x && x.code;
+    if (typeof code === "string" && /^\d{6}$/.test(code) && !seen.has(code) && items.length < BK_MAX) { seen.add(code); items.push({code, added: nIso(x && x.added) || ""}); } });
+  const weights = {}; BK_DIMS.forEach(d => { const v = j && j.weights && typeof j.weights === "object" ? +j.weights[d.k] : NaN; weights[d.k] = BK_WOPTS.includes(v) ? v : 1; });
+  return {items, weights};
+}
+function bkLoad() {
+  try { const raw = localStorage.getItem(BKEY); BK = bkClean(raw ? JSON.parse(raw) : null); bkErr = ""; }
+  catch (err) { BK = bkClean(null); bkErr = "浏览器不允许读取本地存储，对比池只在本次打开期间有效。"; }
+}
+function bkSave() {
+  try { localStorage.setItem(BKEY, JSON.stringify({version: 1, saved_at: new Date().toISOString(), items: BK.items, weights: BK.weights})); bkErr = ""; return true; }
+  catch (err) { bkErr = "保存失败：浏览器不允许本地存储或空间已满，对比池只在本次打开期间有效。"; return false; }
+}
+
+// percentile inside one group: ties get their average rank, best = 100, worst = 0, a single value = 50
+function bkPctRank(list, dir) {
+  const out = {}, n = list.length; if (!n) return out;
+  if (n === 1) { out[list[0][0]] = 50; return out; }
+  const s = list.slice().sort((a, b) => a[1] - b[1]);
+  for (let i = 0; i < n;) { let j = i; while (j + 1 < n && s[j + 1][1] === s[i][1]) j++;
+    const p = (i + j) / 2 / (n - 1) * 100; for (let m = i; m <= j; m++) out[s[m][0]] = dir > 0 ? p : 100 - p; i = j + 1; }
+  return out;
+}
+// pure scoring: rows = D.screen rows in the pool, weights = {dimKey: 0|0.5|1|2|3}. Returns {code: {group, score, rank, dims, covered, total, flags, thin}}
+function bkScore(rows, weights) {
+  const W = k => { const v = weights ? weights[k] : undefined; return BK_WOPTS.includes(v) ? v : 1; };
+  const res = {}, act = BK_DIMS.filter(d => W(d.k) > 0), total = act.length;
+  rows.filter(r => r.cyclical).forEach(r => res[r.code] = {code: r.code, group: "cyc", score: null, rank: null, dims: {}, covered: 0, total: 0, flags: [BK_CYC], thin: false});
+  const g = rows.filter(r => !r.cyclical), single = g.length === 1;
+  // valuation: each company's own 5-year PE percentile, else own PB percentile, else PE(TTM) > 0.
+  // Only like is compared with like: when the pool mixes bases, every company is ranked on PE(TTM) > 0 instead.
+  const vb = r => bkFin(r.pe_pct) ? "PE 分位" : bkFin(r.pb_pct) ? "PB 分位" : bkFin(r.pe_ttm) && r.pe_ttm > 0 ? "PE(TTM)" : null;
+  const bases = new Set(g.map(vb).filter(Boolean)), unified = bases.size > 1;
+  const one = bases.size === 1 ? [...bases][0] : null;
+  const valNote = unified ? "口径已统一为 PE(TTM)" : one === "PE(TTM)" ? "PE(TTM) 跨行业可比性弱" : "";
+  const raw = (r, k) => {
+    switch (k) {
+      case "growth": return {v: r.rev_yoy};
+      case "accel": return {v: r.accel};
+      case "ocf": return bkFin(r.np) && r.np > 0 ? {v: r.ocf_np} : {v: null, flag: bkFin(r.np) ? "亏损，现金流比不可比" : null};
+      case "gm_chg": return {v: r.gm_chg};
+      case "risk": return {v: r.warn_n};
+      case "val": {
+        if (unified) return bkFin(r.pe_ttm) && r.pe_ttm > 0 ? {v: r.pe_ttm, basis: "PE(TTM)"} : {v: null, basis: "PE(TTM)", flag: "PE(TTM) ≤ 0 或缺失，估值项缺失"};
+        const b = vb(r); return {v: b === "PE 分位" ? r.pe_pct : b === "PB 分位" ? r.pb_pct : b ? r.pe_ttm : null, basis: b};
+      }
+    }
+    return {v: null};
+  };
+  g.forEach(r => res[r.code] = {code: r.code, group: "main", score: null, rank: null, dims: {}, covered: 0, total, flags: [], thin: false});
+  BK_DIMS.forEach(d => {
+    const vals = g.map(r => [r, raw(r, d.k)]);
+    const pct = single ? {} : bkPctRank(vals.filter(([, x]) => bkFin(x.v)).map(([r, x]) => [r.code, x.v]), d.dir);
+    vals.forEach(([r, x]) => { const o = res[r.code];
+      o.dims[d.k] = {raw: bkFin(x.v) ? x.v : null, pct: pct[r.code] ?? null, w: W(d.k), basis: x.basis || null, note: d.k === "val" ? valNote : ""};
+      if (x.flag && W(d.k) > 0 && !o.flags.includes(x.flag)) o.flags.push(x.flag); });
+  });
+  if (single) { res[g[0].code].flags.push("组内仅 1 家，无法相对比较"); return res; }
+  g.forEach(r => { const o = res[r.code]; let sw = 0, s = 0, c = 0;
+    act.forEach(d => { const p = o.dims[d.k].pct; if (p != null) { sw += W(d.k); s += W(d.k) * p; c++; } });
+    o.covered = c;
+    if (!total) o.flags.push("所有维度权重为 0");
+    else if (!c) { o.flags.push("数据不足"); o.thin = true; }
+    else { o.score = Math.round(s / sw * 10) / 10; if (c < Math.ceil(total / 2)) { o.flags.push("数据不足"); o.thin = true; } }
+  });
+  // rank: companies with enough data first, then by score (ties share a rank); "数据不足" companies are ranked after the others
+  const sc = g.map(r => res[r.code]).filter(o => o.score != null)
+    .sort((a, b) => (a.thin - b.thin) || (b.score - a.score) || a.code.localeCompare(b.code));
+  sc.forEach((o, i) => { const p = sc[i - 1]; o.rank = p && p.thin === o.thin && p.score === o.score ? p.rank : i + 1; });
+  return res;
+}
+
+let bkToastT = 0;
+function bkToast(msg) { const t = $("bkToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(bkToastT); bkToastT = setTimeout(() => t.classList.remove("show"), 1800); }
+const bkCtl = code => `<button type="button" class="bkt" data-bk="${esc(code)}" aria-pressed="false" aria-label="对比池：${esc(code)} ${esc(bkName(code))}" title="加入对比池">＋对比</button>`;
+function bkSync() {
+  const set = new Set(BK.items.map(x => x.code)), n = BK.items.length;
+  document.querySelectorAll("button[data-bk]").forEach(b => { const on = set.has(b.dataset.bk);
+    if (b.getAttribute("aria-pressed") === String(on) && b.dataset.bs) return;
+    b.dataset.bs = "1"; b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on));
+    b.textContent = on ? "✓ 对比" : "＋对比"; b.title = on ? "已在对比池，点击移出" : "加入对比池"; });
+  $("bkSideN").textContent = n; $("bkStepN").textContent = n; $("bkN").textContent = n;
+  $("bkSideN").setAttribute("aria-label", `对比池 ${n} 家`);
+}
+function bkChanged() { bkSave(); renderBk(); bkSync(); }
+function bkToggle(code) {
+  const i = BK.items.findIndex(x => x.code === code);
+  if (i >= 0) { BK.items.splice(i, 1); bkChanged(); bkToast(`已移出对比池（${BK.items.length}/${BK_MAX}）`); return; }
+  if (BK.items.length >= BK_MAX) { bkToast(`对比池已满（${BK_MAX}/${BK_MAX}），先移出一些再加入`); return; }
+  BK.items.push({code, added: new Date().toISOString()}); bkChanged(); bkToast(`已加入对比池（${BK.items.length}/${BK_MAX}）`);
+}
+
+const bkVal = r => bkFin(r.pe_pct) ? `PE ${num(r.pe_pct, 0)}%` : bkFin(r.pb_pct) ? `PB ${num(r.pb_pct, 0)}%` : `<span class="na">未取</span>`;
+const bkRawTxt = (k, v) => v == null ? "—" : k === "ocf" ? num(v, 2) : k === "risk" ? String(v) : k === "val" ? num(v, 1) : num(v, 1);
+// within-pool best / worst marker for a scored dimension cell (non-cyclical group, after 评分排序)
+const bkHl = (e, k) => { if (!bkScored || !e.s || e.s.group !== "main") return ""; const x = e.s.dims[k]; if (!x || x.pct == null || !x.w) return "";
+  return x.pct === 100 ? " bk-best" : x.pct === 0 ? " bk-worst" : ""; };
+function bkBars(s) {
+  if (s.group === "cyc") return `<span class="small">${esc(BK_CYC)}</span>`;
+  const bars = BK_DIMS.map(d => { const x = s.dims[d.k];
+    const t = [`<b>${esc(d.t)}</b>${x.basis ? `（${esc(x.basis)}）` : ""}`, `原值 ${esc(bkRawTxt(d.k, x.raw))}`, `池内分位 ${x.pct == null ? "—" : esc(num(x.pct, 0))}`,
+      `权重 ${esc(x.w)}${x.w ? "" : "（不计分）"}`, x.note ? esc(x.note) : ""].filter(Boolean).join("<br>");
+    return `<span class="bk-bar${x.w ? "" : " off"}${x.pct == null ? " na" : ""}" data-tip="${esc(t)}" role="img" aria-label="${esc(d.t)} 池内分位 ${x.pct == null ? "无数据" : Math.round(x.pct)}${x.w ? "" : "，不计分"}"><i style="height:${x.pct == null ? 0 : x.pct.toFixed(0)}%"></i></span>`; }).join("");
+  return `<span class="bk-bars">${bars}</span>${s.flags.length ? `<div class="small warn">${esc(s.flags.join("；"))}</div>` : ""}`;
+}
+function bkCols() {
+  const sc = bkScored ? [
+    {k: "score", t: "总分", n: 1, v: e => e.s.score == null ? null : e.s.score - (e.s.thin ? 1000 : 0),
+      f: e => e.s.group === "cyc" ? `<span class="tag t-cyc" data-tip="${esc(esc(BK_CYC))}">不参与评分</span>` : e.s.score == null ? "—" : `<span class="bk-score">${num(e.s.score)}</span>${e.s.thin ? ' <span class="tag t-warn">数据不足</span>' : ""}`},
+    {k: "rank", t: "名次", n: 1, v: e => e.s.rank, f: e => e.s.rank == null ? "—" : esc(e.s.rank)},
+    {k: "cov", t: "覆盖维度", n: 1, v: e => e.s.group === "main" ? e.s.covered : null, f: e => e.s.group === "main" ? `${e.s.covered}/${e.s.total}` : "—"},
+    {k: "sub", t: "分项（" + BK_DIMS.map(d => d.s).join("·") + "）", nosort: 1, cls: "nw", f: e => bkBars(e.s)},
+  ] : [];
+  const valK = e => bkScored && e.s.group === "main" && e.s.dims.val?.basis === "PE(TTM)" ? "pe" : "pct";
+  return [
+    {k: "added", t: "#", n: 1, v: e => e.i, f: e => esc(e.i)},
+    {k: "code", t: "代码 · 名称", cls: "nw", v: e => e.r.code, f: e => `<button type="button" class="linkbtn" data-bkjump="${esc(e.r.code)}" aria-label="跳到 ${esc(e.r.code)} ${esc(e.r.name)} 的${CARDS[e.r.code] ? "评估卡" : " ② 筛选行"}"><b>${esc(e.r.code)}</b> ${esc(e.r.name)}</button>`},
+    ...sc,
+    {k: "industry", t: "行业", cls: "nw", f: e => `<span class="small">${esc(e.r.industry)}</span>`},
+    {k: "board", t: "板块", cls: "nw", v: e => BOARD_CN[e.r.board] || e.r.board, f: e => `<span class="small">${esc(BOARD_CN[e.r.board] || e.r.board || "—")}</span>`},
+    {k: "label", t: "标签", f: e => `<span class="tag lb-${esc(e.r.label)}">${esc(e.r.label)}</span>`},
+    {k: "cyclical", t: "周期", v: e => e.r.cyclical ? 1 : 0, f: e => e.r.cyclical ? '<span class="tag t-cyc">周期</span>' : '<span class="na">—</span>'},
+    {k: "rev_yoy", t: "营收同比", n: 1, hl: e => bkHl(e, "growth"), f: e => pc(e.r.rev_yoy)},
+    {k: "accel", t: "增速变化（pp）", n: 1, hl: e => bkHl(e, "accel"), f: e => pp(e.r.accel, 0)},
+    {k: "gm", t: "毛利率", n: 1, f: e => e.r.gm == null ? "—" : `${num(e.r.gm)}%`},
+    {k: "gm_chg", t: "毛利率变化（pp）", n: 1, hl: e => bkHl(e, "gm_chg"), f: e => pp(e.r.gm_chg)},
+    {k: "ocf_np", t: "现金流/净利", n: 1, hl: e => bkHl(e, "ocf"), f: e => `${num(e.r.ocf_np, 2)}${bkFin(e.r.np) && e.r.np <= 0 ? ' <span class="small warn" data-tip="归母净利润 ≤ 0，现金流/净利不可比">亏损</span>' : ""}`},
+    {k: "np_yoy", t: "归母净利同比", n: 1, f: e => pc(e.r.np_yoy)},
+    {k: "pe_ttm", t: "PE(TTM)", n: 1, hl: e => valK(e) === "pe" ? bkHl(e, "val") : "", f: e => num(e.r.pe_ttm)},
+    {k: "pb", t: "PB", n: 1, f: e => num(e.r.pb, 2)},
+    {k: "vpct", t: "估值 5 年分位", n: 1, v: e => bkFin(e.r.pe_pct) ? e.r.pe_pct : bkFin(e.r.pb_pct) ? e.r.pb_pct : null, hl: e => valK(e) === "pct" ? bkHl(e, "val") : "", f: e => bkVal(e.r)},
+    {k: "warn_n", t: "风险门禁 ⚠", n: 1, hl: e => bkHl(e, "risk"), f: e => esc(e.r.warn_n)},
+    {k: "peg", t: "PEG（参考）", n: 1, v: e => CARDS[e.r.code]?.peg?.value ?? null, f: e => pegCell(CARDS[e.r.code]?.peg)},
+    {k: "prank", t: "④ 名次", n: 1, v: e => PRANK[e.r.code] ?? null, f: e => PRANK[e.r.code] ? `#${esc(PRANK[e.r.code])}` : '<span class="na">—</span>'},
+    {k: "card", t: "评估卡", nosort: 1, cls: "nw", f: e => CARDS[e.r.code] ? `<a href="#card-${esc(e.r.code)}" data-card="${esc(e.r.code)}">打开</a>` : '<span class="na">—</span>'},
+    {k: "rm", t: "移除", nosort: 1, cls: "nw", f: e => `<button type="button" class="btn ghost" data-bkrm="${esc(e.r.code)}" aria-label="把 ${esc(e.r.code)} ${esc(e.r.name)} 移出对比池">移除</button>`},
+  ];
+}
+function renderBk() {
+  const n = BK.items.length;
+  $("bkEmpty").hidden = n > 0; $("bkMain").hidden = !n;
+  if (!n) { $("bkHead").innerHTML = ""; $("bkBody").innerHTML = ""; bkView = []; $("bkEmptyErr").textContent = bkErr ? " " + bkErr : ""; return; }
+  const all = BK.items.map((x, i) => ({x, i: i + 1, r: BYCODE[x.code] || null}));
+  const found = all.filter(e => e.r), miss = all.filter(e => !e.r);
+  const S = bkScore(found.map(e => e.r), BK.weights); found.forEach(e => e.s = S[e.r.code]);
+  if (!bkScored && ["score", "rank", "cov"].includes(state.sort.bk[0])) state.sort.bk = ["added", 1];
+  const cols = bkCols(), sorted = table("bk", "bkHead", "bkBody", cols, found), span = cols.length;
+  const tr = e => `<tr>${cols.map(c => `<td class="${c.n ? "n" : c.cls || ""}${c.hl ? c.hl(e) : ""}">${c.f(e)}</td>`).join("")}</tr>`;
+  const main = sorted.filter(e => !e.r.cyclical), cyc = sorted.filter(e => e.r.cyclical);
+  const valNote = main.length ? main[0].s.dims.val?.note : "";
+  let html;
+  if (bkScored) {
+    html = (main.length ? `<tr class="bk-gh"><td colspan="${span}">非周期 · 参与评分（${main.length} 家）${valNote ? ` <span class="small">估值项：${esc(valNote)}</span>` : ""}</td></tr>` + main.map(tr).join("") : "")
+      + (cyc.length ? `<tr class="bk-gh"><td colspan="${span}">周期 · 不参与评分（${cyc.length} 家） <span class="small">${esc(BK_CYC)}</span></td></tr>` + cyc.map(tr).join("") : "");
+    bkView = main.concat(cyc, miss);
+  } else { html = sorted.map(tr).join(""); bkView = sorted.concat(miss); }
+  html += miss.map(e => `<tr class="bk-miss"><td class="n">${esc(e.i)}</td><td class="nw"><b>${esc(e.x.code)}</b></td>
+    <td colspan="${span - 3}">本次数据中已不存在（不在本次 ② 筛选结果里，可能已不满足筛选条件），不参与比较和评分</td>
+    <td class="nw"><button type="button" class="btn ghost" data-bkrm="${esc(e.x.code)}" aria-label="把 ${esc(e.x.code)} 移出对比池">移除</button></td></tr>`).join("");
+  $("bkBody").innerHTML = html;
+  $("bkRank").textContent = bkScored ? "重新按总分排序" : "评分排序";
+  $("bkMeta").textContent = (bkScored ? `池内相对评分：非周期 ${main.length} 家参与，周期 ${cyc.length} 家不参与${miss.length ? `，${miss.length} 家已不在本次数据中` : ""}。绿色下划线 = 该维度池内最好，红色 = 最差。`
+    : `共 ${n} / ${BK_MAX} 家${miss.length ? `（${miss.length} 家已不在本次数据中）` : ""}。点“评分排序”在池内做相对排序。`) + (bkErr ? " " + bkErr : "");
+}
+function bkWSync() { document.querySelectorAll("#bkWs select[data-bkw]").forEach(s => s.value = String(bkW(s.dataset.bkw))); }
+function bkCsv() {
+  const q = v => { let s = v == null ? "" : String(v); if (typeof v === "string" && /^[=+\-@\t\r]/.test(s) && !/^-?\d+(\.\d+)?$/.test(s)) s = "'" + s; return `"${s.replace(/"/g, '""')}"`; };
+  const r1 = (v, d = 1) => bkFin(v) ? +v.toFixed(d) : "";
+  const head = ["加入顺序", "代码", "名称", "行业", "板块", "标签", "周期", "营收同比(%)", "增速变化(pp)", "毛利率(%)", "毛利率变化(pp)", "现金流/净利", "归母净利同比(%)",
+    "PE(TTM)", "PB", "估值分位口径", "估值5年分位(%)", "风险门禁⚠数", "PEG(参考)", "PEG口径", "④优先级名次", "有评估卡", "评分分组", "总分", "名次", "覆盖维度",
+    ...BK_DIMS.map(d => `${d.t}·池内分位`), ...BK_DIMS.map(d => `${d.t}·权重`), "估值评分口径", "说明"];
+  const lines = bkView.map(e => { const r = e.r;
+    if (!r) return [e.i, e.x.code, "", "", "", "", "", ...Array(19).fill(""), ...BK_DIMS.map(() => ""), ...BK_DIMS.map(d => bkW(d.k)), "", "本次数据中已不存在"];
+    const s = e.s, g = CARDS[r.code]?.peg, main = s.group === "main";
+    return [e.i, r.code, r.name, r.industry, BOARD_CN[r.board] || r.board, r.label, r.cyclical ? "是" : "否", r1(r.rev_yoy), r1(r.accel), r1(r.gm), r1(r.gm_chg), r1(r.ocf_np, 2), r1(r.np_yoy),
+      r1(r.pe_ttm), r1(r.pb, 2), bkFin(r.pe_pct) ? "PE" : bkFin(r.pb_pct) ? "PB" : "", bkFin(r.pe_pct) ? r1(r.pe_pct) : r1(r.pb_pct), r.warn_n,
+      g && g.value != null ? r1(g.value, 2) : "", g ? pegKind(g) : "", PRANK[r.code] ?? "", CARDS[r.code] ? "是" : "否",
+      main ? "非周期" : "周期·不参与评分", s.score ?? "", s.rank ?? "", main ? `${s.covered}/${s.total}` : "",
+      ...BK_DIMS.map(d => main && s.dims[d.k]?.pct != null ? r1(s.dims[d.k].pct) : ""), ...BK_DIMS.map(d => bkW(d.k)),
+      main ? [s.dims.val?.basis, s.dims.val?.note].filter(Boolean).join("；") : "", s.flags.join("；")]; });
+  const csv = "\ufeff" + [head, ...lines].map(l => l.map(q).join(",")).join("\r\n") + "\r\n";
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type: "text/csv;charset=utf-8"})); a.download = `industry-radar-cn-basket-${today()}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  bkToast(`已导出 ${bkView.length} 行 CSV`);
+}
+function bkInit() {
+  $("bkWs").innerHTML = BK_DIMS.map(d => `<label class="bk-w">${esc(d.t)} <select data-bkw="${esc(d.k)}" aria-label="${esc(d.t)} 权重">${BK_WOPTS.map(v => `<option value="${v}">${v === 0 ? "0 不计" : "× " + v}</option>`).join("")}</select></label>`).join("");
+  bkWSync();
+  $("bkWs").addEventListener("change", ev => { const s = ev.target.closest("select[data-bkw]"); if (!s) return; BK.weights[s.dataset.bkw] = +s.value; bkSave(); renderBk(); });
+  $("bkWReset").onclick = () => { BK_DIMS.forEach(d => BK.weights[d.k] = 1); bkWSync(); bkSave(); renderBk(); bkToast("已恢复默认权重（全部为 1）"); };
+  $("bkRank").onclick = () => { bkScored = true; state.sort.bk = ["score", -1]; renderBk(); };
+  $("bkCsv").onclick = bkCsv;
+  $("bkClear").onclick = () => { if (!BK.items.length || !confirm(`清空对比池？会移出全部 ${BK.items.length} 家公司（权重设置保留）。`)) return;
+    BK.items = []; bkScored = false; state.sort.bk = ["added", 1]; bkChanged(); bkToast("对比池已清空"); $("bkTitle").focus(); };
+  const valRule = `估值（越低越好）：每家优先用自己的 PE(TTM) 近 ${esc(R.valuation_years)} 年分位，没有时用 PB 分位（只有 ④ 估值短名单的公司有分位），都没有时用 PE(TTM)（仅 PE &gt; 0）。` +
+    `只在同一口径之间比较：池内（非周期组）口径不一致时，全部改用 PE(TTM) &gt; 0 排名（标注“口径已统一为 PE(TTM)”，PE ≤ 0 的公司该项缺失）；全部只能用 PE(TTM) 时标注“PE(TTM) 跨行业可比性弱”。`;
+  $("bkRules").innerHTML = `<ul>
+    ${BK_DIMS.map(d => `<li><b>${esc(d.t)}</b>（${d.dir > 0 ? "高 → 得分高" : "低 → 得分高"}）：${d.k === "val" ? valRule : esc(d.d)}</li>`).join("")}
+    <li><b>池内百分位</b>：每个维度只在“非周期”组内、对有数值的公司计算；最好 = 100，最差 = 0，并列取平均名次，只有一家有数值时记 50。缺失不补值。</li>
+    <li><b>总分</b> = Σ(权重 × 分位) ÷ Σ(权重)，只对有数值的维度求和，保留 1 位小数；权重为 0 的维度不计分（仍显示原值）。覆盖维度 = 有数值的计分维度数 / 计分维度数。</li>
+    <li><b>数据不足</b>：覆盖维度少于计分维度数的一半（向上取整）时标“数据不足”，排在其他公司之后。组内只有 1 家时不打分（“组内仅 1 家，无法相对比较”）。同分并列同名次。</li>
+    <li><b>周期行业</b>（${esc(R.cyclical_industries.join("、"))}）：${esc(BK_CYC)}，与 ④ 的规则一致，单列在“周期 · 不参与评分”。</li>
+    <li><b>不使用</b>：股价、PEG、价值 / 博弈标签、④ 研究优先级名次、机构一致预期都不进入评分；PEG 只展示。</li></ul>
+    <span class="small">池内相对排序：只反映所选这几家在下列口径上的相对位置，换一批公司分数就会变。不是买卖建议，不预测股价；PEG 只展示、不计分。</span>`;
+}
+document.addEventListener("click", ev => {
+  const t = ev.target.closest && ev.target.closest("[data-bk],[data-bkrm],[data-bkjump]"); if (!t) return;
+  ev.preventDefault(); ev.stopPropagation();   // buttons on evaluation cards sit inside <summary>
+  if (t.hasAttribute("data-bk")) bkToggle(t.dataset.bk);
+  else if (t.hasAttribute("data-bkrm")) {
+    const code = t.dataset.bkrm, btns = [...$("bkBody").querySelectorAll("[data-bkrm]")], i = btns.indexOf(t);
+    BK.items = BK.items.filter(x => x.code !== code); bkChanged(); bkToast(`已移出对比池（${BK.items.length}/${BK_MAX}）`);
+    const nx = $("bkBody").querySelectorAll("[data-bkrm]"); (nx[Math.min(Math.max(i, 0), nx.length - 1)] || $("bkTitle")).focus();
+  } else if (!jumpCN(t.dataset.bkjump)) bkToast("当前数据里找不到这家公司");
+});
+addEventListener("storage", ev => { if (ev.key === BKEY || ev.key === null) { bkLoad(); bkWSync(); renderBk(); bkSync(); } });   // another tab changed the basket
+bkLoad(); bkInit();
+
+function render() { renderHeat(); renderScreen(); renderPriority(); renderBk(); }
 function init() {
   renderHeader();
   const inds = [...new Set(D.screen.map(r => r.industry).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));
@@ -1120,7 +1407,7 @@ function init() {
   $("fClear").onclick = () => { Object.assign(state, {ind: "", lb: "", w: "", q: "", hl: ""}); ["fInd", "fLb", "fW", "fQ"].forEach(i => $(i).value = ""); renderScreen(); };
   $("indMore").onclick = () => { state.indAll = !state.indAll; renderHeat(); };
   $("scMore").onclick = () => { state.limit += 200; renderScreen(); };
-  renderLabels(); renderMethod(); render(); renderCards(); markSec(); nBadges();
+  renderLabels(); renderMethod(); render(); renderCards(); markSec(); nBadges(); bkSync();
   if (location.hash.startsWith("#card-")) openCard(decodeURIComponent(location.hash.slice(6)), true);
 }
 init();

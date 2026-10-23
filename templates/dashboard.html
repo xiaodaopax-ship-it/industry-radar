@@ -172,6 +172,29 @@
   #hmTbl .btn { white-space:nowrap; }
   .pgtk { display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
 
+  /* 对比池 (comparison basket) */
+  .bkb { font:inherit; font-size:11.5px; line-height:20px; padding:0 8px; border-radius:999px; border:1px dashed var(--line2); background:transparent; color:var(--muted); cursor:pointer; white-space:nowrap; }
+  .bkb:hover { color:var(--accent); border-color:var(--accent); border-style:solid; }
+  .bkb[aria-pressed="true"] { border:1px solid rgba(55,198,224,.55); background:rgba(55,198,224,.14); color:var(--accent); font-weight:600; }
+  #sBk .btn:disabled { opacity:.45; cursor:not-allowed; }
+  #sBk h3 .tag { margin-left:6px; }
+  #sBk td.bk-best { background:rgba(70,196,134,.13); box-shadow:inset 0 -2px 0 rgba(70,196,134,.55); }
+  #sBk td.bk-worst { background:rgba(242,114,107,.10); box-shadow:inset 0 -2px 0 rgba(242,114,107,.45); }
+  #sBk tr.bk-gone > td { color:var(--muted); }
+  #sBk td.bk-dims { min-width:250px; max-width:320px; } #sBk td.bk-dims .small { font-size:11.5px; line-height:1.45; margin-top:2px; }
+  #sBk .lnk b { font-size:13px; }
+  .bk-empty { border:1px dashed var(--line2); border-radius:var(--r2); padding:18px; color:var(--muted); font-size:13px; text-align:center; }
+  details.bkw { background:var(--raised); }
+  .bkw-g { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:6px 14px; margin:10px 0; }
+  .bkw-g label { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:12.5px; }
+  .bkbars { display:inline-flex; gap:2px; align-items:flex-end; height:22px; vertical-align:middle; }
+  .bkbars i { display:inline-flex; align-items:flex-end; width:8px; height:22px; background:#22303a; border-radius:2px; overflow:hidden; cursor:help; }
+  .bkbars i b { display:block; width:100%; background:var(--accent); }
+  .bkbars i.nil { background:repeating-linear-gradient(45deg,#22303a 0 2px,transparent 2px 4px); }
+  .bk-toast { position:fixed; left:50%; bottom:24px; transform:translate(-50%,8px); z-index:70; background:var(--raised2); color:var(--text); border:1px solid rgba(55,198,224,.5); border-radius:999px;
+              padding:6px 16px; font-size:13px; box-shadow:0 6px 18px rgba(0,0,0,.4); opacity:0; visibility:hidden; transition:opacity .2s, transform .2s, visibility .2s; }
+  .bk-toast.show { opacity:1; visibility:visible; transform:translate(-50%,0); }
+
   /* left sidebar */
   .side { position:fixed; left:0; top:0; bottom:0; width:var(--side); z-index:30; overflow-y:auto; background:var(--side-bg); border-right:1px solid var(--line);
           padding:16px 12px 28px; display:flex; flex-direction:column; gap:14px; }
@@ -267,7 +290,8 @@
     <div class="qs-res" id="qsRes" aria-live="polite"></div>
   </div>
   <div><div class="gt">全市场</div>
-    <ul><li><a class="sl" href="#s0" data-sec="s0">⓪ 全市场热度</a></li><li><a class="sl" href="#sPeg" data-sec="sPeg">PEG 筛选</a></li></ul></div>
+    <ul><li><a class="sl" href="#s0" data-sec="s0">⓪ 全市场热度</a></li><li><a class="sl" href="#sPeg" data-sec="sPeg">PEG 筛选</a></li>
+      <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li></ul></div>
   <div><div class="gt">行业</div><ul id="sideSecs"></ul></div>
 </nav>
 <div class="backdrop" id="sideBack"></div>
@@ -315,10 +339,37 @@
     <p class="note" id="pgNote"></p>
   </section>
 
+  <!-- 对比池 (comparison basket, cross-sector; stored in this browser only) -->
+  <section id="sBk" aria-labelledby="bkTitle">
+    <h2 id="bkTitle" tabindex="-1"><span class="step-tag">⇄</span>对比池 <span class="small" id="bkCount"></span></h2>
+    <p class="lead">把感兴趣的公司（可以跨行业，龙头和新兴都行）放在一起横向比较。列表只保存在当前浏览器的本地存储里，重新构建页面不会丢失。</p>
+    <div class="toolbar">
+      <button type="button" class="btn primary" id="bkScoreBtn" aria-pressed="false">评分排序</button>
+      <button type="button" class="btn" id="bkCsv">导出 CSV</button>
+      <button type="button" class="btn ghost" id="bkClear">清空</button>
+      <span class="small">点表头可以按该列排序</span>
+    </div>
+    <details class="bkw" id="bkWts"><summary><b>维度权重</b><span class="small">0 = 不计分，默认都是 1；修改后立即生效并保存在本浏览器</span></summary>
+      <div class="bkw-g" id="bkWBody" role="group" aria-label="评分维度权重"></div>
+      <button type="button" class="btn ghost" id="bkWReset">恢复默认权重</button></details>
+    <div id="bkBody"></div>
+    <details><summary><b>评分规则</b><span class="small">分组、维度、百分位和总分怎么算</span></summary>
+      <ul class="small" style="margin:6px 0;padding-left:18px">
+        <li><b>分组</b>：金融类口径（profile = financial）单独一组；标准口径中属于周期性环节的公司归“周期”组，不参与评分（周期环节：盈利高点时估值最低，不参与排序）；其余为标准组。百分位只在同一组内计算。</li>
+        <li><b>标准口径维度</b>：营收同比 ↑、增速变化（加速）↑、毛利率 ↑、毛利率变化 ↑、营业利润率 ↑、增速调整后市销率 ↓（只在 &gt; 0 时计入）、稀释 ↓、财报超预期 ↑。</li>
+        <li><b>金融口径维度</b>：营收同比 ↑、税前利润率 ↑、税前利润率变化 ↑、ROE ↑、市净率 ↓（只在 &gt; 0 时计入）、稀释 ↓。</li>
+        <li><b>数据异常</b>：营业利润率被标为异常时不计营业利润率；营收增速异常时不计营收同比和增速变化；税前利润异常时不计税前利润率及其变化。表中用 ⚠ 标出。</li>
+        <li><b>百分位</b>：组内在该维度有有效数值的公司按数值排序，并列取平均名次，映射到 0–100，最好 = 100、最差 = 0；只有一家有数值时记 50。权重为 0 的维度不计。</li>
+        <li><b>总分</b> = Σ(权重 × 百分位) ÷ Σ权重，只算有数据的维度，保留 1 位小数。覆盖维度 x/y = 有数据的维度数 / 权重 &gt; 0 的维度数；x 小于 y 的一半（向上取整）时标“数据不足”，排在本组其他公司之后。组内只有 1 家时不打分。</li>
+        <li><b>不计分</b>：股价高低、PEG、分析师目标价、评级、页面的“结论”。表格里的绿色底 = 本组该维度最好，红色底 = 最差。</li>
+      </ul></details>
+    <p class="note">池内相对排序：只反映所选这几家在下列口径上的相对位置，换一批公司分数就会变。不是买卖建议，不预测股价；PEG 与分析师目标价只展示、不计分。</p>
+  </section>
+
   <div class="sticky">
     <div class="tabs" role="tablist" id="tabs"></div>
     <nav class="steps" aria-label="分析步骤">
-      <a href="#s0">⓪ 全市场热度</a><a href="#sPeg">PEG 筛选</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
+      <a href="#s0">⓪ 全市场热度</a><a href="#sPeg">PEG 筛选</a><a href="#sBk">对比池</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
     </nav>
   </div>
 
@@ -415,6 +466,7 @@
   <footer id="foot"></footer>
 </main>
 <div class="tip" id="tip" role="tooltip"></div>
+<div class="bk-toast" id="bkToast" role="status" aria-live="polite"></div>
 <button type="button" class="totop" id="toTop" aria-label="返回顶部" title="返回顶部">↑</button>
 <button type="button" class="notes-toggle" id="notesBtn" aria-controls="notes" aria-expanded="false">备注 (<span id="notesN">0</span>)</button>
 <aside class="drawer" id="notes" role="dialog" aria-modal="false" aria-labelledby="notesTitle">
@@ -545,7 +597,7 @@ function jumpCompany(sector, ticker, kind) {
 }
 
 // ---------- left sidebar: sections, sectors (with counts) and the step links of the active sector
-const SECTS = [["s0", "⓪ 全市场热度", 0], ["sPeg", "PEG 筛选", 0], ["s1", "① 行业总览", 1], ["s2", "② 细分拆解", 1], ["s3", "③ 龙头分析", 1],
+const SECTS = [["s0", "⓪ 全市场热度", 0], ["sPeg", "PEG 筛选", 0], ["sBk", "对比池", 0], ["s1", "① 行业总览", 1], ["s2", "② 细分拆解", 1], ["s3", "③ 龙头分析", 1],
   ["s4", "④ 新兴机会", 1], ["s5", "⑤ 机会清单", 1], ["s6", "数据与方法", 1]];
 const SCNT = D.entries.reduce((a, e) => (a[e.sector] = (a[e.sector] || 0) + 1, a), {});
 let curSec = "s0";
@@ -634,7 +686,7 @@ function nSave() {
 const fmtT = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleString("zh-CN", {hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"}); };
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 const companyAnchor = e => ({type: "company", sector: e.sector, ticker: e.ticker, kind: e.kind, section: e.kind === "leader" ? "s3" : "s4", label: `${e.ticker} · ${e.name || ""} · ${SEC[e.sector]?.name || e.sector}`});
-const ctxAnchor = () => { const s = SECTS.find(x => x[0] === curSec) || SECTS[2];
+const ctxAnchor = () => { const s = SECTS.find(x => x[0] === curSec) || SECTS.find(x => x[0] === "s1");
   return {type: "section", sector: s[2] ? state.sector : "", ticker: "", kind: "", section: s[0], label: s[2] ? `${S().name} · ${s[1]}` : s[1]}; };
 // "＋备注" button and count badge used on evaluation cards and PEG rows (counted per ticker across sectors)
 const noteCtl = e => `<button type="button" class="nbadge" data-nbt="${esc(e.ticker)}" hidden></button><button type="button" class="addn" data-addnote data-ns="${esc(e.sector)}" data-nt="${esc(e.ticker)}" data-nk="${esc(e.kind)}" aria-label="为 ${esc(e.ticker)} 添加备注">＋备注</button>`;
@@ -759,6 +811,228 @@ $("nImport").onchange = async ev => {
 };
 addEventListener("storage", ev => { if (ev.key === NKEY) { nLoad(); nChanged(); } });   // another tab changed the notes
 nLoad(); nFormSet(null, null);
+
+// ---------- 对比池 (comparison basket): user-picked companies across sectors, stored only in this browser (one localStorage key)
+// {version, saved_at, items: [{sector, ticker, kind, added}], weights: {dimKey: 0|0.5|1|2|3}}; identity = sector|ticker|kind
+const BKKEY = "industry-radar-basket-us-v1", BKMAX = 30, BK_WOPTS = [0, 0.5, 1, 2, 3];
+const bkKey = (s, t, k) => `${s}|${t}|${k}`, bkKeyE = e => bkKey(e.sector, e.ticker, e.kind);
+const BKIDX = new Map(D.entries.map(e => [bkKeyE(e), e]));
+const bkNum = v => typeof v === "number" && isFinite(v) ? v : null;
+const bkPos = v => { v = bkNum(v); return v != null && v > 0 ? v : null; };
+// scored dimensions: [key, label, getter, direction (1 = higher is better, -1 = lower is better)]
+const BK_STD = [["growth", "营收同比", e => e.yoy, 1], ["accel", "增速变化", e => e.d.accel, 1], ["gm", "毛利率", e => e.gm, 1], ["gm_trend", "毛利率变化", e => e.d.gm_trend, 1],
+  ["op_margin", "营业利润率", e => e.opm, 1], ["value", "增速调整后市销率", e => bkPos(e.d.ps_g), -1], ["dilution", "稀释", e => e.dilution, -1], ["surprise", "财报超预期", e => e.d.surprise, 1]];
+const BK_FIN = [["growth", "营收同比", e => e.yoy, 1], ["pretax_m", "税前利润率", e => e.d.pretax_m, 1], ["pretax_trend", "税前利润率变化", e => e.d.pretax_trend, 1],
+  ["roe", "ROE", e => e.d.roe, 1], ["pb", "市净率", e => bkPos(e.d.pb), -1], ["dilution", "稀释", e => e.dilution, -1]];
+const BK_WKEYS = [["growth", "营收同比", "标准 · 金融"], ["accel", "增速变化", "标准"], ["gm", "毛利率", "标准"], ["gm_trend", "毛利率变化", "标准"], ["op_margin", "营业利润率", "标准"],
+  ["value", "增速调整后市销率", "标准"], ["surprise", "财报超预期", "标准"], ["dilution", "稀释", "标准 · 金融"], ["pretax_m", "税前利润率", "金融"],
+  ["pretax_trend", "税前利润率变化", "金融"], ["roe", "ROE", "金融"], ["pb", "市净率", "金融"]];
+// d.anomaly flags -> dimensions that are not scored for that company
+const BK_DROP = {opm: ["op_margin"], growth: ["growth", "accel"], pretax: ["pretax_m", "pretax_trend"]};
+const BK_CYC_WHY = "周期环节：盈利高点时估值最低，不参与排序";
+const BK = {items: [], weights: {}, scored: false, sort: null, dir: 1};
+const bkGroup = e => isFin(e) ? "金融" : e.cyclical ? "周期" : "标准";
+const bkDropped = e => { const s = new Set(); (e.d.anomaly || []).forEach(a => (BK_DROP[a] || []).forEach(k => s.add(k))); return s; };
+const bkW = (weights, k) => weights && BK_WOPTS.includes(weights[k]) ? weights[k] : 1;
+const bkHas = (s, t, k) => BK.items.some(x => x.sector === s && x.ticker === t && x.kind === k);
+
+// pure scoring: percentile rank within group (average rank for ties, best = 100, worst = 0, single value = 50),
+// score = Σ(w·pct) / Σw over available dims; covered < ceil(total / 2) -> flagged "数据不足" and ranked after the others
+function bkScore(entries, weights) {
+  const out = entries.map(e => ({group: bkGroup(e), score: null, rank: null, dims: {}, covered: 0, total: 0, low: false, why: ""}));
+  ["标准", "金融", "周期"].forEach(g => {
+    const idx = entries.map((_, i) => i).filter(i => out[i].group === g);
+    if (!idx.length) return;
+    if (g === "周期") { idx.forEach(i => out[i].why = BK_CYC_WHY); return; }
+    if (idx.length < 2) { out[idx[0]].why = "组内仅 1 家，无法相对比较"; return; }
+    const dims = (g === "金融" ? BK_FIN : BK_STD).filter(x => bkW(weights, x[0]) > 0);
+    dims.forEach(([k, , get, dir]) => {
+      const vals = [];
+      idx.forEach(i => { const drop = bkDropped(entries[i]).has(k), raw = bkNum(get(entries[i]));
+        out[i].dims[k] = {raw, pct: null, dropped: drop}; if (raw != null && !drop) vals.push([i, raw * dir]); });
+      vals.sort((a, b) => a[1] - b[1]);
+      const m = vals.length;
+      for (let a = 0; a < m;) { let b = a; while (b + 1 < m && vals[b + 1][1] === vals[a][1]) b++;
+        const p = m === 1 ? 50 : (a + b) / 2 / (m - 1) * 100;   // zero-based average rank, worst = 0
+        for (let j = a; j <= b; j++) out[vals[j][0]].dims[k].pct = p; a = b + 1; }
+    });
+    idx.forEach(i => { const o = out[i]; o.total = dims.length;
+      if (!o.total) { o.why = "所有维度权重为 0"; return; }
+      let sw = 0, s = 0; const miss = [], drop = [];
+      dims.forEach(([k, l]) => { const x = o.dims[k]; if (x.pct != null) { const w = bkW(weights, k); sw += w; s += w * x.pct; o.covered++; } else (x.dropped ? drop : miss).push(l); });
+      if (sw > 0) o.score = Math.round(s / sw * 10) / 10;
+      o.low = o.covered < Math.ceil(o.total / 2);
+      o.why = [drop.length ? `⚠ 数据异常不计分：${drop.join("、")}` : "", miss.length ? `缺数据：${miss.join("、")}` : "",
+        o.low ? "数据不足：覆盖维度不到一半，排在本组其他公司之后" : ""].filter(Boolean).join("；");
+    });
+    idx.filter(i => out[i].score != null)
+      .sort((a, b) => (out[a].low - out[b].low) || (out[b].score - out[a].score) || entries[a].ticker.localeCompare(entries[b].ticker))
+      .forEach((i, r) => out[i].rank = r + 1);
+  });
+  return out;
+}
+
+function bkLoad() {
+  let j = null;
+  try { const raw = localStorage.getItem(BKKEY); j = raw ? JSON.parse(raw) : null; } catch (err) { j = null; }
+  const items = [], seen = new Set();
+  (j && Array.isArray(j.items) ? j.items : []).forEach(x => {
+    if (!x || typeof x !== "object") return;
+    const s = nStr(x.sector, 80), t = nStr(x.ticker, 40), k = x.kind;
+    if (!s || !t || !["leader", "emerging"].includes(k) || items.length >= BKMAX) return;
+    const key = bkKey(s, t, k); if (seen.has(key)) return; seen.add(key);
+    items.push({sector: s, ticker: t, kind: k, added: nIso(x.added) || new Date().toISOString()});
+  });
+  BK.items = items;
+  BK.weights = Object.fromEntries(BK_WKEYS.map(([k]) => [k, bkW(j && typeof j.weights === "object" ? j.weights : null, k)]));
+}
+function bkSave() {
+  try { localStorage.setItem(BKKEY, JSON.stringify({version: 1, saved_at: new Date().toISOString(), items: BK.items, weights: BK.weights})); return true; }
+  catch (err) { bkToast("保存失败：浏览器不允许本地存储或空间已满"); return false; }
+}
+let bkTT = 0;
+function bkToast(msg) { const t = $("bkToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(bkTT); bkTT = setTimeout(() => t.classList.remove("show"), 2200); }
+// per-company toggle; state, text and label are filled in by bkSync() after each render
+const bkBtn = e => `<button type="button" class="bkb" data-bk-s="${esc(e.sector)}" data-bk-t="${esc(e.ticker)}" data-bk-k="${esc(e.kind)}" aria-pressed="false" aria-label="把 ${esc(e.ticker)} 加入对比池">＋对比</button>`;
+function bkSync() {
+  const set = new Set(BK.items.map(x => bkKey(x.sector, x.ticker, x.kind)));
+  document.querySelectorAll("[data-bk-s]").forEach(b => { const on = set.has(bkKey(b.dataset.bkS, b.dataset.bkT, b.dataset.bkK));
+    b.setAttribute("aria-pressed", on ? "true" : "false"); b.textContent = on ? "✓ 对比" : "＋对比";
+    b.setAttribute("aria-label", `${on ? "从对比池移出" : "把"} ${b.dataset.bkT}${on ? "" : " 加入对比池"}`); b.title = on ? "已在对比池，点击移出" : "加入对比池"; });
+  $("bkSideN").textContent = BK.items.length;
+}
+function bkChanged() { bkSave(); bkRender(); bkSync(); }
+function bkToggle(s, t, k) {
+  if (bkHas(s, t, k)) { BK.items = BK.items.filter(x => !(x.sector === s && x.ticker === t && x.kind === k)); bkChanged(); bkToast(`已移出对比池（${BK.items.length}/${BKMAX}）`); return; }
+  if (BK.items.length >= BKMAX) { bkToast(`对比池已满（${BKMAX}/${BKMAX}），先移除一些再加`); return; }
+  BK.items.push({sector: s, ticker: t, kind: k, added: new Date().toISOString()}); bkChanged(); bkToast(`已加入对比池（${BK.items.length}/${BKMAX}）`);
+}
+const bkSeg = e => SEC[e.sector]?.segments.find(g => g.id === e.segment)?.name || e.segment;
+const bkWarn = (e, k, html) => html + (bkDropped(e).has(k) ? ` <span class="warn" data-tip="数据异常标记，这一项不计分">⚠</span>` : "");
+const bkPct = v => v == null ? "—" : `<span class="${v < 0 ? "neg" : ""}">${num(v)}%</span>`;
+function bkBars(r, g) {
+  if (!r.s.total) return `<span class="small">${esc(r.s.why || "—")}</span>`;
+  const ds = (g === "金融" ? BK_FIN : BK_STD).filter(x => bkW(BK.weights, x[0]) > 0);
+  const lab = ds.map(([k, l]) => `${l} ${r.s.dims[k]?.pct == null ? "不计分" : num(r.s.dims[k].pct, 0)}`).join("，");
+  return `<span class="bkbars" role="img" aria-label="${esc("组内百分位：" + lab)}">${ds.map(([k, l, , dir]) => { const x = r.s.dims[k] || {}, p = x.pct;
+    const t = `${l}（${dir > 0 ? "越高越好" : "越低越好"}）：${x.raw == null ? "无数据" : num(x.raw, 2)}${x.dropped ? "，数据异常不计分" : ""} → ${p == null ? "不计分" : "组内百分位 " + num(p, 0)}`;
+    return `<i class="${p == null ? "nil" : ""}" data-tip="${esc(t)}"><b style="height:${p == null ? 0 : Math.max(4, p)}%"></b></i>`; }).join("")}</span>`
+    + (r.s.why ? `<div class="small">${esc(r.s.why)}</div>` : "");
+}
+// columns of one group block: {k, t (static html), n (numeric), get (sort value), cell, dim (scored dimension for highlight), tip, nosort}
+function bkCols(g) {
+  const fin = g === "金融", cyc = g === "周期";
+  const sc = BK.scored ? [
+    {k: "rank", t: "名次", n: 1, get: r => r.s.rank, cell: (r, nr) => r.s.rank ? `<b>${r.s.rank}</b><span class="small"> / ${nr}</span>` : "—", tip: "组内名次；数据不足的排在后面"},
+    {k: "score", t: "总分", n: 1, get: r => r.s.score, cell: r => cyc ? `<span class="tag t-cyc">不参与评分</span>`
+      : r.s.score == null ? `<span class="small muted">${esc(r.s.why || "—")}</span>` : `<b>${r.s.score.toFixed(1)}</b>${r.s.low ? '<div class="small warn">数据不足</div>' : ""}`, tip: "Σ(权重 × 组内百分位) ÷ Σ权重，0–100"},
+    {k: "covered", t: "覆盖维度", n: 1, get: r => r.s.total ? r.s.covered / r.s.total : null, cell: r => r.s.total ? `<span class="${r.s.low ? "warn" : ""}">${r.s.covered}/${r.s.total}</span>` : "—"},
+    {k: "dims", t: "分项（组内百分位）", nosort: 1, cell: r => bkBars(r, g)}] : [];
+  return [
+    {k: "ticker", t: "公司", get: r => r.e.ticker, cell: r => `<button type="button" class="lnk" data-bk-go="${esc(bkKeyE(r.e))}" aria-label="打开 ${esc(r.e.ticker)} 的评估卡"><b>${esc(r.e.ticker)}</b></button><div class="small">${esc((r.e.name || "").slice(0, 24))}</div>`},
+    {k: "sector", t: "板块 / 环节", get: r => SEC[r.e.sector]?.name, cell: r => `${esc(SEC[r.e.sector]?.name || r.e.sector)}<div><span class="tag">${esc(bkSeg(r.e))}</span></div>`},
+    {k: "kind", t: "类型", get: r => r.e.kind, cell: r => r.e.kind === "leader" ? '<span class="tag t-ld">龙头</span>' : '<span class="tag">新兴</span>'},
+    {k: "basis", t: "口径", nosort: 1, cell: r => fin ? '<span class="tag t-q">金融</span>' : cyc ? '<span class="tag t-cyc">周期</span>' : '<span class="tag">标准</span>'},
+    ...sc,
+    {k: "growth", t: "营收同比", n: 1, dim: "growth", get: r => r.e.yoy, cell: r => bkWarn(r.e, "growth", pc(r.e.yoy, 1))},
+    {k: "accel", t: "加速", n: 1, dim: fin ? null : "accel", get: r => r.e.d.accel, cell: r => bkWarn(r.e, "accel", pp1(r.e.d.accel)), tip: "本期同比 − 上期同比（百分点）"},
+    ...(fin ? [
+      {k: "pretax_m", t: "税前利润率", n: 1, dim: "pretax_m", get: r => r.e.d.pretax_m, cell: r => bkWarn(r.e, "pretax_m", bkPct(r.e.d.pretax_m))},
+      {k: "pretax_trend", t: "税前利润率变化", n: 1, dim: "pretax_trend", get: r => r.e.d.pretax_trend, cell: r => bkWarn(r.e, "pretax_trend", pp1(r.e.d.pretax_trend))},
+      {k: "roe", t: "ROE", n: 1, dim: "roe", get: r => r.e.d.roe, cell: r => bkPct(r.e.d.roe)},
+      {k: "pb", t: "市净率", n: 1, dim: "pb", get: r => r.e.d.pb, cell: r => num(r.e.d.pb, 2), tip: "越低越好；≤ 0 不计分"}
+    ] : [
+      {k: "gm", t: "毛利率", n: 1, dim: "gm", get: r => r.e.gm, cell: r => bkPct(r.e.gm)},
+      {k: "gm_trend", t: "毛利率变化", n: 1, dim: "gm_trend", get: r => r.e.d.gm_trend, cell: r => pp1(r.e.d.gm_trend)},
+      {k: "op_margin", t: "营业利润率", n: 1, dim: "op_margin", get: r => r.e.opm, cell: r => bkWarn(r.e, "op_margin", bkPct(r.e.opm))},
+      {k: "value", t: "增速调整后市销率", n: 1, dim: "value", get: r => r.e.d.ps_g, cell: r => num(r.e.d.ps_g, 2), tip: "市销率 ÷ 营收增速，越低越好；≤ 0 不计分"}
+    ]),
+    {k: "pe", t: "PE(TTM)", n: 1, get: r => r.e.d.pe, cell: r => num(r.e.d.pe, 1)},
+    {k: "pegf", t: "前瞻 PEG", n: 1, get: r => r.e.d.pegf?.v, cell: r => pegFH(r.e.d, false), tip: "只展示，不计分"},
+    {k: "pegh", t: "历史 PEG", n: 1, get: r => r.e.d.pegh?.v, cell: r => pegHH(r.e.d) + divH(r.e.d), tip: "只展示，不计分"},
+    {k: "dilution", t: "稀释", n: 1, dim: "dilution", get: r => r.e.dilution, cell: r => r.e.dilution == null ? "—" : num(r.e.dilution) + "%", tip: "股数同比，越低越好（负数 = 回购）"},
+    {k: "surprise", t: "财报超预期", n: 1, dim: fin ? null : "surprise", get: r => r.e.d.surprise, cell: r => pc(r.e.d.surprise, 1), tip: fin ? "金融口径只展示，不计分" : "最近一季 EPS 实际 vs 预期"},
+    {k: "analysts", t: "分析师数", n: 1, get: r => r.e.mkt?.analysts, cell: r => r.e.mkt?.analysts ?? "—"},
+    {k: "upside", t: `目标中位数上行<div class="tier">分析师目标，非预测</div>`, n: 1, get: r => pgUp(r.e), cell: r => { const u = pgUp(r.e); return u == null ? "—" : pc(u); }, tip: "只展示，不计分"},
+    {k: "level", t: "结论", get: r => r.e.level, cell: r => `<span class="tag lv-${esc(r.e.level)}">${esc(r.e.level)}</span>${r.e.gate ? `<div class="small">${esc(r.e.gate)}</div>` : ""}`},
+    {k: "rm", t: '<span class="sr-only">操作</span>', nosort: 1, cell: r => `<button type="button" class="btn ghost" data-bk-rm="${esc(bkKeyE(r.e))}" aria-label="从对比池移出 ${esc(r.e.ticker)}">移除</button>`}];
+}
+function bkBlock(g, title, sub, rs) {
+  const cols = bkCols(g), nr = rs.filter(r => r.s.rank).length;
+  // within-group best / worst per scored dimension (by percentile, so the direction is already applied)
+  const hl = {};
+  if (g !== "周期") (g === "金融" ? BK_FIN : BK_STD).forEach(([k]) => { const ps = rs.map(r => r.s.dims[k]?.pct).filter(v => v != null);
+    if (ps.length > 1 && Math.max(...ps) > Math.min(...ps)) hl[k] = [Math.max(...ps), Math.min(...ps)]; });
+  const c = cols.find(x => x.k === BK.sort && !x.nosort);
+  if (c) rs = rs.slice().sort((a, b) => { const x = c.get(a), y = c.get(b); if (x == null || x === "") return 1; if (y == null || y === "") return -1; return (x > y ? 1 : x < y ? -1 : 0) * BK.dir; });
+  const head = cols.map(x => `<th scope="col" class="${x.n ? "n" : ""}"${x.tip ? ` data-tip="${esc(x.tip)}"` : ""}${c && c.k === x.k ? ` aria-sort="${BK.dir > 0 ? "ascending" : "descending"}"` : ""}>${x.nosort ? x.t
+    : `<button type="button" data-bk-sort="${x.k}">${x.t}${c && c.k === x.k ? (BK.dir > 0 ? " ▲" : " ▼") : ""}</button>`}</th>`).join("");
+  const body = rs.map(r => `<tr>${cols.map(x => { let cls = x.n ? "n" : x.k === "dims" ? "bk-dims" : "";
+    if (x.dim && hl[x.dim]) { const p = r.s.dims[x.dim]?.pct; if (p === hl[x.dim][0]) cls += " bk-best"; else if (p === hl[x.dim][1]) cls += " bk-worst"; }
+    return `<td class="${cls}">${x.cell(r, nr)}</td>`; }).join("")}</tr>`).join("");
+  return `<h3>${esc(title)}<span class="tag ${g === "周期" ? "t-cyc" : g === "金融" ? "t-q" : ""}">${rs.length} 家</span> <span class="small">${esc(sub)}</span></h3>
+    <div class="tscroll"><table data-bk-group="${esc(g)}"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function bkSplit() { const live = [], gone = [];
+  BK.items.forEach(it => { const e = BKIDX.get(bkKey(it.sector, it.ticker, it.kind)); if (e) live.push(e); else gone.push(it); });
+  return {live, gone}; }
+function bkRender() {
+  const n = BK.items.length;
+  $("bkCount").textContent = `${n} / ${BKMAX} 家`;
+  $("bkScoreBtn").setAttribute("aria-pressed", BK.scored ? "true" : "false");
+  ["bkScoreBtn", "bkCsv", "bkClear"].forEach(id => $(id).disabled = !n);
+  if (!n) { $("bkBody").innerHTML = `<div class="bk-empty">对比池还是空的。在评估卡、龙头卡片、新兴公司表格、PEG 筛选、研究优先池或机会清单里点 <span class="bkb" aria-hidden="true">＋对比</span> 把公司加进来（最多 ${BKMAX} 家，可以跨行业）。<br>加进来以后可以并排看增长、利润率、估值和稀释，再用“评分排序”做池内相对排序。</div>`; return; }
+  const {live, gone} = bkSplit(), sc = bkScore(live, BK.weights), rows = live.map((e, i) => ({e, s: sc[i]}));
+  let h = "";
+  [["标准", "标准口径", "百分位只在本组内计算"], ["金融", "金融口径", "不看毛利率；百分位只在金融类公司之间计算"], ["周期", "周期 · 不参与评分", BK_CYC_WHY]].forEach(([g, t, sub]) => {
+    const rs = rows.filter(r => r.s.group === g); if (rs.length) h += bkBlock(g, t, sub, rs); });
+  if (gone.length) h += `<h3>数据中已不存在<span class="tag t-warn">${gone.length} 家</span> <span class="small">可能已移出该行业或改了分类，可以移除</span></h3>
+    <div class="tscroll"><table><thead><tr><th scope="col">公司</th><th scope="col">行业</th><th scope="col">类型</th><th scope="col">说明</th><th scope="col"><span class="sr-only">操作</span></th></tr></thead><tbody>
+    ${gone.map(it => `<tr class="bk-gone"><td><b>${esc(it.ticker)}</b></td><td>${esc(SEC[it.sector]?.name || it.sector)}</td><td>${it.kind === "leader" ? "龙头" : "新兴"}</td>
+      <td class="warn">本次数据中已不存在</td><td><button type="button" class="btn ghost" data-bk-rm="${esc(bkKey(it.sector, it.ticker, it.kind))}" aria-label="从对比池移出 ${esc(it.ticker)}">移除</button></td></tr>`).join("")}</tbody></table></div>`;
+  $("bkBody").innerHTML = h;
+}
+function bkRenderW() {
+  $("bkWBody").innerHTML = BK_WKEYS.map(([k, l, gs]) => `<label><span>${esc(l)} <span class="tier">${esc(gs)}</span></span>
+    <select data-bkw="${k}" aria-label="${esc(l)} 权重">${BK_WOPTS.map(v => `<option value="${v}" ${BK.weights[k] === v ? "selected" : ""}>${v}</option>`).join("")}</select></label>`).join("");
+}
+// delegated: toggle buttons (also inside <summary>, so preventDefault keeps the card from toggling), remove, and jump
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-bk-s], [data-bk-rm], [data-bk-go]"); if (!b) return;
+  ev.preventDefault(); ev.stopPropagation();
+  if (b.dataset.bkS != null) { bkToggle(b.dataset.bkS, b.dataset.bkT, b.dataset.bkK); return; }
+  if (b.dataset.bkRm != null) { const [s, t, k] = b.dataset.bkRm.split("|");
+    BK.items = BK.items.filter(x => bkKey(x.sector, x.ticker, x.kind) !== b.dataset.bkRm); bkChanged();
+    bkToast(`已移出 ${t || ""}（${BK.items.length}/${BKMAX}）`); $("bkTitle").focus({preventScroll: true}); return; }
+  const [s, t, k] = b.dataset.bkGo.split("|");
+  if (!jumpCompany(s, t, k)) bkToast("当前数据里找不到这家公司的评估卡");
+});
+$("bkBody").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-bk-sort]"); if (!b) return;
+  const k = b.dataset.bkSort;
+  BK.dir = BK.sort === k ? -BK.dir : (["ticker", "sector", "kind", "level", "rank"].includes(k) ? 1 : -1); BK.sort = k;
+  bkRender(); document.querySelector(`#bkBody [data-bk-sort="${k}"]`)?.focus();
+});
+$("bkScoreBtn").onclick = () => { BK.scored = true; BK.sort = "rank"; BK.dir = 1; bkRender(); };
+$("bkWBody").addEventListener("change", ev => { const k = ev.target.dataset.bkw; if (!k) return; BK.weights[k] = +ev.target.value; bkSave(); bkRender(); });
+$("bkWReset").onclick = () => { BK_WKEYS.forEach(([k]) => BK.weights[k] = 1); bkSave(); bkRenderW(); bkRender(); bkToast("已恢复默认权重"); };
+$("bkClear").onclick = () => { if (!BK.items.length || !confirm(`清空对比池？共 ${BK.items.length} 家，清空后不能恢复。`)) return; BK.items = []; bkChanged(); bkToast("已清空对比池"); };
+$("bkCsv").onclick = () => {
+  const {live, gone} = bkSplit(), sc = bkScore(live, BK.weights), DK = BK_WKEYS.map(x => x[0]), GO = {"标准": 0, "金融": 1, "周期": 2};
+  const rows = [["group", "rank", "score", "low_coverage", "covered", "total", "score_note", "sector", "segment", "ticker", "name", "market", "kind", "yoy", "accel", "gross_margin", "gm_trend_pp",
+    "op_margin", "ps_growth_adj", "pretax_margin", "pretax_trend_pp", "roe", "pb", "pe_ttm", "peg_fwd", "peg_hist", "dilution_pct", "eps_surprise_pct", "analysts",
+    "target_upside_pct_display_only", "level", "gate", "anomaly", ...DK.map(k => "pct_" + k)]];
+  live.map((e, i) => ({e, s: sc[i]})).sort((a, b) => GO[a.s.group] - GO[b.s.group] || (a.s.rank ?? 999) - (b.s.rank ?? 999)).forEach(({e, s}) => { const d = e.d;
+    rows.push([s.group, s.rank, s.score, s.low ? "yes" : "", s.total ? s.covered : "", s.total || "", s.why, SEC[e.sector]?.name || e.sector, bkSeg(e), e.ticker, e.name, e.market, e.kind,
+      e.yoy, d.accel, e.gm, d.gm_trend, e.opm, d.ps_g, d.pretax_m, d.pretax_trend, d.roe, d.pb, d.pe, d.pegf?.v, d.pegh?.v, e.dilution, d.surprise, e.mkt?.analysts,
+      pgUp(e) == null ? "" : +pgUp(e).toFixed(1), e.level, e.gate, (d.anomaly || []).join(" "), ...DK.map(k => s.dims[k]?.pct == null ? "" : +s.dims[k].pct.toFixed(1))]); });
+  gone.forEach(it => rows.push(["本次数据中已不存在", "", "", "", "", "", "", it.sector, "", it.ticker, "", "", it.kind]));
+  const csv = "\ufeff" + rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type: "text/csv"})); a.download = `comparison_basket_${today()}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+addEventListener("storage", ev => { if (ev.key === BKKEY) { bkLoad(); bkRenderW(); bkRender(); bkSync(); } });   // another tab changed the basket
+bkLoad(); bkRenderW();
 
 // ---------- ① overview
 function renderOverview() {
@@ -886,7 +1160,7 @@ function renderLeaders() {
     <div class="kv"><span>一年走势 vs ${esc(S().benchmark.symbol)}</span><b>${pc(e.ret1y)} vs ${pc(e.bench1y)}</b></div>${spark(e.spark)}
     ${coKv(e)}${epsBars(e)}
     <div class="or"><b class="ok">机会：</b>${esc(e.opp)}</div><div class="or"><b class="warn">风险：</b>${esc(e.risk)}</div>
-    <div class="small"><a href="#ldc-${state.sector}-${esc(e.ticker)}" data-open="ldc-${state.sector}-${esc(e.ticker)}">展开评估卡 ↓</a>${e.deep ? ` · <a href="${esc(e.deep)}">个股深度看板 →</a>` : ""}</div>
+    <div class="small"><a href="#ldc-${state.sector}-${esc(e.ticker)}" data-open="ldc-${state.sector}-${esc(e.ticker)}">展开评估卡 ↓</a>${e.deep ? ` · <a href="${esc(e.deep)}">个股深度看板 →</a>` : ""} ${bkBtn(e)}</div>
   </div>`).join("") : `<p class="muted">这个环节没有配置龙头，可以在 config/sectors.json 的 leaders 里添加。</p>`;
   $("ldCards").innerHTML = ls.map(e => evalCard(e, "ldc", false)).join("");
   document.querySelectorAll("[data-open]").forEach(a => a.onclick = () => { const el = document.getElementById(a.dataset.open); if (el) el.open = true; });
@@ -915,7 +1189,7 @@ function renderBubble() {
 }
 function poolCard(e) { const top = Object.entries(e.factors).sort((a, b) => b[1] - a[1]).slice(0, 3);
   return `<div class="card co"><div class="small">#${e.rank} · 综合百分位 ${(e.score * 100).toFixed(0)} · ${esc(segName(e.segment))} · ${esc(e.market)}</div>
-    <div class="tk"><a href="#card-${state.sector}-${esc(e.ticker)}">${esc(e.ticker)}</a></div><div class="nm">${esc(e.name)}</div>
+    <div class="tk"><a href="#card-${state.sector}-${esc(e.ticker)}">${esc(e.ticker)}</a></div><div class="nm">${esc(e.name)}</div><div>${bkBtn(e)}</div>
     <div class="one">${esc(e.oneliner)}${e.oneliner_src === "en" ? ' <span class="tier">（英文原文）</span>' : ""}</div>
     ${coKv(e)}${top.map(([k, v]) => `<div class="fbar"><span>${esc(D.factor_cn[k])}</span><span class="t"><i style="width:${v * 100}%"></i></span><span>${(v * 100).toFixed(0)}</span></div>`).join("")}
     <div class="or"><b class="ok">机会：</b>${esc(e.opp)}</div><div class="or"><b class="warn">风险：</b>${esc(e.risk)}</div></div>`; }
@@ -951,7 +1225,7 @@ function renderEmerging() {
     .sort((a, b) => { const x = val(a, state.sort), y = val(b, state.sort); if (x == null) return 1; if (y == null) return -1; return (x > y ? 1 : x < y ? -1 : 0) * state.dir; });
   $("count").textContent = `${list.length} / ${em.length} 家`;
   $("tbody").innerHTML = list.map(e => { const d = e.d, nq = e.mkt?.next_q; return `<tr>
-    <td><a href="#card-${state.sector}-${esc(e.ticker)}"><b>${esc(e.ticker)}</b></a><div class="small">${esc((e.name || "").slice(0, 26))}</div></td>
+    <td><a href="#card-${state.sector}-${esc(e.ticker)}"><b>${esc(e.ticker)}</b></a> ${bkBtn(e)}<div class="small">${esc((e.name || "").slice(0, 26))}</div></td>
     <td><span class="tag">${esc(segName(e.segment))}</span>${e.override ? `<div class="small warn" data-tip="${esc(e.override)}">人工调整</div>` : ""}</td><td>${esc(e.market)}</td>
     <td class="n">${d.price ? num(d.price, 2) : "—"}<div class="small">${esc(d.ccy || "")}${d.ccy && d.ccy !== "USD" && pxUsd(e) != null ? ` ≈ $${num(pxUsd(e), 2)}` : ""}</div></td><td class="n">${d.pos52 != null ? d.pos52 + "%" : "—"}</td><td class="n">${yi(d.mcap)}</td>
     <td class="n">${pc(e.yoy)}${e.basis === "annual" ? '<div class="small">年度</div>' : ""}</td>${midCells(e)}<td class="n">${pegFH(d)}${divH(d)}</td><td class="n">${pegHH(d)}</td>
@@ -960,7 +1234,7 @@ function renderEmerging() {
     <td class="n">${e.mkt?.analysts ?? "—"}</td><td class="n">${e.insider ? `<span class="${e.insider.buys ? "pos" : ""}">${e.insider.buys}</span> / ${e.insider.sells}` : "—"}</td>
     <td class="n"><span class="tag lv-${e.level}">${e.level}</span><div class="small">${e.rank ? "排第 " + e.rank : esc(e.gate || "")}</div></td></tr>`; }).join("");
   $("cards").innerHTML = list.map(e => evalCard(e, "card", e.pool)).join("");
-  nBadges();
+  nBadges(); bkSync();
 }
 
 // ---------- evaluation card (shared by leaders and emerging companies)
@@ -1053,7 +1327,7 @@ function evalCard(e, prefix, open) {
     <summary><span class="ec-tk ${ld ? "ld" : ""}">${esc(e.ticker)}</span><span class="ec-nm">${esc(e.name)}</span><span class="tag">${esc(segName(e.segment))}</span><span class="tag lv-${esc(e.level)}">${esc(e.level)}</span>
       <span class="ec-meta">${esc(e.market)}${e.rank ? ` · 排第 ${e.rank}，综合百分位 ${(e.score * 100).toFixed(0)}` : e.gate ? ` · 未排序：${esc(e.gate)}` : ""}</span>
       <span class="ec-nums"><span class="np">股价 <b>${d.price ? num(d.price, 2) + " " + esc(d.ccy || "") : "—"}</b></span><span class="np">市值 <b>${yi(d.mcap)} 亿</b></span>${pegPill("PEG 前瞻", PF.v, PF.ok)}${pegPill("历史", PH.v, PH.ok)}
-        ${noteCtl(e)}</span></summary>
+        ${bkBtn(e)}${noteCtl(e)}</span></summary>
     <div class="ec-body">
     <div class="ec-head">
       <div class="one">${esc(e.oneliner) || "—"}${e.oneliner_src === "en" ? ' <span class="tier">（英文原文）</span>' : ""}</div>
@@ -1093,7 +1367,7 @@ function renderOpp() {
       <div class="small" style="margin-top:6px"><b>龙头：</b>${ld.map(e => esc(e.ticker)).join("、") || "—"}</div>
       <div class="small"><b>先研究：</b>${pool.map(e => `<a href="#card-${state.sector}-${esc(e.ticker)}">${esc(e.ticker)}</a>`).join("、") || "—"}</div></div>`; }).join("")}</div>`;
   const all = D.entries.filter(e => e.pool).sort((a, b) => a.sector.localeCompare(b.sector) || a.rank - b.rank);
-  $("oppAll").innerHTML = all.map(e => `<tr><td>${esc(SEC[e.sector].name)}</td><td>${esc(SEC[e.sector].segments.find(g => g.id === e.segment)?.name)}</td><td><b>${esc(e.ticker)}</b><div class="small">${esc(e.market)}</div></td>
+  $("oppAll").innerHTML = all.map(e => `<tr><td>${esc(SEC[e.sector].name)}</td><td>${esc(SEC[e.sector].segments.find(g => g.id === e.segment)?.name)}</td><td><b>${esc(e.ticker)}</b> ${bkBtn(e)}<div class="small">${esc(e.market)}</div></td>
     <td class="small">${esc(e.oneliner).slice(0, 140)}</td><td class="small ok">${esc(e.opp)}</td><td class="small warn">${esc(e.risk)}</td><td class="n">${e.mkt?.next_date || "—"}</td></tr>`).join("");
 }
 $("csv").onclick = () => {
@@ -1121,7 +1395,7 @@ function renderMeta() {
 function renderAll() {
   document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.s === state.sector));
   renderOverview(); renderSegments(); renderLeaders(); renderBubble(); renderEmerging(); renderOpp(); renderMeta();
-  renderSide(); nBadges(); if ($("nfCur").checked) nRenderList();
+  renderSide(); nBadges(); bkSync(); if ($("nfCur").checked) nRenderList();
 }
 $("fSeg").onchange = e => { state.fSeg = e.target.value; renderEmerging(); };
 $("fMkt").onchange = e => { state.fMkt = e.target.value; renderEmerging(); };
@@ -1212,7 +1486,7 @@ function renderPegBody() {
     .sort((a, b) => { const x = get(a), y = get(b); if (x == null || x === "") return 1; if (y == null || y === "") return -1; return (x > y ? 1 : x < y ? -1 : 0) * pg.dir; });
   $("pgCount").textContent = `${list.length} 家（通过 ${PGROWS.filter(r => r.e.peg_pass).length} / 待核实 ${PGROWS.filter(r => r.e.peg_watch).length}）`;
   $("pgBody").innerHTML = list.map(r => { const e = r.e, d = e.d, F = d.pegf || {}, up = pgUp(e);
-    return `<tr><td><div class="pgtk"><button type="button" class="btn" style="padding:1px 8px" data-pg="${esc(e.ticker)}">${esc(e.ticker)}</button>${noteCtl(e)}</div></td>
+    return `<tr><td><div class="pgtk"><button type="button" class="btn" style="padding:1px 8px" data-pg="${esc(e.ticker)}">${esc(e.ticker)}</button>${bkBtn(e)}${noteCtl(e)}</div></td>
     <td class="small">${esc((e.name || "").slice(0, 28))}<div>${esc((e.oneliner || "").slice(0, 46))}</div></td>
     <td class="small">${r.secs.map(s => esc(SEC[s].name)).join(" / ")}<div><span class="tag">${esc(SEC[e.sector].segments.find(g => g.id === e.segment)?.name || e.segment)}</span>${e.cyclical ? ' <span class="tag t-cyc">周期</span>' : ""}</div></td>
     <td>${e.kind === "leader" ? '<span class="tag t-ld">龙头</span>' : '<span class="tag">新兴</span>'}<div class="small">${esc(e.market)}</div></td>
@@ -1227,7 +1501,7 @@ function renderPegBody() {
     const r = PGROWS.find(x => x.e.ticker === b.dataset.pg), e = r.e;
     jumpCompany(e.sector, e.ticker, e.kind);
   });
-  nBadges();
+  nBadges(); bkSync();
   $("pgNote").innerHTML = esc(`PEG 只说明增速相对估值的位置，不说明增速能否兑现，也不包括客户集中度、竞争、稀释和一次性收益这些风险；` +
     `一致预期是 Yahoo 的非官方数据，分析师少于 5 家的公司参考价值更低。目标价是卖方观点，不是预测。点击代码打开该公司在所属行业里的评估卡。`);
 }
@@ -1238,6 +1512,7 @@ renderPeg();
 $("hmUncov").onchange = e => { hs.uncov = e.target.checked; renderHeatInd(); };
 $("hmClear").onclick = () => { hs.major = ""; renderHeatInd(); };
 renderHeat();
+bkRender(); bkSync();   // after the PEG helpers (pgUp) exist; the basket table uses them
 $("foot").textContent = `数据：SEC EDGAR、Yahoo Finance。Form 4 统计自 ${D.form4_since} 起。研究用工具，不构成投资建议。`;
 </script>
 </body>
