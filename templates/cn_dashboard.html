@@ -113,6 +113,9 @@
   .np { font-size:12px; line-height:20px; padding:0 8px; border-radius:999px; background:var(--bg); border:1px solid var(--line); color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
   .np b { color:var(--text); font-weight:600; margin:0; } .np.good b { color:var(--pos); } .np.unrel b { color:var(--warn); }
   .np .tag { line-height:16px; font-size:11px; padding:0 6px; margin-left:2px; }
+  /* 52-week range (display only) */
+  .mrng { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .mrng svg { display:block; } .mrng .fl { color:var(--warn); }
   .ec-body { padding:14px 16px 16px; }
   .ec-head .one { font-size:14px; margin:0 0 4px; }
   .tile { background:var(--raised2); border:1px solid var(--line); border-top:3px solid var(--line2); border-radius:var(--r2); padding:10px 12px; min-width:0; }
@@ -406,6 +409,9 @@
           <tr><td>问询函、关注函、监管函、警示函、立案、纪律处分、行政处罚</td><td>巨潮资讯 hisAnnouncement/query 标题关键词检索</td></tr>
           <tr><td>PE / PB 历史分位</td><td>RPT_VALUEANALYSIS_DET 按代码取日频历史</td></tr>
           <tr><td>PEG（前瞻）：机构一致预期 EPS 均值、覆盖机构数</td><td>RPT_WEB_RESPREDICT（EPS1–EPS4、YEAR_MARK、RATING_ORG_NUM），仅评估卡公司</td></tr>
+          <tr><td>股价（行情日收盘）</td><td>RPT_VALUEANALYSIS_DET CLOSE_PRICE（与 PE/PB 同一快照）</td></tr>
+          <tr><td>52 周最高 / 最低（前复权）</td><td>RPT_VALUEANALYSIS_DET 日收盘价 + RPT_SHAREBONUS_DET 除权除息（分红、送转）换算为前复权；push2his 前复权日 K 线可用时改用日内最高 / 最低价</td></tr>
+          <tr><td>机构目标价（逐篇研报）</td><td>reportapi.eastmoney.com/report/list（qType=0，indvAimPriceT / indvAimPriceL、orgSName、publishDate），仅评估卡公司</td></tr>
           <tr><td>PEG（历史）：扣非归母净利润 / 扣非每股收益</td><td>RPT_DMSK_FN_INCOME（DEDUCT_PARENT_NETPROFIT）/ RPT_LICO_FN_CPD（DEDUCT_BASIC_EPS），按代码取，仅评估卡公司</td></tr>
         </tbody></table>
         <h3>本次数据</h3>
@@ -423,7 +429,8 @@
         <p class="note">银行、保险、券商缺少一般模板资产负债表，筛选中排除；它们仍计入行业热度的营收统计。</p>
         <p class="note">增减持合计把董监高与 5% 以上股东两张表直接相加，同一主体同时出现在两张表时会重复计算；股东表的变动区间可能与公告日不一致。质押比例是公司整体质押股数占总股本，不是控股股东质押率。未来解禁计划可能变更，以公司公告为准。</p>
         <p class="note">估值历史只为短名单（最多 <span id="slMax"></span> 只）拉取，以控制请求量；其余公司的估值分位显示为"未取"。PE ≤ 0（亏损期）不计入分位样本。</p>
-        <p class="note">评估卡：主营构成、前十大流通股东、公司概况、机构一致预期来自东方财富 F10（RPT_F10_FN_MAINOP / RPT_F10_EH_FREEHOLDERS / RPT_F10_BASIC_ORGINFO / RPT_WEB_RESPREDICT），只为评估卡上的公司单独抓取。价格走势用估值历史里的日收盘价，<b>未复权</b>，送转、分红会造成跳变。机构一致预期只显示覆盖家数和 EPS 均值，不显示评级用词和目标价。结论、机会、风险和待核实问题都是按固定规则从数字生成的，不是研究结论。</p>
+        <p class="note">评估卡：主营构成、前十大流通股东、公司概况、机构一致预期来自东方财富 F10（RPT_F10_FN_MAINOP / RPT_F10_EH_FREEHOLDERS / RPT_F10_BASIC_ORGINFO / RPT_WEB_RESPREDICT），只为评估卡上的公司单独抓取。"近一年价格"走势用估值历史里的日收盘价，<b>未复权</b>，送转、分红会造成跳变（52 周区间另用前复权口径，见下）。机构一致预期只显示覆盖家数和 EPS 均值，不显示评级用词；汇总表的目标价上下限统计窗口未公开，仍不显示。结论、机会、风险和待核实问题都是按固定规则从数字生成的，不是研究结论。</p>
+        <p class="note" id="rngNote"></p>
         <p class="note" id="pegNote"></p>
         <p class="note">本页只整理公开披露的数字，不对任何政策、监管决定或宏观事项做评价。</p>
       </div>
@@ -583,6 +590,7 @@ function detail(r) {
     <div>${GATES.map(([k, t]) => { const g = r.gates[k]; return `<div class="chk"><span class="${esc(g.s)}">${ICON[g.s] || "·"}</span><span>${esc(t)}</span><span>${esc(g.v)}</span></div>`; }).join("")}</div>
     <div><div class="label">标签：<span class="tag lb-${esc(r.label)}">${esc(r.label)}</span></div><ul class="small">${r.reasons.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
       <div class="label">财务</div><div class="small">营收 ${yi(r.revenue)} 亿元 · 同比 ${num(r.rev_yoy)}%（上期累计 ${num(r.rev_yoy_prev)}%）· 归母净利润 ${yi(r.np)} 亿元 · 净利同比 ${num(r.np_yoy)}% · 毛利率 ${num(r.gm)}%（同比 ${num(r.gm_chg)} pp）· 总市值 ${yi(r.mcap)} 亿元 · PE(TTM) ${num(r.pe_ttm)} · PB ${num(r.pb, 2)}</div>
+      <div class="label" style="margin-top:6px">股价与 52 周区间 <span class="tier">只展示，不参与标签和排序</span></div>${rangeBarCN(r, null, r)}
       ${r.reg_items.length ? `<div class="label" style="margin-top:6px">监管类公告标题（最近 3 条，标题匹配）</div><ul class="small">${r.reg_items.map(x => `<li>${esc(x.date)} [${esc(x.kind)}] ${extA(x.url, x.title)}</li>`).join("")}</ul>` : ""}
     </div></div></td></tr>`;
 }
@@ -599,6 +607,8 @@ function renderScreen() {
     {k: "rev_yoy", t: "营收同比", n: 1, f: r => pc(r.rev_yoy)},
     {k: "accel", t: "加速（pp）", n: 1, f: r => pp(r.accel, 0)},
     {k: "np_yoy", t: "净利同比", n: 1, f: r => pc(r.np_yoy)},
+    {k: "price", t: "股价", n: 1, f: r => priceCell(r)},
+    {k: "pos52", t: "52 周位置", n: 1, cls: "nw", f: r => miniRange(r, r)},
     ...GATES.map(([k, t]) => ({k: "g_" + k, t, v: r => ({warn: 0, ok: 1, na: 2})[r.gates[k].s], g: 1, f: r => gateCell(r.gates[k])})),
     {k: "warn_n", t: "⚠ 数", n: 1, f: r => esc(r.warn_n)},
     {k: "label", t: "标签", f: r => `<span class="tag lb-${esc(r.label)}">${esc(r.label)}</span>`},
@@ -650,6 +660,8 @@ function renderPriority() {
     {k: "fv", t: "估值分位得分", n: 1, v: p => p.f.val, f: p => { const r = BYCODE[p.code]; return `${num(p.f.val, 0)} <span class="small">(${esc(p.val_basis || "—")} ${num(p.val_basis === "PB" ? r.pb_pct : r.pe_pct, 0)}%)</span>`; }},
     {k: "warn_n", t: "⚠ 数", n: 1, v: p => BYCODE[p.code].warn_n, f: p => esc(BYCODE[p.code].warn_n)},
     {k: "peg", t: "PEG（参考）", n: 1, v: p => CARDS[p.code]?.peg?.value ?? null, f: p => pegCell(CARDS[p.code]?.peg)},
+    {k: "price", t: "股价", n: 1, v: p => BYCODE[p.code].price, f: p => priceCell(BYCODE[p.code])},
+    {k: "pos52", t: "52 周位置", n: 1, cls: "nw", v: p => BYCODE[p.code].pos52, f: p => miniRange(BYCODE[p.code], BYCODE[p.code])},
     {k: "label", t: "标签", v: p => BYCODE[p.code].label, f: p => `<span class="tag lb-${esc(BYCODE[p.code].label)}">${esc(BYCODE[p.code].label)}</span>`},
     {k: "fc", t: "业绩预告", nosort: 1, f: p => gateCell(BYCODE[p.code].gates.fc)},
     {k: "why", t: "标签原因", nosort: 1, cls: "why", f: p => `<span class="small">${esc(BYCODE[p.code].reasons.join("；"))}</span>`},
@@ -680,10 +692,20 @@ function renderMethod() {
     ["监管类公告（全部抓取 / 计入命中）", `${c.regulatory_rows} / ${c.reg_hit_rows}`],
     ["解禁窗口", (D.unlock_window || []).join(" ~ ")],
     ["监管标题检索窗口", (D.reg_window || []).join(" ~ ")],
+    ["股价 / 52 周区间覆盖（② 筛选）", RM.file ? `${RM.n_price} / ${RM.n_range} / ${RM.n_screen}（${RM.file}，${RM.window_start} ~ ${RM.as_of}${RM.complete === false ? "，未抓完" : ""}）` : `${RM.n_price ?? 0} / 0 / ${RM.n_screen ?? 0}（未抓取区间）`],
+    ["评估卡机构目标价中位数（≥ " + (CR.target_min_org ?? "—") + " 家）", `${(D.cards || []).filter(c => c.target && c.target.median != null).length} / ${(D.cards || []).length}`],
   ].map(([k, v]) => `<tr><td class="small">${esc(k)}</td><td>${esc(v)}</td></tr>`).join("");
   $("defs").innerHTML = esc(`年初至今（YTD）累计：利润表、现金流量表按中国披露习惯为年初至报告期末累计。营收同比使用业绩报表披露的 YSTZ 字段。` +
     `加速 = ${D.periods.latest} 年初至今营收同比 − ${D.periods.prev} 年初至今营收同比（百分点）。` +
     `估值分位 = 最新 PE(TTM) / PB 在近 ${R.valuation_years} 年日频历史中的百分位（剔除 ≤ 0 的值）。百分位排名在候选集合内计算，0 = 最低，100 = 最高。`);
+  const RR = RM.rules || {};
+  $("rngNote").innerHTML = `<b>股价、52 周区间与机构目标价（只展示）</b>：<b>不参与 ④ 排序、价值 / 博弈标签、⚠ 数和对比池评分</b>。` + esc(
+    `股价 = 行情快照日（${D.quote_date || "—"}）收盘价。52 周区间 = 行情日往前 ${RR.weeks ?? 52} 周内的最高 / 最低价，前复权口径（最新一天是实际成交价，之前的价格按分红、送转除权除息换算），与现价可比；` +
+    `本次数据口径：${(RM.item_bases || []).map(b => RNG_BASIS[b] || b).join("、") || "—"}（push2his 日 K 线不可用时用数据中心日收盘价换算，此时最高 / 最低是收盘价口径，不含日内高低点；配股未调整）。` +
+    `52 周位置 = (现价 − 52 周最低) ÷ (52 周最高 − 52 周最低) × 100%；区间内第一个交易日晚于窗口起点 ${RR.short_gap_days ?? 14} 天以上且之前没有交易记录时标"上市不足 52 周，区间按上市以来"；最近交易日早于行情日 ${RR.stale_days ?? 3} 天以上时标停牌。` +
+    `${RNG_NOTE}。` +
+    `机构目标价：逐篇读取东方财富个股研报列表，取近 ${CR.target_window_days ?? 180} 天内每家机构最新一篇带目标价的研报（给出区间时取中值），至少 ${CR.target_min_org ?? 3} 家机构才显示中位数，标为"机构目标价中位数（n 家，近 ${CR.target_window_days ?? 180} 天），不是预测"；不足时显示"机构目标价样本不足，不显示"，不用汇总表的目标价上下限代替。` +
+    `窗口内有送转除权时，除权前发布的目标价股本口径不同，不计入；现金分红不调整，只在卡片注明。目标价是第三方观点，大多数研报不给目标价，覆盖偏向大公司；本页不显示评级用词。`);
   $("pegNote").innerHTML = `<b>PEG（评估卡参考项）</b>：PEG = PE(TTM) ÷ 每年盈利增速（%）。<b>不参与 ④ 排序，也不影响价值 / 博弈标签和 ⚠ 数</b>，只在评估卡和 ④ 的 PEG 列显示。` + esc(
     `① 前瞻口径（优先）：当年 = 第一个年份 ≥ 最新报告期（${D.periods.latest}）所在年的预测年度；增速 = (两年后预期 EPS ÷ 当年预期 EPS)^(1/2) − 1，只有当年和下一年预期时用 1 年增速并注明。` +
     `要求覆盖机构 ≥ ${CR.peg_min_org} 家、有当年预期、所用各年预期 EPS 均 > 0，否则改用历史口径。` +
@@ -702,6 +724,7 @@ function renderMethod() {
 const CARDS = Object.fromEntries((D.cards || []).map(c => [c.code, c]));
 const CM = D.cards_meta || {};
 const CR = CM.rules || {};
+const RM = D.ranges_meta || {};
 const codeCell = code => CARDS[code] ? `<a href="#card-${esc(code)}" class="cardlink" data-card="${esc(code)}" title="打开评估卡">${esc(code)}</a>` : esc(code);
 const BOARD_CN = {SH_MAIN: "沪市主板", STAR: "科创板", SZ_MAIN: "深市主板", ChiNext: "创业板", BSE: "北交所"};
 const FACTOR_CN = {growth: "增长", accel: "加速", ocf: "现金流", val: "估值"};
@@ -717,6 +740,64 @@ const pegTip = g => [g.line || (g.value == null ? "PEG 不显示" : ""), g.reaso
 const pegCell = g => !g ? "—" : `<span class="${esc(g.status)}" data-tip="${esc(pegTip(g))}">${g.value == null ? "—" : num(g.value, 2)}${(g.flags || []).length && g.value != null ? " ⚠" : ""}</span> <span class="tag">${esc(pegKind(g))}</span>`;
 const pegChk = g => `<div class="chk"><span class="${esc(g.status)}">${ICON[g.status] || "·"}</span><span>PEG（参考）</span><span class="small">${esc(g.value == null ? "不显示：" + g.reason : g.line)}${(g.flags || []).length ? `<br><span class="warn">不可靠：${esc(g.flags.join("；"))}</span>` : ""}${g.fwd_note && g.method === "historical" ? `<br>未用前瞻口径：${esc(g.fwd_note)}` : ""}</span></div>`;
 const pctTxt = v => v == null ? "—" : `${num(v)}%`;
+
+// ---------- price, 52-week range, analyst target median: display only (never in any score, label, rank or ⚠ count)
+// x = {price, px_date, rng: {hi52, lo52, hi_date, lo_date, basis, ...}, pos52, off_hi, off_lo} (② row or card.range)
+const RNG_NOTE = "52 周位置只说明股价在过去一年区间的位置，不代表低估或高估；估值看 PE/PB 5 年分位";
+const RNG_BASIS = {qfq_close: "前复权日收盘价", qfq_hl: "前复权日内最高 / 最低价"};
+const rngOk = x => { const g = x && x.rng; return !!(g && g.hi52 != null && g.lo52 != null && x.price != null && g.hi52 > g.lo52); };
+const rngFlags = x => { const g = (x && x.rng) || {}, f = [];
+  if (g.short) f.push(`上市不足 52 周，区间按上市以来（${g.first_date} 起）`);
+  if (g.stale) f.push(`最近交易日 ${g.last_date} 早于行情日 ${x.px_date || "—"}（停牌？），区间与现价可能不同步`);
+  if (g.mismatch) f.push(`区间末日前复权收盘 ${num(g.last_close, 2)} 与现价 ${num(x.price, 2)} 不一致，复权口径可能有变化`);
+  if (g.date_ok === false) f.push(`区间截至 ${g.as_of}，与行情日 ${x.px_date || "—"} 不同`);
+  if (g.outside) f.push("现价在 52 周区间之外");
+  if (g.flat) f.push("52 周最高 = 最低，位置不可计算");
+  return f; };
+const valPct = v => `PE 5 年分位 ${v && v.pe_pct != null ? num(v.pe_pct, 0) + "%" : "—"}${v && v.pb_pct != null ? `（PB ${num(v.pb_pct, 0)}%）` : ""}`;
+const rngTip = (x, v) => { const g = (x && x.rng) || {};
+  if (!rngOk(x)) return esc(x && x.price != null ? `现价 ${num(x.price, 2)} 元（${x.px_date || "—"}）；没有 52 周区间数据` : "没有行情");
+  return [`现价 <b>${esc(num(x.price, 2))}</b> 元（${esc(x.px_date || "—")}）`,
+    `52 周最低 ${esc(num(g.lo52, 2))}（${esc(g.lo_date)}）· 最高 ${esc(num(g.hi52, 2))}（${esc(g.hi_date)}）`,
+    `区间位置 ${esc(num(x.pos52, 0))}%，距最高 ${esc(sgPct(x.off_hi))}，距最低 ${esc(sgPct(x.off_lo))}`,
+    `口径：${esc(RNG_BASIS[g.basis] || g.basis || "—")}，${esc(g.first_date)} ~ ${esc(g.last_date)}，${esc(g.n_days)} 个交易日`,
+    ...rngFlags(x).map(f => `<span class="warn">${esc(f)}</span>`), esc(valPct(v)), `<i>${esc(RNG_NOTE)}</i>`].join("<br>"); };
+function sgPct(v) { return v == null ? "—" : `${v > 0 ? "+" : ""}${num(v, 1)}%`; }
+const priceCell = x => x && x.price != null ? num(x.price, 2) : "—";
+// compact bar for tables: track = 52-week low..high, dot = current price, text = position in range (%)
+function miniRange(x, v) {
+  if (!rngOk(x)) return `<span class="na" data-tip="${esc(rngTip(x, v))}">—</span>`;
+  const g = x.rng, W = 56, pos = Math.max(0, Math.min(100, x.pos52 ?? 0)), cx = 3 + (W - 6) * pos / 100, fl = rngFlags(x).length;
+  return `<span class="mrng" data-tip="${esc(rngTip(x, v))}"><svg viewBox="0 0 ${W} 12" width="${W}" height="12" role="img" aria-label="52 周区间 ${esc(num(g.lo52, 2))} 至 ${esc(num(g.hi52, 2))}，现价位于 ${esc(num(x.pos52, 0))}%">
+    <line x1="3" x2="${W - 3}" y1="6" y2="6" stroke="#2a3038" stroke-width="4" stroke-linecap="round"/><circle cx="${cx.toFixed(1)}" cy="6" r="3.5" fill="#37c6e0"/></svg>${esc(num(x.pos52, 0))}%${fl ? '<span class="fl">*</span>' : ""}</span>`;
+}
+// full bar (same visual as the US rangeBar): current price dot, optional orange target-median line
+function rangeBarCN(x, t, v) {
+  const g = (x && x.rng) || {}, fl = rngFlags(x);
+  if (!rngOk(x)) return `<div class="small muted">${x && x.price != null ? `现价 ${num(x.price, 2)} 元；` : ""}${!g.basis ? "没有 52 周区间数据（未抓取或抓取失败）" : "52 周区间不可用"}${fl.length ? "；" + esc(fl.join("；")) : ""}</div>`;
+  const lo = g.lo52, hi = g.hi52, p = x.price, tm = t && t.median != null ? t.median : null;
+  const a = Math.min(lo, p, tm ?? lo), b = Math.max(hi, p, tm ?? hi), xs = v => 8 + 244 * (v - a) / (b - a || 1);
+  return `<svg viewBox="0 0 260 50" width="100%" style="max-width:300px" role="img" aria-label="52 周价格区间 ${esc(num(lo, 2))} 至 ${esc(num(hi, 2))}，现价 ${esc(num(p, 2))}${tm != null ? `，机构目标价中位数 ${esc(num(tm, 2))}` : ""}">
+    <line x1="${xs(lo).toFixed(1)}" x2="${xs(hi).toFixed(1)}" y1="25" y2="25" stroke="#2a3038" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="${xs(p).toFixed(1)}" cy="25" r="6" fill="#37c6e0"/><text x="${Math.max(30, Math.min(230, xs(p))).toFixed(1)}" y="12" text-anchor="middle" style="fill:#37c6e0">现价 ${esc(num(p, 2))}</text>
+    ${tm != null ? `<line x1="${xs(tm).toFixed(1)}" x2="${xs(tm).toFixed(1)}" y1="17" y2="33" stroke="#f0a030" stroke-width="2"/>` : ""}
+    <text x="${xs(lo).toFixed(1)}" y="46" text-anchor="start">${esc(num(lo, 2))}</text><text x="${xs(hi).toFixed(1)}" y="46" text-anchor="end">${esc(num(hi, 2))}</text></svg>
+    <div class="small">52 周区间（CNY，${esc(RNG_BASIS[g.basis] || g.basis)}，${esc(g.first_date)} ~ ${esc(g.last_date)}）：最低 ${esc(num(lo, 2))}（${esc(g.lo_date)}）· 最高 ${esc(num(hi, 2))}（${esc(g.hi_date)}）；现价 ${esc(num(p, 2))} 位于区间 <b>${esc(num(x.pos52, 0))}%</b>，距最高 ${pc(x.off_hi, 1)}，距最低 ${pc(x.off_lo, 1)}${tm != null ? `；<span style="color:#f0a030">橙线</span>为机构目标价中位数 ${esc(num(tm, 2))}（${esc(t.n)} 家，近 ${esc(CR.target_window_days)} 天，不是预测），较现价 ${pc(t.vs_price_pct)}` : ""}；${esc(valPct(v))}</div>
+    ${fl.length ? `<div class="small warn">${esc(fl.join("；"))}</div>` : ""}<div class="small muted">${esc(RNG_NOTE)}</div>`;
+}
+// analyst target prices (per report, reportapi) - shown only with >= target_min_org institutions; never a fallback to the aggregated range
+function targetCN(c) {
+  const t = c.target || {};
+  const base = `近 ${esc(CR.target_window_days)} 天（${esc((t.window || []).join(" ~ "))}）个股研报 ${esc(t.n_reports ?? 0)} 篇，其中给出目标价 ${esc(t.n_with_target ?? 0)} 篇、${esc(t.n ?? 0)} 家机构`;
+  const srcs = (t.sources || []).map(s => `<li>${esc(s.date)} ${esc(s.org)}：${esc(num(s.target, 2))}${s.range ? "（区间中值）" : ""} ${extA(s.url, "研报")}</li>`).join("");
+  const drop = (t.dropped || []).map(s => `<li>${esc(s.date)} ${esc(s.org)} ${esc(num(s.target, 2))}：未计入，${esc(s.why)}</li>`).join("");
+  const notes = (t.notes || []).map(esc).join("；");
+  const list = srcs || drop ? `<details style="margin-top:4px"><summary class="small">逐篇来源（${(t.sources || []).length} 家${(t.dropped || []).length ? `，剔除 ${t.dropped.length} 篇` : ""}）</summary><ul class="small">${srcs}${drop}</ul></details>` : "";
+  if (!t.window) return `<div class="small muted">机构目标价样本不足，不显示（${esc(t.reason || "未抓取研报列表")}）</div>`;
+  if (t.median == null) return `<div class="small muted">机构目标价样本不足，不显示（${base}，需要 ≥ ${esc(t.min_org ?? CR.target_min_org)} 家）</div>${list}`;
+  return `<div class="small">机构目标价中位数（${esc(t.n)} 家，近 ${esc(CR.target_window_days)} 天），不是预测：<b>${esc(num(t.median, 2))}</b> 元（各家 ${esc(num(t.min, 2))} – ${esc(num(t.max, 2))}），较现价 ${pc(t.vs_price_pct)}</div>
+    <div class="small muted">${base}；每家机构取窗口内最新一篇带目标价的研报，第三方观点，不是本页判断${notes ? "；" + notes : ""}</div>${list}`;
+}
 
 function radarCN(f, code) {
   const keys = ["growth", "accel", "ocf", "val"], W = 300, H = 200, cx = 150, cy = 100, Rr = 66, n = keys.length;
@@ -763,7 +844,7 @@ function consensusCN(c) {
   if (!a) return `<div class="small muted">没有机构盈利预测汇总（无机构覆盖或数据源未收录）</div>`;
   const px = c.fin.price;
   return `<div class="small">覆盖机构 ${num(a.org_num, 0)} 家；EPS ${(a.eps || []).map(e => `${esc(e.year)}${e.kind === "actual" ? "A" : "E"} ${num(e.eps, 2)}${e.kind !== "actual" && px && e.eps > 0 ? `（按现价 PE ${num(px / e.eps, 1)}）` : ""}`).join(" · ") || "—"}</div>
-    <div class="small">A = 已披露，E = 机构预测均值（第三方观点，不是本页判断）；评级用词与目标价不显示</div>`;
+    <div class="small">A = 已披露，E = 机构预测均值（第三方观点，不是本页判断）；评级用词不显示。汇总表里的目标价上下限（统计窗口未公开）不显示；目标价只按逐篇研报统计，见下方"机构目标价"（≥ ${esc(CR.target_min_org)} 家机构才显示中位数）</div>`;
 }
 const moTable = (rows, title) => rows.length ? `<div class="label" style="margin-top:6px">${esc(title)}（${esc(rows[0].report_name || rows[0].report_date)}，前 ${rows.length} 项）</div>
   <table><thead><tr><th scope="col">项目</th><th scope="col" class="n">收入（亿）</th><th scope="col" class="n">占比</th><th scope="col" class="n">毛利率</th></tr></thead>
@@ -843,7 +924,7 @@ function evalCardCN(c) {
   return `<details class="ec" id="card-${esc(c.code)}">
     <summary><span class="ec-tk">${esc(c.code)}</span><span class="ec-nm">${esc(c.name)}</span><span class="tag">${esc(c.industry)}</span><span class="tag">${esc(BOARD_CN[c.board] || c.board)}</span><span class="tag lb-${esc(c.label)}">${esc(c.label)}</span>
       <span class="ec-meta">${esc(rk)}</span>
-      <span class="ec-nums"><span class="np">股价 <b>${f.price != null ? num(f.price, 2) + " 元" : "—"}</b></span><span class="np">总市值 <b>${yi(f.mcap)} 亿</b></span><span class="np">PE(TTM) <b>${num(f.pe_ttm)}</b></span>
+      <span class="ec-nums"><span class="np">股价 <b>${f.price != null ? num(f.price, 2) + " 元" : "—"}</b></span><span class="np" data-tip="${esc(rngTip(c.range, f))}">52 周位置 <b>${rngOk(c.range) ? num(c.range.pos52, 0) + "%" : "—"}</b>${rngFlags(c.range).length ? '<span class="tag">注</span>' : ""}</span><span class="np">总市值 <b>${yi(f.mcap)} 亿</b></span><span class="np">PE(TTM) <b>${num(f.pe_ttm)}</b></span>
         <span class="np ${vs === "warn" ? "unrel" : vs === "ok" ? "good" : ""}">PE 分位 <b>${f.pe_pct == null ? "—" : num(f.pe_pct, 0) + "%"}</b></span>${pegNp}
         <span class="np ${c.warn_n ? "unrel" : "good"}" data-tip="前 8 项风险门槛中触发提示的项数">⚠ <b>${esc(c.warn_n)}</b></span>
         ${noteCtl(c.code)}${bkCtl(c.code)}</span></summary>
@@ -855,10 +936,12 @@ function evalCardCN(c) {
       <div class="card opp"><h4>机会</h4>${(rs.bull || []).length ? `<div class="small"><b>调研层面</b></div><ul>${lis(rs.bull)}</ul><div class="small" style="margin-top:4px"><b>数据层面</b></div>` : ""}<ul>${lis(c.bull) || "<li>数据上没有突出的机会信号</li>"}</ul></div>
       <div class="card risk"><h4>风险</h4>${(rs.bear || []).length ? `<div class="small"><b>调研层面</b></div><ul>${lis(rs.bear)}</ul><div class="small" style="margin-top:4px"><b>数据层面</b></div>` : ""}<ul>${lis(c.bear) || "<li>规则没有触发风险提示</li>"}</ul></div>
     </div>
-    <details class="grp" open><summary>证据 <span class="small">${c.factors ? "因子雷达 · " : ""}PE 历史 · 价格 · 一致预期 · 主营构成 · 前十大流通股东</span></summary>
+    <details class="grp" open><summary>证据 <span class="small">${c.factors ? "因子雷达 · " : ""}PE 历史 · 52 周区间 · 价格 · 一致预期 · 目标价 · 主营构成 · 前十大流通股东</span></summary>
     <div class="grid g2 grp-body">
       <div class="card"><h4>${c.factors ? "因子画像" : "估值位置"}</h4>${c.factors ? radarCN(c.factors, c.code) : ""}<h4 style="margin-top:8px">PE 历史</h4>${peChart(c)}
-        <h4 style="margin-top:8px">近一年价格</h4>${priceSpark(c)}<h4 style="margin-top:8px">机构一致预期</h4>${consensusCN(c)}</div>
+        <h4 style="margin-top:8px">52 周价格区间 <span class="tier">只展示，不计分</span></h4>${rangeBarCN(c.range, c.target, f)}
+        <h4 style="margin-top:8px">近一年价格</h4>${priceSpark(c)}<h4 style="margin-top:8px">机构一致预期</h4>${consensusCN(c)}
+        <h4 style="margin-top:8px">机构目标价</h4>${targetCN(c)}</div>
       <div class="card"><h4>主营构成</h4>${moTable(c.mainop_product, "按产品") || '<div class="small muted">没有取到主营构成</div>'}${moTable(c.mainop_region, "按地区")}
         <h4 style="margin-top:10px">前十大流通股东</h4>${fhTable(c.float_holders)}</div>
     </div></details>
@@ -1309,6 +1392,9 @@ function bkCols() {
     {k: "vpct", t: "估值 5 年分位", n: 1, v: e => bkFin(e.r.pe_pct) ? e.r.pe_pct : bkFin(e.r.pb_pct) ? e.r.pb_pct : null, hl: e => valK(e) === "pct" ? bkHl(e, "val") : "", f: e => bkVal(e.r)},
     {k: "warn_n", t: "风险门禁 ⚠", n: 1, hl: e => bkHl(e, "risk"), f: e => esc(e.r.warn_n)},
     {k: "peg", t: "PEG（参考）", n: 1, v: e => CARDS[e.r.code]?.peg?.value ?? null, f: e => pegCell(CARDS[e.r.code]?.peg)},
+    // display only: price and 52-week position are not BK_DIMS and never enter bkScore
+    {k: "price", t: "股价", n: 1, v: e => e.r.price, f: e => priceCell(e.r)},
+    {k: "pos52", t: "52 周位置", n: 1, cls: "nw", v: e => e.r.pos52, f: e => miniRange(e.r, e.r)},
     {k: "prank", t: "④ 名次", n: 1, v: e => PRANK[e.r.code] ?? null, f: e => PRANK[e.r.code] ? `#${esc(PRANK[e.r.code])}` : '<span class="na">—</span>'},
     {k: "card", t: "评估卡", nosort: 1, cls: "nw", f: e => CARDS[e.r.code] ? `<a href="#card-${esc(e.r.code)}" data-card="${esc(e.r.code)}">打开</a>` : '<span class="na">—</span>'},
     {k: "rm", t: "移除", nosort: 1, cls: "nw", f: e => `<button type="button" class="btn ghost" data-bkrm="${esc(e.r.code)}" aria-label="把 ${esc(e.r.code)} ${esc(e.r.name)} 移出对比池">移除</button>`},

@@ -162,6 +162,46 @@ def main():
     check("regulatory covers SH and SZ codes", exch.get("SH", 0) > 0 and exch.get("SZ", 0) > 0)
     sample(rg, lambda x: x["kind"] in ("inquiry_letter", "concern_letter", "investigation"))
 
+    print("\n[j] 52-week qfq range / research reports / target median (display only)")
+    from . import ranges, cards
+    syn = [{"date": "2025-09-01", "close": 9, "high": 9, "low": 9}, {"date": "2025-10-23", "close": 10, "high": 11, "low": 9.5},
+           {"date": "2026-03-02", "close": 14, "high": 15, "low": 13}, {"date": "2026-10-21", "close": 12, "high": 12.5, "low": 11.5}]
+    it = ranges.summarize(syn, "2025-10-23", "2026-10-21", "qfq_hl", "x", 12)
+    check("ranges.summarize hi/lo/dates (pre-window bar excluded)", it["hi52"] == 15 and it["lo52"] == 9.5
+          and it["hi_date"] == "2026-03-02" and it["lo_date"] == "2025-10-23" and it["n_days"] == 3, json.dumps(it)[:200])
+    check("ranges.summarize flags clean", not it["short_history"] and not it["stale"] and not it["basis_mismatch"])
+    it2 = ranges.summarize(syn[2:3], "2025-10-23", "2026-10-21", "qfq_hl", "x", 14)
+    check("ranges.summarize short history + stale flagged", it2["short_history"] and it2["stale"])
+    rows_ = [{"code": "X", "price": 12}]
+    ranges.attach(rows_, {"items": {"X": it}}, "2026-10-21")
+    check("ranges.attach pos52 / off_hi / off_lo", rows_[0]["pos52"] == round(100 * 2.5 / 5.5, 1)
+          and rows_[0]["off_hi"] == -20.0 and rows_[0]["off_lo"] == round(100 * (12 / 9.5 - 1), 1), str(rows_[0]["pos52"]))
+    qd = qm.get("600519", {}).get("as_of")
+    if qd:
+        st = (dt.date.fromisoformat(qd[:10]) - dt.timedelta(weeks=52) + dt.timedelta(days=1)).isoformat()
+        ev, ok_b = em.share_bonus("600519", st)
+        check("share_bonus 600519 ok with >= 1 cash dividend in 52 weeks", ok_b and any((e["cash_per10"] or 0) > 0 for e in ev), str(len(ev)))
+        bars, ok_v, _ = ranges.derived_qfq_closes("600519", st, qd[:10], ev, 1.0)
+        r6 = ranges.summarize(bars, st, qd[:10], "qfq_close", "", qm["600519"]["price"])
+        check("derived qfq 600519 >= 200 bars, price within [lo52, hi52]", ok_v and r6["n_days"] >= 200
+              and r6["lo52"] <= qm["600519"]["price"] <= r6["hi52"], f"n={r6['n_days']} lo={r6['lo52']} hi={r6['hi52']}")
+        check("derived qfq 600519 last close == quote price (qfq anchored at latest bar)", not r6["basis_mismatch"]
+              and r6["last_close"] == qm["600519"]["price"], f"{r6['last_close']} vs {qm['600519']['price']}")
+    rr, ok_r = em.research_reports("600519", (today - dt.timedelta(days=180)).isoformat(), today.isoformat())
+    check("research_reports 600519 ok, rows have date/org", ok_r and len(rr) > 0 and all(r["date"] and r["org"] for r in rr), f"rows={len(rr)}")
+    syn_x = {"reports": {"window": ["2026-04-01", "2026-10-01"], "n_reports": 5, "with_target": [
+        {"org_code": "A", "org": "A", "date": "2026-09-01", "target_hi": 10, "target_lo": 10},
+        {"org_code": "A", "org": "A", "date": "2026-05-01", "target_hi": 50, "target_lo": 50},
+        {"org_code": "B", "org": "B", "date": "2026-08-01", "target_hi": 14, "target_lo": 12},
+        {"org_code": "C", "org": "C", "date": "2026-07-01", "target_hi": 20, "target_lo": None},
+        {"org_code": "D", "org": "D", "date": "2026-04-15", "target_hi": 99, "target_lo": 99}]},
+        "bonus": [{"ex_date": "2026-05-20", "bonus_it_per10": 4, "cash_per10": 1}]}
+    tm = cards.target_median(syn_x, 10, "2026-10-01")
+    check("target_median: latest per institution, range midpoint, pre-split report dropped", tm["median"] == 13 and tm["n"] == 3
+          and len(tm["dropped"]) == 2 and tm["vs_price_pct"] == 30.0, json.dumps({k: tm[k] for k in ("median", "n", "min", "max")}))
+    syn_x["reports"]["with_target"] = syn_x["reports"]["with_target"][:2]
+    check("target_median: < 3 institutions => no median", cards.target_median(syn_x, 10, "2026-10-01")["median"] is None)
+
     print("\n[robustness] failure handling")
     bad = em.financials("1900-01-01")
     check("financials(bad date) returns [] without raising", bad == [])

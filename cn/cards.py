@@ -46,6 +46,9 @@ CARD_RULES = {
     "peg_hist_base_min": 1e7,   # historical: last-year 扣非 profit < 1000万元 => low base
     "peg_hist_eps_min": 0.5,    # historical: use 扣非 EPS only if both >= 0.5 CNY (EPS is published to 2 decimals);
                                 # otherwise use 扣非归母净利润 growth
+    # analyst target-price median (display only: never used in ranking, labels, warn_n or the 对比池 score)
+    "target_window_days": 180,  # reports published in the last 180 days (relative to the cards fetch date)
+    "target_min_org": 3,        # median shown only with >= 3 distinct institutions (each institution's latest target)
 }
 REG_COUNT_KINDS = {"inquiry_letter", "concern_letter", "regulatory_letter", "warning_letter", "investigation",
                    "disciplinary_action", "administrative_penalty"}
@@ -174,6 +177,16 @@ def fetch_cards(snap_path=None, snap=None):
         else:
             dh = call("deducted", em.deducted_history, code, P["year_ago"], P["latest"])
             rec["deducted"] = {k: v for k, v in dh.items() if k in (P["latest"], P["year_ago"])}
+        # per-report analyst targets (reportapi) + dividend / 送转 events in the same window (price-basis check)
+        tw = [(today - dt.timedelta(days=CARD_RULES["target_window_days"])).isoformat(), today.isoformat()]
+        if have("reports", "reports", "bonus") and (old.get("reports") or {}).get("window") == tw:
+            rec["reports"], rec["bonus"] = old["reports"], old["bonus"]; reused += 1
+        else:
+            rows, _ = call("reports", em.research_reports, code, tw[0], tw[1])
+            rec["reports"] = {"window": tw, "n_reports": len(rows),
+                              "with_target": [r for r in rows if r["target_hi"] is not None or r["target_lo"] is not None]}
+            bon, _ = call("reports", em.share_bonus, code, tw[0])
+            rec["bonus"] = bon
         rec["errors"] = errs
         for e in errs:
             failed[e] = failed.get(e, 0) + 1
@@ -188,6 +201,7 @@ def fetch_cards(snap_path=None, snap=None):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False)
     n = {k: sum(1 for c in out.values() if c.get(k)) for k in ("profile", "mainop", "float_holders", "consensus", "price", "deducted")}
+    n["targets_ge_min_org"] = sum(1 for c in out.values() if target_median(c, None)["median"] is not None)
     log(f"saved {os.path.relpath(path, ROOT)} ({os.path.getsize(path) / 1e6:.2f} MB); with_data={n}; reused_fields={reused}; "
         f"failed={failed}; http={em.STATS}")
     return path
@@ -325,6 +339,61 @@ def peg(r, x, P):
         o["flags"].append("基数低，PEG 不可靠")
     return finish(g, f"{PEG_HIST_CN} ",
                   f"{PEG_HIST_CN}，{P['latest']} vs {P['year_ago']} {basis} {g:+.0f}%；{why}")
+
+
+def target_median(x, price, px_date=None):
+    """Median of each institution's most recent target price in the cards fetch window. Display only.
+
+    Per report: target = indvAimPriceT/L when only one is given or both are equal, else their midpoint (range targets).
+    Price basis: a report published before a 送转 / split ex-date inside the window is on the old share basis and is
+    dropped (the institution's newer report, if any, is used instead). Cash dividends in the window are listed as a
+    note only (not adjusted). Median shown only with >= target_min_org distinct institutions; otherwise median=None and
+    reason says why (no fallback to the aggregated DEC_AIMPRICEMAX / MIN range)."""
+    C = CARD_RULES
+    rep = x.get("reports")
+    o = {"median": None, "n": 0, "min": None, "max": None, "window": None, "as_of": None, "sources": [], "dropped": [],
+         "notes": [], "n_reports": 0, "n_with_target": 0, "reason": None, "vs_price_pct": None, "min_org": C["target_min_org"]}
+    if not rep:
+        o["reason"] = "未抓取研报列表"
+        return o
+    o["window"], o["n_reports"] = rep.get("window"), rep.get("n_reports") or 0
+    rows = rep.get("with_target") or []
+    o["n_with_target"] = len(rows)
+    # only ex-dates on or before the price date change the basis of the price the target is compared with
+    splits = sorted(b["ex_date"] for b in (x.get("bonus") or []) if (b.get("bonus_it_per10") or 0) > 0 and b.get("ex_date")
+                    and (px_date is None or b["ex_date"] <= px_date))
+    cash = sorted(b["ex_date"] for b in (x.get("bonus") or []) if (b.get("cash_per10") or 0) > 0 and b.get("ex_date")
+                  and (not o["window"] or b["ex_date"] >= o["window"][0]))
+    best = {}
+    for r in sorted(rows, key=lambda r: r.get("date") or "", reverse=True):
+        hi, lo = r.get("target_hi"), r.get("target_lo")
+        t = hi if lo is None else lo if hi is None else (hi + lo) / 2
+        if t is None or t <= 0:
+            continue
+        brk = next((s for s in splits if (r.get("date") or "") < s), None)
+        if brk:
+            o["dropped"].append({"org": r.get("org"), "date": r.get("date"), "target": t,
+                                 "why": f"发布于 {brk} 送转除权前，股本口径不同"})
+            continue
+        key = r.get("org_code") or r.get("org")
+        if key in best:
+            continue
+        best[key] = {"org": r.get("org"), "date": r.get("date"), "target": round(t, 2), "range": hi != lo and hi is not None and lo is not None,
+                     "url": r.get("url"), "title": r.get("title")}
+    src = sorted(best.values(), key=lambda s: s["date"] or "", reverse=True)
+    o["sources"], o["n"] = src, len(src)
+    if cash:
+        o["notes"].append(f"窗口内现金分红除息日 {'、'.join(cash)}：之前发布的目标价未按分红调整")
+    if src:
+        ts = [s["target"] for s in src]
+        o["min"], o["max"], o["as_of"] = min(ts), max(ts), src[0]["date"]
+    if len(src) < C["target_min_org"]:
+        o["reason"] = f"近 {C['target_window_days']} 天给出目标价的机构 {len(src)} 家 < {C['target_min_org']} 家，机构目标价样本不足，不显示"
+        return o
+    o["median"] = round(statistics.median(ts), 2)
+    if price:
+        o["vs_price_pct"] = round((o["median"] / price - 1) * 100, 1)
+    return o
 
 
 def card_payload(snap, res, cards_doc, rules):
@@ -508,5 +577,8 @@ def card_payload(snap, res, cards_doc, rules):
             "research": res_file,
             "extra_ok": bool(x), "errors": x.get("errors") or [],
             "hist_range": x.get("hist_range"),
+            # display only (never in rank / label / warn_n): 52-week qfq range from the ranges file, analyst target median
+            "range": {k: r.get(k) for k in ("price", "px_date", "rng", "pos52", "off_hi", "off_lo")},
+            "target": target_median(x, q.get("price"), q.get("as_of")),
         })
     return out

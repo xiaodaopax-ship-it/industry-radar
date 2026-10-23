@@ -927,3 +927,103 @@ def analyst_consensus(code, ttl=1.0):
     except Exception as e:
         warn(f"analyst_consensus: unexpected error {type(e).__name__}: {e}")
         return []
+
+
+# ----------------------------------------------------------------------------- j. forward-adjusted daily kline (52-week range)
+# push2his /api/qt/stock/kline/get (verified 2026-10-22 against 600519): klt=101 daily, fqt=1 前复权 (qfq: the latest
+#   bar is the actual traded price, earlier bars are scaled for dividends / 送转), secid = market id . code
+#   (1 = SH, 0 = SZ / BJ). fields2: f51 date | f52 open | f53 close | f54 high | f55 low (intraday, qfq).
+#   During verification the HTTPS endpoint (and push2 / push2delay hosts) answered every request with a dropped
+#   connection / HTTP 502 while plain HTTP on push2his.eastmoney.com worked, so HTTP is tried first. The response is
+#   public market data; no credentials are sent.
+KLINE_PATH = ("/api/qt/stock/kline/get?secid={secid}&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1,f2,f3"
+              "&fields2=f51,f52,f53,f54,f55&klt=101&fqt=1&beg={beg}&end={end}&lmt=1000")
+KLINE_HOSTS = ["http://push2his.eastmoney.com", "https://push2his.eastmoney.com"]
+
+
+def secid(code):
+    return f"{1 if market_of(code) == 'SH' else 0}.{code}"
+
+
+def kline_url(code, beg, end, host=0):
+    return KLINE_HOSTS[host] + KLINE_PATH.format(secid=secid(code), beg=beg.replace("-", ""), end=end.replace("-", ""))
+
+
+def daily_kline_qfq(code, beg, end, ttl=1.0, quiet=False):
+    """Forward-adjusted (前复权) daily bars for one stock between beg and end ('YYYY-MM-DD', inclusive), oldest first.
+
+    Returns (rows, ok). rows: [{date, open, close, high, low}] (CNY, qfq basis anchored at the latest bar the server
+    knows, i.e. at fetch time). ok=False => request failed (rows []); ok=True with rows [] => no bars in the window
+    (not listed yet / suspended for the whole window)."""
+    urls = [kline_url(code, beg, end, i) for i in range(len(KLINE_HOSTS))]
+    d = fetch_json(urls[0], ttl=ttl, alt_urls=urls + urls[:1], quiet=quiet)
+    if d is None:
+        return [], False
+    try:
+        out = []
+        for line in ((d.get("data") or {}).get("klines") or []):
+            p = line.split(",")
+            if len(p) < 5:
+                continue
+            out.append({"date": p[0], "open": num(p[1]), "close": num(p[2]), "high": num(p[3]), "low": num(p[4])})
+        return out, True
+    except Exception as e:
+        warn(f"daily_kline_qfq {code}: unexpected error {type(e).__name__}: {e}")
+        return [], False
+
+
+# ----------------------------------------------------------------------------- k. per-report analyst targets
+# reportapi.eastmoney.com/report/list qType=0 (个股研报, verified 2026-10-22 against 600519): one row per report.
+#   publishDate | orgCode | orgSName 机构简称 | infoCode (report page data.eastmoney.com/report/info/<infoCode>.html)
+#   indvAimPriceT / indvAimPriceL 目标价（上 / 下限，CNY; '' when the report gives no target - most reports)
+#   emRatingName 评级 (kept in the data layer only; the dashboard does not show rating words) | title
+REPORT_URL = "https://reportapi.eastmoney.com/report/list"
+
+
+def research_reports(code, begin, end, ttl=1.0, max_pages=5):
+    """Individual-stock research reports published between begin and end ('YYYY-MM-DD'), newest first.
+    Keys: code, date, org_code, org, title, info_code, url, target_hi, target_lo (None when not given), rating.
+    Returns (rows, ok)."""
+    out, page, pages = [], 1, 1
+    try:
+        while page <= min(pages, max_pages):
+            q = {"industryCode": "*", "pageSize": 100, "industry": "*", "rating": "*", "ratingChange": "*",
+                 "beginTime": begin, "endTime": end, "pageNo": page, "fields": "", "qType": 0, "orgCode": "",
+                 "code": code, "rcode": "", "p": page, "pageNum": page, "pageNumber": page}
+            d = fetch_json(REPORT_URL + "?" + urllib.parse.urlencode(q), ttl=ttl)
+            if d is None:
+                return out, False
+            for r in d.get("data") or []:
+                if r.get("stockCode") != code:
+                    continue
+                ic = r.get("infoCode")
+                out.append({"code": code, "date": day(r.get("publishDate")), "org_code": r.get("orgCode"),
+                            "org": r.get("orgSName") or r.get("orgName"), "title": r.get("title"), "info_code": ic,
+                            "url": f"https://data.eastmoney.com/report/info/{ic}.html" if ic else None,
+                            "target_hi": num(r.get("indvAimPriceT")), "target_lo": num(r.get("indvAimPriceL")),
+                            "rating": r.get("emRatingName")})
+            pages = d.get("TotalPage") or 1
+            page += 1
+        out.sort(key=lambda r: r.get("date") or "", reverse=True)
+        return out, True
+    except Exception as e:
+        warn(f"research_reports {code}: unexpected error {type(e).__name__}: {e}")
+        return out, False
+
+
+# RPT_SHAREBONUS_DET (分红送配): EX_DIVIDEND_DATE 除权除息日 | BONUS_IT_RATIO 每 10 股送转合计 | BONUS_RATIO 送股
+#   IT_RATIO 转增 | PRETAX_BONUS_RMB 每 10 股派现（税前，CNY）| ASSIGN_PROGRESS 方案进度 | IMPL_PLAN_PROFILE 方案文字
+def share_bonus(code, since, ttl=7.0):
+    """Implemented dividend / 送转 events with an ex-date >= since. Keys: code, ex_date, bonus_it_per10,
+    cash_per10, plan. Used to detect price-basis breaks for analyst targets. Returns (rows, ok)."""
+    try:
+        rows, ok = dc_report("RPT_SHAREBONUS_DET", "SECURITY_CODE,EX_DIVIDEND_DATE,BONUS_IT_RATIO,PRETAX_BONUS_RMB,"
+                             "ASSIGN_PROGRESS,IMPL_PLAN_PROFILE", f"(SECURITY_CODE=\"{code}\")(EX_DIVIDEND_DATE>='{since}')",
+                             "EX_DIVIDEND_DATE", "-1", page_size=20, max_pages=1, ttl=ttl, label=f"share_bonus {code}",
+                             warn_truncated=False)
+        return [{"code": code, "ex_date": day(r.get("EX_DIVIDEND_DATE")), "bonus_it_per10": num(r.get("BONUS_IT_RATIO")),
+                 "cash_per10": num(r.get("PRETAX_BONUS_RMB")), "plan": r.get("IMPL_PLAN_PROFILE")}
+                for r in rows if day(r.get("EX_DIVIDEND_DATE"))], ok
+    except Exception as e:
+        warn(f"share_bonus {code}: unexpected error {type(e).__name__}: {e}")
+        return [], False

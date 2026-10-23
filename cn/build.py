@@ -494,6 +494,8 @@ def analyze(snap, valuation=None):
             if f.get("gross_margin_pct") is not None and yo.get("gross_margin_pct") is not None else None,
             "ocf_np": r1(on, 2), "mcap": q.get("total_mcap"), "pe_ttm": r1(q.get("pe_ttm")), "pb": r1(q.get("pb"), 2),
             "pe_pct": pe_pct, "pb_pct": pb_pct,
+            # display only: never used in labels, gates, priority or the 对比池 score
+            "price": q.get("price"), "px_date": q.get("as_of"),
             "gates": {k: {"s": t[0], "v": t[1], "sv": t[2] if len(t) > 2 else t[1]} for k, t in g.items()},
             "warn_n": sum(1 for k in RISK_GATES if g[k][0] == "warn"),
             "label": label, "reasons": reasons, "cyclical": cyc,
@@ -578,6 +580,20 @@ def build(path=None):
         with open(cpath, encoding="utf-8") as f:
             cdoc = json.load(f)
     want = cardmod.card_codes(res)
+    # 52-week qfq range: attached AFTER analyze() so it cannot reach any score / label / rank (display only)
+    from . import ranges as rngmod
+    rdoc, rpath = rngmod.load_latest()
+    if rdoc and rdoc.get("snap") != os.path.basename(path):
+        log(f"NOTE: {os.path.basename(rpath)} was fetched for {rdoc.get('snap')}, not {os.path.basename(path)}; "
+            f"items with a different quote date are flagged")
+    rngmod.attach(res["screen"], rdoc, qd)
+    payload["ranges_meta"] = {"file": os.path.basename(rpath) if rdoc else None, "fetched_at": (rdoc or {}).get("fetched_at"),
+                              "as_of": (rdoc or {}).get("as_of"), "window_start": (rdoc or {}).get("window_start"),
+                              "item_bases": (rdoc or {}).get("item_bases"), "complete": (rdoc or {}).get("complete"),
+                              "rules": rngmod.RANGE_RULES, "n_screen": len(res["screen"]),
+                              "n_price": sum(1 for r in res["screen"] if r.get("price") is not None),
+                              "n_range": sum(1 for r in res["screen"] if (r.get("rng") or {}).get("hi52") is not None),
+                              "n_pos": sum(1 for r in res["screen"] if r.get("pos52") is not None)}
     payload["cards"] = cardmod.card_payload(snap, res, cdoc, RULES)
     have = set((cdoc or {}).get("cards", {}))
     payload["cards_meta"] = {"file": os.path.basename(cpath) if cpath else None, "fetched_at": (cdoc or {}).get("fetched_at"),
@@ -601,4 +617,9 @@ def build(path=None):
         f"periods={snap['periods']}")
     cm = payload["cards_meta"]
     log(f"cards: {cm['n']} rendered, {cm['n_extra']} with F10 extras from {cm['file']}, stale codes ignored={cm['stale_ignored']}")
+    rm = payload["ranges_meta"]
+    ct = payload["cards"]
+    log(f"prices: screen {rm['n_price']}/{rm['n_screen']}; 52w ranges {rm['n_range']}/{rm['n_screen']} (pos52 {rm['n_pos']}) "
+        f"from {rm['file']}; cards with range {sum(1 for c in ct if (c['range'].get('rng') or {}).get('hi52') is not None)}/{len(ct)}, "
+        f"with target median (>= {cardmod.CARD_RULES['target_min_org']} institutions) {sum(1 for c in ct if c['target']['median'] is not None)}/{len(ct)}")
     return out

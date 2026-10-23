@@ -215,9 +215,33 @@
 
 PEG（评估卡参考项，规则与阈值在 `cn/cards.py` 的 `CARD_RULES["peg_*"]` 和 `peg()`）：前瞻口径用 RPT_WEB_RESPREDICT 的 EPS 均值（当年 = 第一个 ≥ 最新报告期年份的 E 年度，到两年后年化；覆盖机构 ≥ 3、所用预期 > 0），否则用上表的扣非年初至今同比。一致预期的统计窗口与机构名单东财未公开，**未核验**；EPS 是简单均值。PEG 不参与排序、标签和 ⚠ 数。
 
-另外核验过但未接入：`reportapi.eastmoney.com/report/list?code=<code>&qType=0&beginTime=&endTime=&pageSize=`（个股研报列表，含标题、机构、评级、当年/次年 EPS 预测），可用（300750 一年 39 条），因含评级用词、且已有 RPT_WEB_RESPREDICT 汇总，暂不使用。
+个股研报列表（2026-10-23 接入，只用于目标价）：见下节 j。
 
-`cards_<ts>.json` 结构：`fetched_at, snap（来源快照文件名）, codes, rules, cards{code: {profile, mainop, float_holders, consensus, pe_series（PE(TTM) 降采样至约 260 点）, pe_band{p20,p50,p80,n}, price, hist_range, deducted{report_date: {eps, eps_deducted, parent_net_profit, deducted_net_profit}}, errors}}, failed_fields, http`。快照文件不被修改；`build()` 读取最新的 cards 文件，只合并当前评估卡名单内的代码。
+## j. 股价、52 周区间与机构目标价（只展示，不进入任何评分 / 标签 / 排序）
+
+**股价**：快照 `quotes` 的 `price`（RPT_VALUEANALYSIS_DET CLOSE_PRICE，行情日 = `as_of`），build 时写入 ② 每行的 `price` / `px_date`，不新增请求。评估卡的 `fin.price` 来自同一字段。
+
+**52 周区间**（`python -m cn ranges`，`cn/ranges.py`）。窗口 = (行情日 − 52 周, 行情日]，另多取 30 天用来区分"上市不足 52 周"和长期停牌。
+
+| 来源 | 接口 | 字段 | 结果 |
+|---|---|---|---|
+| ① push2his 前复权日 K 线 `em.daily_kline_qfq()` | `push2his.eastmoney.com/api/qt/stock/kline/get?secid=<1=SH / 0=SZ,BJ>.<code>&klt=101&fqt=1&beg=&end=&fields2=f51,f52,f53,f54,f55` | f51 日期，f52 开，f53 收，f54 高，f55 低（前复权，最新一根 = 实际成交价） | 2026-10-22/23 核验：HTTPS 每次 RemoteDisconnected，HTTP 约 30 次只成功 1 次（600519，与下面 ② 的换算结果一致）；push2 / push2delay 返回 502。所以每次运行先用 3 个代码试探，失败则整次改用 ② |
+| ② 数据中心换算 `ranges.derived_qfq_closes()`（实际使用） | RPT_VALUEANALYSIS_DET `(SECURITY_CODE="…")(TRADE_DATE>=…)(TRADE_DATE<=…)` 每代码 1 次 + RPT_SHAREBONUS_DET `(EX_DIVIDEND_DATE>=…)(EX_DIVIDEND_DATE<=…)` 全市场 1 组（约 11 页） | CLOSE_PRICE（未复权）；EX_DIVIDEND_DATE，PRETAX_BONUS_RMB（每 10 股派现）→ cash_per10，BONUS_IT_RATIO（每 10 股送转）→ bonus_it_per10 | 除权除息日之前的每个收盘价 P' = (P − 每股派现) / (1 + 每股送转)。与独立的前复权收盘序列（腾讯 fqkline qfq，仅一次性核对，不接入）对比：600519 / 301396（10 送转 4）/ 688808（10 转 4.8）/ 300475 最大相对误差 ≤ 1e-5。**只有收盘价**，basis=`qfq_close`；配股不在该表里，未调整 |
+
+缓存 ttl 1 天（`em.fetch_json`），串行 + 每代码额外 0.2 s；顺序为评估卡 → ④ → 估值短名单 → 其余 ② 行；每 100 个代码写一次检查点；同一行情日 / 窗口的上一份 ranges 文件中已有结果的代码直接复用（续跑）；连续 8 个代码失败即停止并保存已有结果。
+
+`ranges_<ts>.json`：`fetched_at, basis:"qfq", item_bases, as_of, window_start, snap, rules, complete, requested, ok, failed, stopped_early, push2his_used, items{code: {hi52, lo52, hi_date, lo_date, n_days, first_date, last_date, as_of, window_start, basis, last_close, short_history, stale, basis_mismatch, src_url}}, http`。build 读最新的 ranges 文件；缺失代码显示"—"。派生：pos52 = (price − lo52)/(hi52 − lo52)×100，off_hi = price/hi52 − 1，off_lo = price/lo52 − 1；hi52 = lo52 时 pos52 为空；标记：`short_history`（窗口前无交易且首个交易日晚于窗口起点 14 天以上 → "上市不足 52 周，区间按上市以来"），`stale`（最后交易日早于行情日 3 天以上 → 停牌），`basis_mismatch`（末日前复权收盘与快照价差 > 0.5%），`outside`（现价不在区间内）。
+
+**机构目标价**（`em.research_reports()` + `em.share_bonus()`，`python -m cn cards` 的 `reports` / `bonus` 字段，仅评估卡公司）：
+
+| 接口 | 参数 | 字段 → 输出键 | 结果 |
+|---|---|---|---|
+| `reportapi.eastmoney.com/report/list` | `qType=0&code=<code>&beginTime=<抓取日−180天>&endTime=<抓取日>&pageSize=100` | publishDate → date，orgCode / orgSName → org_code / org，indvAimPriceT / indvAimPriceL → target_hi / target_lo（无目标价时为空串，多数研报如此），infoCode → url（data.eastmoney.com/report/info/<infoCode>.html），title，emRatingName（只存数据层，页面不显示评级用词） | works（600519 近 180 天 38 篇，只有群益证券 2 篇给目标价 1430） |
+| RPT_SHAREBONUS_DET | `(SECURITY_CODE="…")(EX_DIVIDEND_DATE>=窗口起点)` | 同上 | works |
+
+规则（`cards.target_median()`，`CARD_RULES["target_window_days"]=180`、`["target_min_org"]=3`）：每篇目标价 = 上下限只给一个或相等时取该值，否则取中值；窗口内（且不晚于行情日）有送转除权时，除权前发布的目标价股本口径不同，剔除（该机构除权后若有新研报则用新的）；每家机构取最新一篇；≥ 3 家才给中位数，同时记录 n、min、max、窗口、最新日期和逐篇来源；不足 3 家显示"机构目标价样本不足，不显示"，**不用** RPT_WEB_RESPREDICT 的 DEC_AIMPRICEMAX/MIN 代替（统计窗口未公开）。现金分红不调整，只在卡片注明除息日。
+
+`cards_<ts>.json` 结构：`fetched_at, snap（来源快照文件名）, codes, rules, cards{code: {profile, mainop, float_holders, consensus, pe_series（PE(TTM) 降采样至约 260 点）, pe_band{p20,p50,p80,n}, price, hist_range, deducted{report_date: {eps, eps_deducted, parent_net_profit, deducted_net_profit}}, reports{window, n_reports, with_target[]}, bonus[], errors}}, failed_fields, http`。快照文件不被修改；`build()` 读取最新的 cards 文件，只合并当前评估卡名单内的代码。
 
 ---
 
