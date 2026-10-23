@@ -110,7 +110,8 @@
       <button class="btn" type="button" id="hmClear">清除大类筛选</button>
       <span class="small" id="hmCount"></span>
     </div>
-    <table><thead><tr><th scope="col">SIC</th><th scope="col">行业（SEC 英文名称）</th><th scope="col" class="n">家数</th><th scope="col" class="n">加权增速</th><th scope="col" class="n">增速中位数</th><th scope="col" class="n">增速 ≥20% 占比</th><th scope="col" class="n">加速占比</th><th scope="col" class="n">毛利率变化</th><th scope="col">高增长公司（同比 ≥20%）</th><th scope="col">已覆盖</th></tr></thead><tbody id="hmInd"></tbody></table>
+    <table><thead><tr><th scope="col">SIC</th><th scope="col">行业（SEC 英文名称）</th><th scope="col" class="n">家数</th><th scope="col" class="n">加权增速</th><th scope="col" class="n">增速中位数</th><th scope="col" class="n">增速 ≥20% 占比</th><th scope="col" class="n">加速占比</th><th scope="col" class="n">毛利率变化</th><th scope="col">高增长公司（同比 ≥20%）</th><th scope="col">配置判断</th><th scope="col">已覆盖</th></tr></thead><tbody id="hmInd"></tbody></table>
+    <p class="note" id="hmRule"></p>
     <p class="note">口径：所有在 SEC XBRL 报送可比季度营收的公司，上年同季营收 ≥ 500 万美元；单家同比封顶在 −90% ~ +300%，避免个别公司扭曲结果。每组至少 8 家公司才显示。加权增速 = 组内营收合计的同比，由大公司主导；增速中位数代表典型公司。加速占比 = 本季同比高于上季同比的公司比例。毛利率 / 营业利润率变化为同比百分点的中位数。热度只说明增长在哪里，不区分周期反弹和结构性增长，需要结合行业知识判断。</p>
   </section>
 
@@ -665,7 +666,9 @@ const hs = {major: "", uncov: false, sort: "pct_20", dir: -1};
 const covTags = ids => (ids || []).map(id => `<span class="tag t-ld">${esc((D.sector_names || {})[id] || id)}</span>`).join(" ") || `<span class="small">—</span>`;
 const pp = v => v == null ? "—" : `<span class="${v < 0 ? "neg" : "pos"}">${v > 0 ? "+" : ""}${(+v).toFixed(1)}pt</span>`;
 const HCOLS = [["name", "大类", 0], ["n", "家数", 1], ["rev_q", "季度营收（亿美元）", 1], ["wgrowth", "加权增速", 1], ["med_growth", "增速中位数", 1],
-  ["pct_20", "≥20% 占比", 1], ["pct_accel", "加速占比", 1], ["med_gm_chg", "毛利率变化", 1], ["med_opm_chg", "营业利润率变化", 1], ["covered_by", "已覆盖", 0], ["top", "营收最大的公司", 0]];
+  ["pct_20", "≥20% 占比", 1], ["pct_accel", "加速占比", 1], ["med_gm_chg", "毛利率变化", 1], ["med_opm_chg", "营业利润率变化", 1], ["verdict", "配置判断", 0], ["covered_by", "已覆盖（公司占比）", 0], ["top", "营收最大的公司", 0]];
+const VCLS = {"已配置": "t-ld", "候选": "lv-可以观察", "周期 · 不配置": "t-cyc", "待核实：可能是价格驱动": "t-cyc", "需金融类口径": "", "增长不普遍": ""};
+const vTag = v => v ? `<span class="tag ${VCLS[v.label] || ""}" data-tip="${esc(v.why.map(esc).join("<br>"))}">${esc(v.label)}</span>` : "—";
 function renderHeat() {
   const H = D.heat;
   if (!H) { $("hmLead").textContent = "还没有全市场热度数据。运行 python -m radar heat 后重新构建。"; return; }
@@ -678,7 +681,7 @@ function renderHeat() {
     border: g.covered_by.length ? "#ffffff" : null,
     tip: `<b>${esc(g.code)} ${esc(g.name)}</b><br>${g.n} 家；加权 ${g.wgrowth}%；中位 ${g.med_growth}%<br>≥20%：${g.pct_20}%；加速：${g.pct_accel}%`})), 1300, 300,
     id => { hs.major = hs.major === id ? "" : id; renderHeatInd(); $("hmInd").scrollIntoView({behavior: "smooth", block: "start"}); });
-  $("hmHead").innerHTML = HCOLS.map(([k, t, n]) => `<th scope="col" class="${n ? "n" : ""}">${["covered_by", "top"].includes(k) ? t : `<button type="button" data-k="${k}">${t}</button>`}</th>`).join("");
+  $("hmHead").innerHTML = HCOLS.map(([k, t, n]) => `<th scope="col" class="${n ? "n" : ""}">${["covered_by", "top", "verdict"].includes(k) ? t : `<button type="button" data-k="${k}">${t}</button>`}</th>`).join("");
   document.querySelectorAll("#hmHead button").forEach(b => b.onclick = () => { hs.dir = hs.sort === b.dataset.k ? -hs.dir : -1; hs.sort = b.dataset.k; renderHeatMajor(); });
   renderHeatMajor(); renderHeatInd();
 }
@@ -687,7 +690,7 @@ function renderHeatMajor() {
   $("hmTbl").innerHTML = rows.map(g => `<tr><td><button type="button" class="btn" style="padding:1px 8px" data-g="${esc(g.code)}">${esc(g.code)} ${esc(g.name)}</button></td>
     <td class="n">${g.n}</td><td class="n">${yi(g.rev_q)}</td><td class="n">${pc(g.wgrowth, 1)}</td><td class="n">${pc(g.med_growth, 1)}</td>
     <td class="n">${g.pct_20 ?? "—"}%</td><td class="n">${g.pct_accel ?? "—"}%</td><td class="n">${pp(g.med_gm_chg)}</td><td class="n">${pp(g.med_opm_chg)}</td>
-    <td>${covTags(g.covered_by)}</td><td class="small">${g.top.map(t => `${esc(t.ticker || t.name)} ${t.yoy > 0 ? "+" : ""}${t.yoy.toFixed(0)}%`).join("，")}</td></tr>`).join("");
+    <td>${vTag(g.verdict)}</td><td>${covTags(g.covered_by)}${g.verdict && g.covered_by.length ? `<div class="small">${g.verdict.cov_pct}% 的公司</div>` : ""}</td><td class="small">${g.top.map(t => `${esc(t.ticker || t.name)} ${t.yoy > 0 ? "+" : ""}${t.yoy.toFixed(0)}%`).join("，")}</td></tr>`).join("");
   document.querySelectorAll("#hmTbl button[data-g]").forEach(b => b.onclick = () => { hs.major = b.dataset.g; renderHeatInd(); $("hmInd").scrollIntoView({behavior: "smooth", block: "start"}); });
 }
 function renderHeatInd() {
@@ -697,8 +700,13 @@ function renderHeatInd() {
   $("hmCount").textContent = `${list.length} / ${all.length} 个行业`;
   $("hmInd").innerHTML = list.slice(0, hs.major ? 200 : 40).map(i => `<tr><td>${i.sic}</td><td>${esc(i.desc || "")}</td><td class="n">${i.n}</td>
     <td class="n">${pc(i.wgrowth, 1)}</td><td class="n">${pc(i.med_growth, 1)}</td><td class="n">${i.pct_20 ?? "—"}%</td><td class="n">${i.pct_accel ?? "—"}%</td><td class="n">${pp(i.med_gm_chg)}</td>
-    <td class="small">${i.fast.map(t => `${esc(t.ticker || t.name)} ${t.yoy > 0 ? "+" : ""}${t.yoy.toFixed(0)}%`).join("，") || "—"}</td><td>${covTags(i.covered_by)}</td></tr>`).join("")
-    || `<tr><td colspan="10" class="small">没有符合条件的行业</td></tr>`;
+    <td class="small">${i.fast.map(t => `${esc(t.ticker || t.name)} ${t.yoy > 0 ? "+" : ""}${t.yoy.toFixed(0)}%`).join("，") || "—"}</td><td>${vTag(i.verdict)}</td><td>${covTags(i.covered_by)}</td></tr>`).join("")
+    || `<tr><td colspan="11" class="small">没有符合条件的行业</td></tr>`;
+  const V = D.heat.verdict_rules;
+  if (V) $("hmRule").innerHTML = esc(`配置判断（规则，按顺序）：本工具已覆盖该组 ≥ ${V.covered_pct_min}% 的公司 → 已配置；` +
+    `SIC ${D.heat.financial_major.join("、")} → 需金融类口径；SIC ${Object.entries(D.heat.cyclical_major).map(([k, v]) => `${k}（${v}）`).join("、")} → 周期 · 不配置；` +
+    `增速 ≥20% 占比 ≥ ${V.breadth_pct20_min}% 且加速占比 ≥ ${V.breadth_accel_min}% → 增长普遍：若营收中位数 ≥ ${V.price_growth_min}% 而毛利率中位数变化 ≤ ${V.price_gm_chg_max}pt，标"待核实：可能是价格驱动"，否则标"候选"；其余为"增长不普遍"。` +
+    `鼠标悬停看每一行的具体原因。阈值是经验设定，没有回测；"候选"只表示值得人工研究要不要配置。`);
 }
 // ---------- PEG screen (cross-sector): one row per ticker; pass = peg_cheap (both PEGs agree), watch = forward only
 // US-listed companies only (TW / JP / KR rows are excluded from this module)

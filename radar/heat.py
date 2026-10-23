@@ -31,6 +31,41 @@ MAJOR = {
 }
 
 
+# ---- configuration verdict (rules shown on the dashboard; thresholds are judgement calls, not back-tested)
+# Major groups whose revenue moves mainly with commodity / freight prices: high growth there is usually a price cycle,
+# and the Lynch-style method (growth + gross margin + PEG) misreads cycle peaks as cheap growth.
+CYCLICAL_MAJOR = {"10": "金属价格", "12": "煤价", "13": "油气价格", "29": "油价与炼油价差", "33": "金属价格", "44": "运价"}
+FINANCIAL_MAJOR = {"60", "61", "62", "63", "64", "67"}   # no gross margin; needs the financial evaluation profile
+VERDICT = {"breadth_pct20_min": 40, "breadth_accel_min": 50, "price_growth_min": 20, "price_gm_chg_max": 0.5,
+           "covered_pct_min": 30}
+
+
+def _verdict(code, a, cov_pct):
+    """One label + reasons for a SIC major group (code = 2 digits) or industry (major code passed in)."""
+    why = []
+    broad = (a["pct_20"] or 0) >= VERDICT["breadth_pct20_min"] and (a["pct_accel"] or 0) >= VERDICT["breadth_accel_min"]
+    why.append(f"增速 ≥20% 占比 {a['pct_20']}%、加速占比 {a['pct_accel']}%"
+               + ("，增长普遍" if broad else f"，未同时达到 {VERDICT['breadth_pct20_min']}% / {VERDICT['breadth_accel_min']}%"))
+    price = (a["med_growth"] or 0) >= VERDICT["price_growth_min"] and a["med_gm_chg"] is not None and a["med_gm_chg"] <= VERDICT["price_gm_chg_max"]
+    if price:
+        why.append(f"营收中位数 {a['med_growth']:+.0f}% 但毛利率中位数只变 {a['med_gm_chg']:+.1f}pt，可能是价格传导而不是量的增长")
+    if cov_pct >= VERDICT["covered_pct_min"]:
+        label = "已配置"
+    elif code in FINANCIAL_MAJOR:
+        label = "需金融类口径"
+        why.append("金融类公司没有毛利，要用税前利润率、ROE、市净率评估")
+    elif code in CYCLICAL_MAJOR:
+        label = "周期 · 不配置"
+        why.append(f"收入主要随{CYCLICAL_MAJOR[code]}变化，周期高点时 PE 最低、PEG 显得最便宜，现有方法会误判")
+    elif broad and not price:
+        label = "候选"
+    elif broad and price:
+        label = "待核实：可能是价格驱动"
+    else:
+        label = "增长不普遍"
+    return {"label": label, "why": why, "cov_pct": round(cov_pct)}
+
+
 def _agg(rows):
     yo = [r["yoy"] for r in rows]
     acc = [r for r in rows if r.get("yoy_prev") is not None]
@@ -87,18 +122,24 @@ def summarize(snap, sector_sics, min_n=8):
         groups.setdefault(f"{r['sic']:04d}"[:2], []).append(r)
         inds.setdefault(r["sic"], []).append(r)
     covered = lambda sics: sorted({sid for sid, ss in sector_sics.items() if any(s in ss for s in sics)})
+    all_sics = set().union(*sector_sics.values()) if sector_sics else set()
     major = []
     for g, rs in groups.items():
         if len(rs) < min_n:
             continue
         sics = sorted({r["sic"] for r in rs})
-        major.append({"code": g, "name": MAJOR.get(g, g), **_agg(rs), "covered_by": covered(sics),
+        a = _agg(rs)
+        cov_pct = 100 * sum(1 for r in rs if r["sic"] in all_sics) / len(rs)   # share of the group's companies, not "any overlap"
+        major.append({"code": g, "name": MAJOR.get(g, g), **a, "covered_by": covered(sics), "verdict": _verdict(g, a, cov_pct),
                       "top": [{"ticker": r["ticker"], "name": r["name"], "yoy": r["yoy"]} for r in sorted(rs, key=lambda r: -r["rev_q"])[:5]]})
     industry = []
     for sic, rs in inds.items():
         if len(rs) < min_n:
             continue
-        industry.append({"sic": sic, "desc": rs[0]["sic_desc"], "major": f"{sic:04d}"[:2], **_agg(rs), "covered_by": covered([sic]),
+        a = _agg(rs)
+        industry.append({"sic": sic, "desc": rs[0]["sic_desc"], "major": f"{sic:04d}"[:2], **a, "covered_by": covered([sic]),
+                         "verdict": _verdict(f"{sic:04d}"[:2], a, 100.0 if sic in all_sics else 0.0),
                          "fast": [{"ticker": r["ticker"], "name": r["name"], "yoy": r["yoy"]} for r in sorted(rs, key=lambda r: -r["yoy"])[:5] if r["yoy"] >= 20]})
     return {"fetched_at": snap["fetched_at"], "period": snap["periods"]["q0"], "n": len(rows), "min_n": min_n,
+            "verdict_rules": VERDICT, "cyclical_major": CYCLICAL_MAJOR, "financial_major": sorted(FINANCIAL_MAJOR),
             "market": _agg(rows), "major": sorted(major, key=lambda x: -x["rev_q"]), "industry": sorted(industry, key=lambda x: -(x["pct_20"] or 0))}
