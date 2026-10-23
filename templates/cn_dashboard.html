@@ -5,83 +5,280 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>A 股看板 · 行业热度 → 新兴公司筛选 → 研究优先级</title>
 <style>
-  :root { --bg:#0f1216; --panel:#171b21; --panel2:#1d222a; --line:#2a3038; --text:#e6e9ee; --muted:#9aa3ae;
-          --cyan:#37c6e0; --blue:#4f8cff; --orange:#f0a030; --green:#3fbf7f; --red:#e5534b; --gray:#8a939e; --violet:#a78bfa; }
+  /* palette shared with the US dashboard (templates/dashboard.html): bg < panel < raised < raised2, one accent + semantic colours */
+  :root { --bg:#0c1016; --side-bg:#10161d; --panel:#131a22; --raised:#1a222d; --raised2:#212b38; --line:#283240; --line2:#374354;
+          --text:#e6ebf1; --muted:#9aa6b4; --accent:#37c6e0; --accent-ink:#06222a;
+          --pos:#46c486; --neg:#f2726b; --warn:#e6b450; --cyc:#f0913a; --leader:#b19cfb; --gray:#9aa6b4;
+          --panel2:var(--raised); --cyan:var(--accent); --green:var(--pos); --red:var(--neg); --orange:var(--cyc);
+          --sp1:4px; --sp2:8px; --sp3:12px; --sp4:16px; --sp5:24px; --r1:4px; --r2:8px; --r3:12px;
+          --side:240px; --drawer:420px; --stick:64px; }
   * { box-sizing:border-box; }
   html { scroll-behavior:smooth; }
-  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.6 "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
-  main { max-width:1380px; margin:0 auto; padding:20px 24px 40px; }
-  header { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
-  h1 { font-size:22px; margin:0; } h2 { font-size:18px; margin:0 0 4px; } h3 { font-size:14px; margin:14px 0 8px; color:var(--muted); font-weight:500; }
+  @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } * { transition:none !important; } }
+  body { margin:0; background:var(--bg); color:var(--text); padding-left:var(--side);
+         font:14px/1.6 "Segoe UI Variable Text","Segoe UI","PingFang SC","Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif; }
+  main { max-width:1440px; margin:0 auto; padding:var(--sp5) 48px 48px var(--sp5); }
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+  .skip { position:absolute; left:-999px; top:8px; z-index:100; background:var(--accent); color:var(--accent-ink); padding:6px 12px; border-radius:6px; }
+  .skip:focus { left:8px; }
+
+  /* typography */
+  main > header { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:var(--sp3); margin-bottom:var(--sp4); padding-bottom:var(--sp4); border-bottom:1px solid var(--line); }
+  h1 { font-size:24px; font-weight:650; letter-spacing:.2px; margin:0 0 2px; } h1:focus { outline:none; }
+  h2 { font-size:18px; font-weight:650; margin:0 0 4px; }
+  h3 { font-size:13px; margin:20px 0 8px; color:var(--muted); font-weight:600; }
+  h3::before { content:""; display:inline-block; width:3px; height:12px; border-radius:2px; background:var(--line2); margin-right:8px; vertical-align:-1px; }
   .sub, .muted, .small { color:var(--muted); font-size:13px; } .small { font-size:12px; }
-  .chips span, .chips a { display:inline-block; border:1px solid var(--line); border-radius:4px; padding:2px 8px; margin-left:6px; font-size:12px; color:var(--muted); }
-  .chips a { color:var(--cyan); border-color:var(--cyan); }
-  .banner { border:1px solid var(--orange); color:var(--orange); border-radius:6px; padding:8px 12px; margin-bottom:12px; font-size:13px; }
-  .sticky { position:sticky; top:0; z-index:5; background:var(--bg); padding:8px 0; border-bottom:1px solid var(--line); margin-bottom:14px; }
-  .steps { display:flex; gap:6px; flex-wrap:wrap; font-size:13px; }
-  .steps a { color:var(--muted); border:1px solid var(--line); border-radius:14px; padding:2px 12px; }
-  .steps a:hover { color:var(--cyan); border-color:var(--cyan); text-decoration:none; }
-  button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline:2px solid var(--cyan); outline-offset:2px; }
-  section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; margin-bottom:14px; overflow-x:auto; scroll-margin-top:60px; }
-  .step-tag { display:inline-block; background:var(--cyan); color:#0f1216; border-radius:4px; padding:0 8px; font-size:12px; font-weight:700; margin-right:8px; vertical-align:2px; }
-  .lead { color:var(--muted); margin:4px 0 12px; }
-  .grid { display:grid; gap:12px; } .g2 { grid-template-columns:1fr 1fr; } .g3 { grid-template-columns:repeat(3,1fr); } .g4 { grid-template-columns:repeat(4,1fr); } .g5 { grid-template-columns:repeat(5,1fr); }
-  .card { background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:12px; }
-  .kpi { font-size:26px; font-weight:600; color:var(--cyan); line-height:1.2; } .kpi small { font-size:13px; color:var(--muted); font-weight:400; }
-  .label { color:var(--muted); font-size:12px; margin-bottom:4px; }
-  .neg { color:var(--red); } .pos { color:var(--green); } .ok { color:var(--green); } .warn { color:var(--orange); } .na { color:var(--muted); }
-  a { color:var(--cyan); text-decoration:none; } a:hover { text-decoration:underline; }
-  svg text { fill:var(--muted); font-size:11px; } svg .lbl { fill:#0f1216; font-weight:600; } svg .lbl2 { fill:#0f1216; font-size:10px; }
-  svg rect.tm { cursor:pointer; } svg rect.tm:hover { stroke:#fff; stroke-width:2; }
+  a { color:var(--accent); text-decoration:none; } a:hover { text-decoration:underline; }
+  .chips span, .chips a { display:inline-block; border:1px solid var(--line2); background:var(--raised); border-radius:999px; padding:1px 10px; margin-left:6px; font-size:12px; color:var(--muted); }
+  .chips a { color:var(--accent); border-color:rgba(55,198,224,.45); }
+  .banner { border:1px solid rgba(230,180,80,.3); border-left:3px solid var(--warn); background:rgba(230,180,80,.07); color:#f0dcb0; border-radius:var(--r2); padding:9px 14px; margin-bottom:var(--sp4); font-size:13px; }
+  .neg { color:var(--neg); } .pos { color:var(--pos); } .ok { color:var(--pos); } .warn { color:var(--warn); } .na { color:var(--muted); }
+  button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+  /* sticky step links */
+  .sticky { position:sticky; top:0; z-index:5; background:rgba(12,16,22,.94); backdrop-filter:blur(6px); padding:10px 0; border-bottom:1px solid var(--line); margin-bottom:var(--sp4); }
+  .steps { display:flex; gap:6px; flex-wrap:wrap; font-size:12.5px; }
+  .steps a { color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:1px 11px; }
+  .steps a:hover, .steps a.on { color:var(--accent); border-color:rgba(55,198,224,.55); text-decoration:none; }
+  .steps a.on { background:rgba(55,198,224,.1); }
+
+  /* sections */
+  section { background:var(--panel); border:1px solid var(--line); border-radius:var(--r3); padding:20px 22px; margin-bottom:var(--sp4); overflow-x:auto; scroll-margin-top:var(--stick); }
+  section > h2 { padding-bottom:12px; margin-bottom:10px; border-bottom:1px solid var(--line); }
+  #s4cy { scroll-margin-top:var(--stick); }
+  .step-tag { display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:24px; padding:0 8px; margin-right:10px; vertical-align:1px;
+              border-radius:6px; background:rgba(55,198,224,.13); color:var(--accent); border:1px solid rgba(55,198,224,.4); font-size:13px; font-weight:700; }
+  .lead { color:var(--muted); margin:4px 0 12px; max-width:110ch; }
+  .grid { display:grid; gap:var(--sp3); } .g2 { grid-template-columns:1fr 1fr; } .g3 { grid-template-columns:repeat(3,1fr); } .g4 { grid-template-columns:repeat(4,1fr); } .g5 { grid-template-columns:repeat(5,1fr); }
+  .card { background:var(--raised); border:1px solid var(--line); border-radius:var(--r2); padding:14px; min-width:0; }
+  #hKpis > .card { border-top:2px solid var(--accent); }
+  #lbKpis > .card { border-top:2px solid var(--line2); }
+  #lbKpis > .card.k-偏价值 { border-top-color:var(--pos); } #lbKpis > .card.k-偏博弈 { border-top-color:var(--warn); }
+  .kpi { font-size:28px; font-weight:650; letter-spacing:-.3px; line-height:1.25; font-variant-numeric:tabular-nums; } .kpi small { font-size:13px; color:var(--muted); font-weight:400; letter-spacing:0; }
+  .label { color:var(--muted); font-size:12px; font-weight:500; margin-bottom:4px; }
+
+  /* charts */
+  svg text { fill:var(--muted); font-size:11px; } svg .lbl { fill:#0c1016; font-weight:600; } svg .lbl2 { fill:#0c1016; font-size:10px; }
+  svg rect.tm { cursor:pointer; } svg rect.tm:hover, svg rect.tm:focus { stroke:#fff; stroke-width:2; outline:none; }
   .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:6px; align-items:center; }
   .grad { display:inline-block; width:120px; height:8px; border-radius:4px; background:linear-gradient(90deg,#b8443d,#4a515b,#2f9e6a); vertical-align:middle; }
-  table { width:100%; border-collapse:collapse; font-size:12.5px; }
-  th, td { text-align:left; padding:6px 5px; border-bottom:1px solid var(--line); vertical-align:top; }
-  th { color:var(--muted); font-weight:500; white-space:nowrap; }
+
+  /* tables: zebra + hover, right-aligned tabular numbers, sticky header inside .tscroll */
+  table { width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; font-variant-numeric:tabular-nums; }
+  th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; white-space:nowrap; font-size:12px; }
+  thead th { background:var(--panel); border-bottom-color:var(--line2); }
+  tbody tr:nth-child(even) > td { background:rgba(255,255,255,.022); }
+  tbody tr:hover > td { background:rgba(55,198,224,.065); }
   th button { background:none; border:none; color:inherit; font:inherit; cursor:pointer; padding:0; } th button:hover { color:var(--text); }
-  th button[data-dir]::after { content:attr(data-dir); margin-left:2px; color:var(--cyan); }
-  td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  th button[data-dir]::after { content:attr(data-dir); margin-left:2px; color:var(--accent); }
+  td.n, th.n { text-align:right; white-space:nowrap; }
   td.g { white-space:nowrap; font-size:12px; } td.nw { white-space:nowrap; } td.why { min-width:160px; }
-  .tag { display:inline-block; padding:1px 7px; border-radius:3px; font-size:12px; white-space:nowrap; background:rgba(138,147,158,.18); color:var(--gray); }
-  .t-cyc { background:rgba(240,160,48,.15); color:var(--orange); }
-  .lb-偏价值 { background:rgba(63,191,127,.15); color:var(--green); } .lb-偏博弈 { background:rgba(240,160,48,.15); color:var(--orange); } .lb-中性 { background:rgba(138,147,158,.18); color:var(--gray); }
-  tr.detail td { background:var(--panel2); }
-  .chk { display:grid; grid-template-columns:18px 130px 1fr; gap:4px; font-size:12.5px; padding:2px 0; border-bottom:1px solid var(--line); }
-  .toolbar { display:flex; gap:12px; align-items:center; margin:10px 0; flex-wrap:wrap; font-size:13px; }
-  select, input { background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:4px; padding:4px 8px; font:inherit; }
-  .btn { background:var(--panel2); color:var(--cyan); border:1px solid var(--cyan); border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer; }
-  .linkbtn { background:none; border:none; color:var(--cyan); font:inherit; cursor:pointer; padding:0; text-align:left; }
-  .note { border-left:3px solid var(--line); padding:4px 0 4px 12px; color:var(--muted); font-size:13px; margin:8px 0; }
-  .rule { background:rgba(55,198,224,.07); border-radius:6px; padding:8px 12px; font-size:13px; margin:6px 0; }
-  .rule ul { margin:4px 0; padding-left:18px; }
-  .tip { position:fixed; pointer-events:none; background:#000c; border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-size:12px; display:none; z-index:20; max-width:320px; }
-  footer { color:var(--muted); font-size:12px; }
-  /* evaluation cards (layout mirrors the US dashboard evalCard) */
-  details.ec { border:1px solid var(--line); border-radius:6px; padding:12px 14px; margin:8px 0; background:var(--panel2); scroll-margin-top:60px; }
-  details.ec[open] { border-color:#3a4552; }
-  details.ec > summary { cursor:pointer; } details.ec > summary b { margin-right:8px; }
-  .ec-head .one { font-size:14px; margin:8px 0 2px; }
-  .concl { background:rgba(55,198,224,.07); border-radius:6px; padding:8px 10px; font-size:13px; margin:6px 0; }
-  .tile { background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--gray); border-radius:6px; padding:8px 10px; }
-  .tile.ok { border-left-color:var(--green); } .tile.warn { border-left-color:var(--orange); }
-  .tile .tv { font-size:20px; font-weight:600; line-height:1.3; }
-  details.ec h4 { margin:0 0 6px; font-size:13px; } details.ec ul, details.ec ol { margin:0; padding-left:18px; font-size:13px; } details.ec li { margin:2px 0; }
-  details.ec .card table { font-size:12px; } details.ec .card th, details.ec .card td { padding:3px 4px; }
-  .dims .dim { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:12.5px; }
+  .tscroll { max-height:72vh; overflow:auto; border:1px solid var(--line); border-radius:var(--r2); margin:6px 0; }
+  .tscroll thead th { position:sticky; top:0; z-index:1; background:var(--raised); }
+  .tscroll tbody tr:last-child > td { border-bottom:none; }
+  tbody tr.detail > td, tbody tr.detail:hover > td { background:var(--raised); }
+  .dwrap { position:sticky; left:8px; max-width:min(1100px, calc(100vw - 360px)); }
+  tr.hl > td { box-shadow:inset 0 1px 0 rgba(55,198,224,.5), inset 0 -1px 0 rgba(55,198,224,.5); }
+
+  /* tags / pills; label colours: 偏价值 green, 中性 gray, 偏博弈 warn, 周期 cyc */
+  .tag { display:inline-block; padding:0 8px; border-radius:999px; font-size:12px; line-height:19px; white-space:nowrap; background:rgba(154,166,180,.13); color:#c5cdd7; border:1px solid rgba(154,166,180,.22); }
+  .t-cyc { background:rgba(240,145,58,.12); color:var(--cyc); border-color:rgba(240,145,58,.35); }
+  .t-warn { background:rgba(230,180,80,.12); color:var(--warn); border-color:rgba(230,180,80,.38); }
+  .t-q { background:rgba(91,147,255,.13); color:#9cbcff; border-color:rgba(91,147,255,.38); }
+  .t-acc { background:rgba(55,198,224,.13); color:var(--accent); border-color:rgba(55,198,224,.4); }
+  .lb-偏价值, .rt-ok, .t-ok { background:rgba(70,196,134,.12); color:var(--pos); border-color:rgba(70,196,134,.36); }
+  .lb-偏博弈, .rt-warn { background:rgba(230,180,80,.12); color:var(--warn); border-color:rgba(230,180,80,.38); }
+  .lb-中性 { background:rgba(154,166,180,.13); color:#c5cdd7; border-color:rgba(154,166,180,.26); }
+  .tier { font-size:11px; color:var(--muted); margin-left:4px; }
+  .chk { display:grid; grid-template-columns:18px 120px 1fr; gap:4px; font-size:12.5px; padding:3px 0; border-bottom:1px solid var(--line); }
+
+  /* evaluation card (same structure as the US evalCard) */
+  details { border:1px solid var(--line); border-radius:var(--r2); padding:10px 12px; margin:8px 0; background:var(--raised); }
+  summary { cursor:pointer; }
+  .concl { background:rgba(55,198,224,.07); border:1px solid rgba(55,198,224,.2); border-left:3px solid var(--accent); border-radius:var(--r2); padding:10px 12px; font-size:13px; margin:8px 0; }
+  details.ec { padding:0; margin:10px 0; border-radius:var(--r3); overflow:hidden; scroll-margin-top:var(--stick); }
+  details.ec[open] { border-color:var(--line2); box-shadow:0 8px 28px rgba(0,0,0,.28); }
+  details.ec > summary { list-style:none; display:flex; align-items:center; flex-wrap:wrap; gap:6px 8px; padding:11px 16px; }
+  details.ec > summary::-webkit-details-marker { display:none; }
+  details.ec > summary::before { content:"▸"; color:var(--muted); width:12px; transition:transform .15s; }
+  details.ec[open] > summary::before { transform:rotate(90deg); }
+  details.ec > summary:hover, details.ec[open] > summary { background:var(--raised2); }
+  details.ec[open] > summary { border-bottom:1px solid var(--line); }
+  .ec-tk { font-weight:700; font-size:13.5px; letter-spacing:.3px; color:var(--accent-ink); background:var(--accent); border-radius:6px; padding:0 8px; line-height:22px; font-variant-numeric:tabular-nums; }
+  .ec-nm { font-weight:600; margin-right:2px; }
+  .ec-meta { color:var(--muted); font-size:12px; }
+  .ec-nums { margin-left:auto; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .np { font-size:12px; line-height:20px; padding:0 8px; border-radius:999px; background:var(--bg); border:1px solid var(--line); color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .np b { color:var(--text); font-weight:600; margin:0; } .np.good b { color:var(--pos); } .np.unrel b { color:var(--warn); }
+  .np .tag { line-height:16px; font-size:11px; padding:0 6px; margin-left:2px; }
+  .ec-body { padding:14px 16px 16px; }
+  .ec-head .one { font-size:14px; margin:0 0 4px; }
+  .tile { background:var(--raised2); border:1px solid var(--line); border-top:3px solid var(--line2); border-radius:var(--r2); padding:10px 12px; min-width:0; }
+  .tile.ok { border-top-color:var(--pos); } .tile.warn { border-top-color:var(--warn); }
+  .tile .tv { font-size:22px; font-weight:650; line-height:1.3; font-variant-numeric:tabular-nums; }
+  details.ec h4 { margin:0 0 6px; font-size:13px; font-weight:650; } details.ec ul, details.ec ol { margin:0; padding-left:18px; font-size:13px; } details.ec li { margin:2px 0; }
+  details.ec .card table { font-size:12px; } details.ec .card th, details.ec .card td { padding:4px 6px; }
+  details.ec .card thead th { background:transparent; }
+  .card.opp { background:rgba(70,196,134,.06); border-color:rgba(70,196,134,.28); } .card.opp h4 { color:var(--pos); }
+  .card.risk { background:rgba(242,114,107,.06); border-color:rgba(242,114,107,.28); } .card.risk h4 { color:var(--neg); }
+  .card.opp .small b, .card.risk .small b { color:var(--text); }
+  details.grp { background:transparent; border:1px solid var(--line); border-radius:var(--r2); padding:0; margin:12px 0 0; }
+  details.grp > summary { list-style:none; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:9px 12px; font-size:13px; font-weight:650; }
+  details.grp > summary::-webkit-details-marker { display:none; }
+  details.grp > summary::before { content:"▸"; color:var(--muted); transition:transform .15s; } details.grp[open] > summary::before { transform:rotate(90deg); }
+  details.grp > summary:hover { background:var(--raised2); }
+  details.grp[open] > summary { border-bottom:1px solid var(--line); }
+  details.grp > summary .small { font-weight:400; }
+  .grp-body { padding:12px; }
+  .dims .dim { background:var(--raised2); border:1px solid var(--line); border-radius:var(--r2); padding:9px 11px; font-size:12.5px; min-width:0; }
   .dims .dh { margin-bottom:4px; } .dims .dv { margin-bottom:4px; }
   .dims ul { font-size:12px !important; color:var(--muted); } .dims .src { margin-top:4px; }
-  .quote { font-size:12px; color:var(--muted); border-left:2px solid var(--line); padding-left:8px; max-height:110px; overflow:auto; }
-  .tier { color:var(--muted); font-size:11px; margin-left:4px; }
-  .rt-ok { background:rgba(63,191,127,.15); color:var(--green); } .rt-warn { background:rgba(240,160,48,.15); color:var(--orange); }
+  .quote { font-size:12px; color:var(--muted); border-left:2px solid var(--line2); padding-left:8px; max-height:110px; overflow:auto; }
   a.cardlink { font-variant-numeric:tabular-nums; }
+
+  /* controls */
+  .toolbar { display:flex; gap:12px; align-items:center; margin:10px 0; flex-wrap:wrap; font-size:13px; }
+  select, input, textarea { background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px; padding:4px 8px; font:inherit; }
+  input[type=checkbox] { accent-color:var(--accent); padding:0; }
+  .btn { background:var(--raised2); color:var(--accent); border:1px solid rgba(55,198,224,.45); border-radius:6px; padding:4px 10px; font:inherit; cursor:pointer; }
+  .btn:hover { background:rgba(55,198,224,.12); }
+  .btn.primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600; }
+  .btn.ghost { color:var(--muted); border-color:var(--line2); }
+  .linkbtn { background:none; border:none; color:var(--accent); font:inherit; cursor:pointer; padding:0; text-align:left; }
+  .linkbtn:hover { text-decoration:underline; }
+  .note { border-left:3px solid var(--line2); padding:4px 0 4px 12px; color:var(--muted); font-size:13px; margin:8px 0; }
+  .rule { background:rgba(55,198,224,.07); border:1px solid rgba(55,198,224,.2); border-radius:var(--r2); padding:10px 14px; font-size:13px; margin:10px 0 0; }
+  .rule ul { margin:4px 0; padding-left:18px; } .rule li { margin:3px 0; }
+  .tip { position:fixed; pointer-events:none; background:rgba(8,11,15,.96); border:1px solid var(--line2); border-radius:6px; padding:6px 9px; font-size:12px; display:none; z-index:60; max-width:320px; box-shadow:0 6px 18px rgba(0,0,0,.4); }
+  footer { color:var(--muted); font-size:12px; }
+  .addn { font:inherit; font-size:11.5px; line-height:20px; padding:0 8px; border-radius:999px; border:1px dashed var(--line2); background:transparent; color:var(--muted); cursor:pointer; white-space:nowrap; }
+  .addn:hover { color:var(--accent); border-color:var(--accent); border-style:solid; }
+  .nbadge { font:inherit; font-size:11.5px; line-height:20px; padding:0 8px; border-radius:999px; border:1px solid rgba(230,180,80,.42); background:rgba(230,180,80,.13); color:var(--warn); cursor:pointer; white-space:nowrap; margin-right:4px; }
+  .nbadge[hidden] { display:none; }
+  td .addn, td .nbadge { line-height:18px; }
+
+  /* left sidebar */
+  .side { position:fixed; left:0; top:0; bottom:0; width:var(--side); z-index:30; overflow-y:auto; background:var(--side-bg); border-right:1px solid var(--line);
+          padding:16px 12px 28px; display:flex; flex-direction:column; gap:14px; }
+  .side .brand { font-weight:700; font-size:15px; padding:0 8px; } .side .brand span { display:block; font-weight:400; font-size:11.5px; color:var(--muted); }
+  .side ul { list-style:none; margin:0; padding:0; }
+  .side .gt { font-size:11.5px; color:var(--muted); font-weight:600; letter-spacing:.5px; margin:0 8px 4px; }
+  .side a.sl, .side button.sl { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; text-align:left; padding:5px 10px; margin:1px 0;
+          border-radius:6px; color:var(--text); background:none; border:1px solid transparent; border-left-width:2px; font:inherit; font-size:13px; cursor:pointer; text-decoration:none; }
+  .side a.sl:hover, .side button.sl:hover { background:var(--raised); text-decoration:none; }
+  .side button.sl.cur { background:rgba(55,198,224,.1); color:var(--accent); border-color:rgba(55,198,224,.28); }
+  .side a.sl.on { border-left-color:var(--accent); color:var(--accent); background:rgba(55,198,224,.07); }
+  .side a.back { color:var(--accent); border:1px solid var(--line2); justify-content:flex-start; }
+  .side .cnt { font-size:11px; color:var(--muted); background:var(--raised); border-radius:999px; padding:0 7px; flex:none; }
+  .side .substeps { margin:2px 0 6px 12px; padding-left:6px; border-left:1px solid var(--line); }
+  .side .substeps a.sl { font-size:12.5px; padding:3px 8px; color:var(--muted); }
+  .side .substeps a.sl.on { color:var(--accent); }
+  .side details.sgrp { border:none; padding:0; margin:0; background:none; }
+  .side details.sgrp > summary { list-style:none; display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:2px 0; }
+  .side details.sgrp > summary::-webkit-details-marker { display:none; }
+  .side details.sgrp > summary .gt { margin-bottom:0; }
+  .side details.sgrp > summary::after { content:"▸"; color:var(--muted); font-size:11px; margin-right:8px; transition:transform .15s; }
+  .side details.sgrp[open] > summary::after { transform:rotate(90deg); }
+  .side .sl span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .qs input { width:100%; }
+  .qs-res { margin-top:4px; display:flex; flex-direction:column; gap:2px; }
+  .qs-res button { display:block; width:100%; text-align:left; background:var(--raised); border:1px solid var(--line); border-radius:6px; padding:4px 8px; color:var(--text); font:inherit; font-size:12px; cursor:pointer; }
+  .qs-res button:hover, .qs-res button:focus-visible { border-color:var(--accent); }
+  .qs-res button b { color:var(--accent); margin-right:6px; } .qs-res button span { color:var(--muted); }
+  .topbar { display:none; }
+  .backdrop { display:none; }
+
+  /* back to top + notes toggle + notes drawer */
+  .totop { position:fixed; right:20px; bottom:20px; z-index:35; width:42px; height:42px; border-radius:50%; border:1px solid var(--line2); background:var(--raised2); color:var(--text);
+           font-size:18px; line-height:1; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.35); opacity:0; visibility:hidden; transition:opacity .2s, visibility .2s; }
+  .totop.show { opacity:1; visibility:visible; } .totop:hover { color:var(--accent); border-color:var(--accent); }
+  .notes-toggle { position:fixed; right:0; top:50%; transform:translateY(-50%); z-index:40; writing-mode:vertical-rl; letter-spacing:2px; background:var(--raised2); color:var(--text);
+                  border:1px solid var(--line2); border-right:none; border-radius:8px 0 0 8px; padding:12px 7px; font:inherit; font-size:13px; cursor:pointer; box-shadow:-4px 0 14px rgba(0,0,0,.3); }
+  .notes-toggle:hover { color:var(--accent); border-color:var(--accent); }
+  body.notes-open .notes-toggle, body.notes-open .totop { display:none; }
+  .drawer { position:fixed; top:0; right:0; bottom:0; width:min(var(--drawer),100vw); z-index:45; background:#111820; border-left:1px solid var(--line2); box-shadow:-14px 0 34px rgba(0,0,0,.4);
+            display:flex; flex-direction:column; transform:translateX(100%); visibility:hidden; transition:transform .2s ease, visibility .2s; }
+  .drawer.open { transform:none; visibility:visible; }
+  .dw-head { display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line); }
+  .dw-head h2 { margin:0; font-size:16px; } .dw-head .small { flex:1; }
+  .icon-btn { background:none; border:1px solid transparent; color:var(--muted); font-size:16px; border-radius:6px; width:32px; height:32px; cursor:pointer; }
+  .icon-btn:hover { color:var(--text); border-color:var(--line2); }
+  .dw-body { flex:1; overflow-y:auto; padding:14px 16px; }
+  .dw-foot { border-top:1px solid var(--line); padding:10px 16px 14px; font-size:12px; color:var(--muted); }
+  .dw-foot .row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; align-items:center; }
+  .nform { background:var(--raised); border:1px solid var(--line); border-radius:var(--r2); padding:12px; display:flex; flex-direction:column; gap:8px; }
+  .nform .nf-t { font-weight:650; font-size:13px; }
+  .nform textarea { width:100%; min-height:84px; resize:vertical; line-height:1.5; }
+  .nf-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; font-size:12.5px; color:var(--muted); }
+  .nf-anchor { display:flex; gap:6px; flex-wrap:wrap; align-items:center; font-size:12px; color:var(--muted); }
+  .achip { color:var(--text); background:var(--bg); border:1px solid var(--line2); border-radius:999px; padding:0 8px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lnk { background:none; border:none; color:var(--accent); font:inherit; font-size:12px; cursor:pointer; padding:0 2px; }
+  .lnk:hover { text-decoration:underline; }
+  .nfilters { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:14px 0 8px; font-size:12.5px; color:var(--muted); }
+  .nfilters input[type=search] { flex:1 1 100%; }
+  .nlist { display:flex; flex-direction:column; gap:8px; }
+  .nlist:focus { outline:none; }
+  .nitem { background:var(--raised); border:1px solid var(--line); border-left:3px solid var(--warn); border-radius:var(--r2); padding:9px 11px; }
+  .nitem.done { border-left-color:var(--pos); } .nitem.done .ntext { color:var(--muted); }
+  .nmeta { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:4px; }
+  .nanchor { display:block; max-width:100%; background:none; border:none; padding:0; margin:2px 0 4px; color:var(--accent); font:inherit; font-size:12px; text-align:left; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nanchor:hover { text-decoration:underline; }
+  .ntext { white-space:pre-wrap; word-break:break-word; font-size:13px; }
+  .nfoot { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; align-items:center; margin-top:6px; }
+  .nacts { display:flex; gap:4px; }
+  .nacts button { background:none; border:1px solid var(--line2); color:var(--muted); border-radius:6px; font:inherit; font-size:12px; padding:0 8px; line-height:22px; cursor:pointer; }
+  .nacts button:hover { color:var(--text); border-color:var(--muted); } .nacts button.danger:hover { color:var(--neg); border-color:var(--neg); }
+  @media (min-width:1760px) { body.notes-open { padding-right:var(--drawer); } }
+
   @media (max-width:1100px) { .g4, .g5 { grid-template-columns:repeat(2,1fr); } .g2, .g3 { grid-template-columns:1fr; } }
+  /* narrow: sidebar becomes an off-canvas drawer opened from a top bar */
+  @media (max-width:1099.98px) {
+    body { padding-left:0; } :root { --stick:112px; }
+    main { padding:16px 40px 40px 16px; }
+    .topbar { display:flex; position:sticky; top:0; z-index:25; height:48px; align-items:center; gap:10px; padding:0 16px; background:rgba(16,22,29,.97); border-bottom:1px solid var(--line); }
+    .topbar b { font-size:14px; } .topbar .small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .sticky { top:48px; }
+    .side { width:min(300px,86vw); transform:translateX(-100%); visibility:hidden; transition:transform .2s ease, visibility .2s; box-shadow:12px 0 34px rgba(0,0,0,.45); z-index:50; }
+    body.side-open .side { transform:none; visibility:visible; }
+    body.side-open .backdrop { display:block; position:fixed; inset:0; z-index:49; background:rgba(0,0,0,.5); }
+    .dwrap { max-width:calc(100vw - 100px); }
+  }
+  @media (max-width:640px) { .g4, .g5 { grid-template-columns:1fr; } main { padding:12px 36px 32px 10px; } section { padding:14px; } }
 </style>
 </head>
 <body>
+<a class="skip" href="#s1">跳到主要内容</a>
+<div class="topbar">
+  <button type="button" class="btn" id="sideBtn" aria-controls="side" aria-expanded="false">☰ 导航</button>
+  <b>A 股看板</b><span class="small" id="topCtx"></span>
+</div>
+<nav class="side" id="side" aria-label="页面导航">
+  <div class="brand">A 股看板<span>行业热度 → 新兴筛选 → 价值 / 博弈 → 研究优先级</span></div>
+  <a class="sl back" href="../index.html">← 美股看板</a>
+  <div class="qs" role="search">
+    <div class="gt"><label for="qs">公司快速跳转</label></div>
+    <input type="search" id="qs" placeholder="6 位代码或公司名" autocomplete="off" aria-describedby="qsHint" aria-controls="qsRes">
+    <div class="sr-only" id="qsHint">输入后按回车跳到第一条结果，或用下方向键选择；有评估卡的公司打开评估卡，其余在 ② 筛选表中定位</div>
+    <div class="qs-res" id="qsRes" aria-live="polite"></div>
+  </div>
+  <div><div class="gt">页面分节</div>
+    <ul>
+      <li><a class="sl" href="#s1" data-sec="s1">① 行业热度</a></li>
+      <li><a class="sl" href="#s2" data-sec="s2">② 新兴筛选</a></li>
+      <li><a class="sl" href="#s3" data-sec="s3">③ 价值·博弈</a></li>
+      <li><a class="sl" href="#s4" data-sec="s4">④ 研究优先级</a><div class="substeps"><a class="sl" href="#s4cy">周期行业单列</a></div></li>
+      <li><a class="sl" href="#s6" data-sec="s6">⑤ 个股评估卡</a></li>
+      <li><a class="sl" href="#s5" data-sec="s5">数据与方法</a></li>
+    </ul></div>
+  <details class="sgrp" open><summary><span class="gt">行业（按进入筛选家数）</span></summary><ul id="sideInd"></ul></details>
+</nav>
+<div class="backdrop" id="sideBack"></div>
 <main>
   <header>
     <div>
-      <h1>A 股看板</h1>
+      <h1 id="pageTop" tabindex="-1">A 股看板</h1>
       <div class="sub">行业热度 → 新兴公司筛选（现金流质量门槛） → 价值 / 博弈标签 → 研究优先级</div>
     </div>
     <div class="chips" id="chips"><a href="../index.html">← 美股看板</a></div>
@@ -102,7 +299,7 @@
     <svg id="hTree" viewBox="0 0 1300 420" width="100%" role="img" aria-label="A 股行业营收树图"></svg>
     <div class="legend"><span>营收同比中位数</span><span>−30%</span><span class="grad"></span><span>+40%</span></div>
     <h3>行业排行（点击表头排序）</h3>
-    <table><thead><tr id="indHead"></tr></thead><tbody id="indBody"></tbody></table>
+    <div class="tscroll"><table><thead><tr id="indHead"></tr></thead><tbody id="indBody"></tbody></table></div>
     <div class="toolbar"><button class="btn" type="button" id="indMore"></button></div>
     <p class="note" id="indNote"></p>
   </section>
@@ -118,7 +315,7 @@
       <button class="btn" type="button" id="fClear">清除筛选</button>
       <span class="small" id="scCount"></span>
     </div>
-    <table><thead><tr id="scHead"></tr></thead><tbody id="scBody"></tbody></table>
+    <div class="tscroll" id="scScroll"><table><thead><tr id="scHead"></tr></thead><tbody id="scBody"></tbody></table></div>
     <div class="toolbar"><button class="btn" type="button" id="scMore">显示更多</button><span class="small">点击公司名称展开全部门槛数值、标签原因和监管类公告标题。</span></div>
     <p class="note" id="gateNote"></p>
   </section>
@@ -133,11 +330,11 @@
   <section id="s4">
     <h2><span class="step-tag">④</span>研究优先级 · Top <span id="pN"></span></h2>
     <p class="lead" id="pLead"></p>
-    <table><thead><tr id="pHead"></tr></thead><tbody id="pBody"></tbody></table>
+    <div class="tscroll"><table><thead><tr id="pHead"></tr></thead><tbody id="pBody"></tbody></table></div>
     <p class="note">排序只表示"按这四个数据维度，先看谁"，没有做过回测，不代表后续表现。估值分位只描述相对自身近几年的位置，不是估值结论。点击代码打开该公司的评估卡。<br>PEG 列只作参考，<b>不参与排序，也不影响价值 / 博弈标签和 ⚠ 数</b>：标签「前瞻」= PE(TTM) ÷ 机构一致预期 EPS 年化增速，「历史」= PE(TTM) ÷ 扣非年初至今同比增速，「—」= 不适用（周期行业、PE ≤ 0、增速 ≤ 0 或无数据）；数值后带 ⚠ = 不可靠（基数低、增速 &gt; 100% 或一致预期年度间大幅下降）。鼠标悬停看原因，口径见"数据与方法"。</p>
-    <h3>周期行业的高增长公司（单独列出，不参与排序）</h3>
+    <h3 id="s4cy">周期行业的高增长公司（单独列出，不参与排序）</h3>
     <p class="small" id="cyLead"></p>
-    <table><thead><tr><th scope="col">代码</th><th scope="col">名称</th><th scope="col">行业</th><th scope="col" class="n">营收同比</th><th scope="col" class="n">净利同比</th><th scope="col" class="n">毛利率变化（pp）</th><th scope="col" class="n">现金流/净利</th><th scope="col" class="n">PE(TTM)</th><th scope="col">业绩预告</th><th scope="col">要先核实</th></tr></thead><tbody id="cyBody"></tbody></table>
+    <div class="tscroll"><table><thead><tr><th scope="col">代码</th><th scope="col">名称</th><th scope="col">行业</th><th scope="col" class="n">营收同比</th><th scope="col" class="n">净利同比</th><th scope="col" class="n">毛利率变化（pp）</th><th scope="col" class="n">现金流/净利</th><th scope="col" class="n">PE(TTM)</th><th scope="col">业绩预告</th><th scope="col">要先核实</th></tr></thead><tbody id="cyBody"></tbody></table></div>
   </section>
 
   <section id="s6">
@@ -148,7 +345,7 @@
   </section>
 
   <section id="s5">
-    <h2>数据与方法</h2>
+    <h2><span class="step-tag">i</span>数据与方法</h2>
     <div class="grid g2">
       <div>
         <h3>字段来源</h3>
@@ -190,6 +387,42 @@
   <footer id="foot"></footer>
 </main>
 <div class="tip" id="tip" role="tooltip"></div>
+<button type="button" class="totop" id="toTop" aria-label="返回顶部" title="返回顶部">↑</button>
+<button type="button" class="notes-toggle" id="notesBtn" aria-controls="notes" aria-expanded="false">备注 (<span id="notesN">0</span>)</button>
+<aside class="drawer" id="notes" role="dialog" aria-modal="false" aria-labelledby="notesTitle">
+  <div class="dw-head"><h2 id="notesTitle">我的备注</h2><span class="small" id="notesStat"></span>
+    <button type="button" class="icon-btn" id="notesClose" aria-label="关闭备注面板（Esc）">✕</button></div>
+  <div class="dw-body">
+    <form class="nform" id="nForm" novalidate>
+      <div class="nf-t" id="nfTitle">新建备注</div>
+      <div class="nf-anchor"><span>关联：</span><span class="achip" id="nfAnchor"></span>
+        <button type="button" class="lnk" id="nfHere">用当前位置</button><button type="button" class="lnk" id="nfNoA">不关联</button></div>
+      <label class="sr-only" for="nfText">备注内容</label>
+      <textarea id="nfText" rows="4" placeholder="写下想法、问题或待核实的点……（Ctrl+Enter 保存）"></textarea>
+      <div class="nf-row">
+        <label>类型 <select id="nfTag"><option>想法</option><option>问题</option><option>待核实</option><option>结论</option></select></label>
+        <label>状态 <select id="nfStatus"><option>待跟进</option><option>已完成</option></select></label>
+        <label>跟进日期 <input type="date" id="nfDue"></label>
+      </div>
+      <div class="nf-row"><button type="submit" class="btn primary" id="nfSave">保存</button>
+        <button type="button" class="btn ghost" id="nfCancel" hidden>取消编辑</button><span class="small" id="nfMsg" role="status" aria-live="polite"></span></div>
+    </form>
+    <div class="nfilters" role="group" aria-label="筛选备注">
+      <label class="sr-only" for="nfQ">搜索备注</label><input type="search" id="nfQ" placeholder="搜索备注内容、代码或位置">
+      <label class="sr-only" for="nfMk">市场</label><select id="nfMk"><option value="cn">只看 A 股</option><option value="all">全部（含美股）</option></select>
+      <label class="sr-only" for="nfFS">状态</label><select id="nfFS"><option value="">全部状态</option><option>待跟进</option><option>已完成</option></select>
+      <label class="sr-only" for="nfFT">类型</label><select id="nfFT"><option value="">全部类型</option><option>想法</option><option>问题</option><option>待核实</option><option>结论</option></select>
+      <span class="small" id="nfCount"></span>
+    </div>
+    <div class="nlist" id="nList" tabindex="-1" aria-label="备注列表"></div>
+  </div>
+  <div class="dw-foot">
+    <div class="row"><button type="button" class="btn" id="nExport">导出 JSON</button>
+      <button type="button" class="btn" id="nImportBtn">导入 JSON</button><input type="file" id="nImport" accept="application/json,.json" hidden>
+      <span id="nIoMsg" role="status" aria-live="polite"></span></div>
+    <div id="nHint">备注只保存在当前浏览器的本地存储（localStorage）里，和美股看板用同一个存储键和文件格式，重新构建页面不会丢失。用 file:// 直接打开时，浏览器可能把不同文件夹的页面当成不同来源、各存一份：用“导出 JSON / 导入 JSON”在美股 / A 股页面之间或不同浏览器之间搬运备注（按 id 合并，不会重复）。清理浏览器数据前请先导出备份。</div>
+  </div>
+</aside>
 
 <script>
 const D = /*__DATA__*/null;
@@ -206,7 +439,11 @@ const growthColor = v => { if (v == null) return "#4a515b"; const t = Math.max(-
 const BYCODE = Object.fromEntries(D.screen.map(r => [r.code, r]));
 const GATES = [["ocf", "现金流/净利"], ["ar", "应收增速"], ["inv", "存货增速"], ["goodwill", "商誉/权益"], ["pledge", "质押比例"],
   ["selling", "6 月净增减持"], ["unlock", "90 天解禁"], ["reg", "监管类标题"], ["val", "PE 分位"], ["fc", "业绩预告"]];
-const state = {indAll: false, ind: "", lb: "", w: "", q: "", limit: 150, open: new Set(), sort: {ind: ["revenue", -1], sc: ["rev_yoy", -1], p: ["rank", 1]}};
+const state = {indAll: false, ind: "", lb: "", w: "", q: "", limit: 150, open: new Set(), hl: "", sideIndAll: false, sort: {ind: ["revenue", -1], sc: ["rev_yoy", -1], p: ["rank", 1]}};
+const debounce = (fn, ms) => { let t = 0; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+const narrow = () => matchMedia("(max-width:1099.98px)").matches;
+// scroll to a section; setting the same hash again would not scroll, so fall back to scrollIntoView
+const goSec = id => { if (location.hash === "#" + id) $(id).scrollIntoView({behavior: "smooth", block: "start"}); else location.hash = "#" + id; };
 
 const tip = $("tip");
 document.addEventListener("mousemove", ev => { const t = ev.target.closest && ev.target.closest("[data-tip]"); if (!t) { tip.style.display = "none"; return; }
@@ -230,22 +467,24 @@ function treemap(svgId, items, W, H, onClick) {
   const cells = squarify(items, 0, 0, W, H);
   $(svgId).innerHTML = cells.map(c => `<g><rect class="tm" x="${c.x + 1}" y="${c.y + 1}" width="${Math.max(0, c.w - 2)}" height="${Math.max(0, c.h - 2)}" rx="3"
     fill="${growthColor(c.g)}" data-id="${esc(c.id)}" data-tip="${esc(c.tip)}" tabindex="0"/>
-    ${c.w > 54 && c.h > 30 ? `<text class="lbl" x="${c.x + 6}" y="${c.y + 17}">${esc(c.label)}</text><text class="lbl2" x="${c.x + 6}" y="${c.y + 30}">${esc(c.sub)}</text>` : ""}</g>`).join("")
+    ${c.w > 54 && c.h > 30 ? `<text class="lbl" x="${c.x + 7}" y="${c.y + 18}">${esc(c.label)}</text><text class="lbl2" x="${c.x + 7}" y="${c.y + 32}">${esc(c.sub)}</text>` : ""}</g>`).join("")
     || `<text x="20" y="30">没有数据</text>`;
   $(svgId).querySelectorAll("rect.tm").forEach(r => { r.onclick = () => onClick && onClick(r.dataset.id); r.onkeydown = ev => { if (ev.key === "Enter") r.onclick(); }; });
 }
 
 // generic sortable table: cols = [{k, t, n, v: row => sortValue, f: row => html}]
-function table(key, headId, bodyId, cols, rows, after) {
+function table(key, headId, bodyId, cols, rows) {
   const [sk, sd] = state.sort[key];
   $(headId).innerHTML = cols.map(c => `<th scope="col" class="${c.n ? "n" : ""}">${c.nosort ? esc(c.t) : `<button type="button" data-k="${esc(c.k)}" ${c.k === sk ? `data-dir="${sd < 0 ? "↓" : "↑"}"` : ""}>${esc(c.t)}</button>`}</th>`).join("");
   $(headId).querySelectorAll("button[data-k]").forEach(b => b.onclick = () => {
     const k = b.dataset.k; state.sort[key] = [k, state.sort[key][0] === k ? -state.sort[key][1] : (cols.find(c => c.k === k).n ? -1 : 1)]; render(); });
   const col = cols.find(c => c.k === sk) || cols[0], gv = col.v || (r => r[col.k]);
-  const sorted = rows.slice().sort((a, b) => { const x = gv(a), y = gv(b); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+  return rows.slice().sort((a, b) => { const x = gv(a), y = gv(b); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
     return (typeof x === "string" ? x.localeCompare(y, "zh-CN") : x - y) * sd; });
-  return sorted;
 }
+
+// set the ② industry filter (treemap, ① table, sidebar) and scroll to ②
+function setInd(name) { state.ind = name || ""; $("fInd").value = state.ind; render(); goSec("s2"); }
 
 function renderHeader() {
   $("chips").innerHTML = `<a href="../index.html">← 美股看板</a>` + [`财报期 ${D.periods.latest}`, `行情 ${D.quote_date || "—"}（日终）`, `抓取 ${D.fetched_at}`, `构建 ${D.built_at}`]
@@ -256,17 +495,17 @@ function renderHeat() {
   const c = D.counts, m = D.market;
   $("hLead").innerHTML = esc(`覆盖 ${c.with_fin} 家有 ${D.periods.latest} 营收数据的 A 股公司，按东方财富行业分组；至少 ${R.min_industry_n} 家公司的行业才显示（${c.industries} / ${c.industries_all} 个）。营收与同比均为年初至今累计口径。`);
   $("hKpis").innerHTML = [
-    ["行业数", `${c.industries}<small> 个</small>`, `至少 ${R.min_industry_n} 家公司`],
+    ["行业数", `${esc(c.industries)}<small> 个</small>`, `至少 ${R.min_industry_n} 家公司`],
     ["全市场营收同比中位数", pc(m.yoy_median, 1), `${D.periods.latest} 年初至今`],
     ["营收同比 ≥ 20% 的公司占比", `${num(m.share_ge20)}<small>%</small>`, "全部有数据公司"],
-    ["进入新兴筛选的公司", `${c.screen}<small> 家</small>`, `营收同比 ≥ ${R.growth_yoy_min}% 且营收 ≥ ${yi(D.revenue_floor)} 亿`],
+    ["进入新兴筛选的公司", `${esc(c.screen)}<small> 家</small>`, `营收同比 ≥ ${R.growth_yoy_min}% 且营收 ≥ ${yi(D.revenue_floor)} 亿`],
   ].map(([l, v, s]) => `<div class="card"><div class="label">${esc(l)}</div><div class="kpi">${v}</div><div class="small">${esc(s)}</div></div>`).join("");
   treemap("hTree", D.industries.map(g => ({id: g.name, v: g.revenue, g: g.yoy_median, label: g.name, sub: `${g.yoy_median == null ? "—" : (g.yoy_median > 0 ? "+" : "") + g.yoy_median.toFixed(1) + "%"} · ${g.n} 家`,
     tip: `<b>${esc(g.name)}</b><br>公司 ${g.n} 家<br>营收合计 ${yi(g.revenue)} 亿元<br>同比中位数 ${num(g.yoy_median)}% · 加权 ${num(g.yoy_weighted)}%<br>同比 ≥20% 占比 ${num(g.share_ge20)}%<br>加速占比 ${num(g.share_accel)}%`})),
-    1300, 420, id => { state.ind = id; $("fInd").value = id; render(); location.hash = "#s2"; });
+    1300, 420, id => setInd(id));
   const cols = [
-    {k: "name", t: "行业", f: g => `<button type="button" class="linkbtn" data-ind="${esc(g.name)}">${esc(g.name)}</button>${g.cyclical ? ' <span class="tag t-cyc">周期</span>' : ""}`},
-    {k: "n", t: "家数", n: 1, f: g => g.n},
+    {k: "name", t: "行业", cls: "nw", f: g => `<button type="button" class="linkbtn" data-ind="${esc(g.name)}">${esc(g.name)}</button>${g.cyclical ? ' <span class="tag t-cyc">周期</span>' : ""}`},
+    {k: "n", t: "家数", n: 1, f: g => esc(g.n)},
     {k: "revenue", t: "营收合计（亿元）", n: 1, f: g => yi(g.revenue)},
     {k: "yoy_median", t: "同比中位数", n: 1, f: g => pc(g.yoy_median, 1)},
     {k: "yoy_weighted", t: "营收加权同比", n: 1, f: g => pc(g.yoy_weighted, 1)},
@@ -274,31 +513,31 @@ function renderHeat() {
     {k: "share_accel", t: "加速占比", n: 1, f: g => g.share_accel == null ? "—" : `${num(g.share_accel)}%`},
     {k: "gm_change_median", t: "毛利率变化中位数（pp）", n: 1, f: g => pp(g.gm_change_median)},
     {k: "ocf_np_median", t: "现金流/净利中位数", n: 1, f: g => num(g.ocf_np_median, 2)},
-    {k: "n_screen", t: "进入筛选", n: 1, v: g => scrCount[g.name] || 0, f: g => scrCount[g.name] || 0},
+    {k: "n_screen", t: "进入筛选", n: 1, v: g => SCNT[g.name] || 0, f: g => SCNT[g.name] || 0},
   ];
-  const scrCount = {}; D.screen.forEach(r => scrCount[r.industry] = (scrCount[r.industry] || 0) + 1);
   const rows = table("ind", "indHead", "indBody", cols, D.industries);
   $("indMore").textContent = state.indAll ? "只显示前 25 个" : `显示全部 ${rows.length} 个行业`;
-  $("indBody").innerHTML = rows.slice(0, state.indAll ? rows.length : 25).map(g => `<tr>${cols.map(c => `<td class="${c.n ? "n" : ""}">${c.f(g)}</td>`).join("")}</tr>`).join("") || `<tr><td>没有数据</td></tr>`;
-  $("indBody").querySelectorAll("button[data-ind]").forEach(b => b.onclick = () => { state.ind = b.dataset.ind; $("fInd").value = state.ind; render(); location.hash = "#s2"; });
+  $("indBody").innerHTML = rows.slice(0, state.indAll ? rows.length : 25).map(g => `<tr>${cols.map(c => `<td class="${c.n ? "n" : c.cls || ""}">${c.f(g)}</td>`).join("")}</tr>`).join("") || `<tr><td>没有数据</td></tr>`;
+  $("indBody").querySelectorAll("button[data-ind]").forEach(b => b.onclick = () => setInd(b.dataset.ind));
   $("indNote").innerHTML = esc(`口径：同比中位数 = 行业内公司 ${D.periods.latest} 年初至今营收同比的中位数；营收加权同比 = 行业营收合计 ÷ 由各公司同比倒推的上年同期营收合计 − 1，由大公司主导。` +
     `加速占比 = ${D.periods.latest} 年初至今营收同比高于 ${D.periods.prev} 年初至今营收同比的公司比例（两期都有同比的公司为分母）。` +
     `毛利率变化 = ${D.periods.latest} 毛利率 − ${D.periods.year_ago} 毛利率（百分点）的中位数，银行等无毛利率的公司不计入。现金流/净利中位数只统计归母净利润 > 0 的公司。` +
     `热度只描述增长分布，不区分周期反弹与结构性增长。`);
 }
+const SCNT = {}; D.screen.forEach(r => SCNT[r.industry] = (SCNT[r.industry] || 0) + 1);
 
 function screenRows() {
   const q = state.q.trim().toLowerCase();
   return D.screen.filter(r => (!state.ind || r.industry === state.ind) && (!state.lb || r.label === state.lb)
     && (state.w === "" || r.warn_n <= +state.w) && (!q || r.code.includes(q) || String(r.name || "").toLowerCase().includes(q)));
 }
-const gateCell = g => g ? `<span class="${g.s}" data-tip="${esc(esc(g.v))}">${ICON[g.s] || "·"} ${esc(g.sv)}</span>` : "—";
+const gateCell = g => g ? `<span class="${esc(g.s)}" data-tip="${esc(esc(g.v))}">${ICON[g.s] || "·"} ${esc(g.sv)}</span>` : "—";
 function detail(r) {
-  return `<tr class="detail"><td colspan="99"><div class="grid g2">
-    <div>${GATES.map(([k, t]) => { const g = r.gates[k]; return `<div class="chk"><span class="${g.s}">${ICON[g.s]}</span><span>${esc(t)}</span><span>${esc(g.v)}</span></div>`; }).join("")}</div>
+  return `<tr class="detail"><td colspan="99"><div class="dwrap grid g2">
+    <div>${GATES.map(([k, t]) => { const g = r.gates[k]; return `<div class="chk"><span class="${esc(g.s)}">${ICON[g.s] || "·"}</span><span>${esc(t)}</span><span>${esc(g.v)}</span></div>`; }).join("")}</div>
     <div><div class="label">标签：<span class="tag lb-${esc(r.label)}">${esc(r.label)}</span></div><ul class="small">${r.reasons.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
       <div class="label">财务</div><div class="small">营收 ${yi(r.revenue)} 亿元 · 同比 ${num(r.rev_yoy)}%（上期累计 ${num(r.rev_yoy_prev)}%）· 归母净利润 ${yi(r.np)} 亿元 · 净利同比 ${num(r.np_yoy)}% · 毛利率 ${num(r.gm)}%（同比 ${num(r.gm_chg)} pp）· 总市值 ${yi(r.mcap)} 亿元 · PE(TTM) ${num(r.pe_ttm)} · PB ${num(r.pb, 2)}</div>
-      ${r.reg_items.length ? `<div class="label" style="margin-top:6px">监管类公告标题（最近 3 条，标题匹配）</div><ul class="small">${r.reg_items.map(x => `<li>${esc(x.date)} [${esc(x.kind)}] ${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.title)}</a>` : esc(x.title)}</li>`).join("")}</ul>` : ""}
+      ${r.reg_items.length ? `<div class="label" style="margin-top:6px">监管类公告标题（最近 3 条，标题匹配）</div><ul class="small">${r.reg_items.map(x => `<li>${esc(x.date)} [${esc(x.kind)}] ${extA(x.url, x.title)}</li>`).join("")}</ul>` : ""}
     </div></div></td></tr>`;
 }
 function renderScreen() {
@@ -307,19 +546,20 @@ function renderScreen() {
   const cols = [
     {k: "code", t: "代码", cls: "nw", f: r => codeCell(r.code)},
     {k: "name", t: "名称", cls: "nw", f: r => `<button type="button" class="linkbtn" data-open="${esc(r.code)}" aria-expanded="${state.open.has(r.code)}">${esc(r.name)}</button>`},
+    {k: "note", t: "备注", nosort: 1, cls: "nw", f: r => noteCtl(r.code)},
     {k: "industry", t: "行业", cls: "nw", f: r => `<span class="small">${esc(r.industry)}</span>${r.cyclical ? ' <span class="tag t-cyc">周期</span>' : ""}`},
     {k: "revenue", t: "营收（亿）", n: 1, f: r => yi(r.revenue)},
     {k: "rev_yoy", t: "营收同比", n: 1, f: r => pc(r.rev_yoy)},
     {k: "accel", t: "加速（pp）", n: 1, f: r => pp(r.accel, 0)},
     {k: "np_yoy", t: "净利同比", n: 1, f: r => pc(r.np_yoy)},
     ...GATES.map(([k, t]) => ({k: "g_" + k, t, v: r => ({warn: 0, ok: 1, na: 2})[r.gates[k].s], g: 1, f: r => gateCell(r.gates[k])})),
-    {k: "warn_n", t: "⚠ 数", n: 1, f: r => r.warn_n},
+    {k: "warn_n", t: "⚠ 数", n: 1, f: r => esc(r.warn_n)},
     {k: "label", t: "标签", f: r => `<span class="tag lb-${esc(r.label)}">${esc(r.label)}</span>`},
     {k: "reasons", t: "标签原因", nosort: 1, cls: "why", f: r => `<span class="small">${esc(r.reasons.join("；"))}</span>`},
   ];
   const all = table("sc", "scHead", "scBody", cols, screenRows());
   const rows = all.slice(0, state.limit);
-  $("scBody").innerHTML = rows.map(r => `<tr>${cols.map(c => `<td class="${c.n ? "n" : c.g ? "g" : c.cls || ""}">${c.f(r)}</td>`).join("")}</tr>${state.open.has(r.code) ? detail(r) : ""}`).join("")
+  $("scBody").innerHTML = rows.map(r => `<tr data-code="${esc(r.code)}" class="${state.hl === r.code ? "hl" : ""}">${cols.map(c => `<td class="${c.n ? "n" : c.g ? "g" : c.cls || ""}">${c.f(r)}</td>`).join("")}</tr>${state.open.has(r.code) ? detail(r) : ""}`).join("")
     || `<tr><td colspan="99">没有符合条件的公司</td></tr>`;
   $("scBody").querySelectorAll("button[data-open]").forEach(b => b.onclick = () => { const k = b.dataset.open; state.open.has(k) ? state.open.delete(k) : state.open.add(k); renderScreen(); });
   $("scCount").textContent = `显示 ${rows.length} / ${all.length} 家`;
@@ -329,13 +569,14 @@ function renderScreen() {
     `质押比例（公司整体，统计日 ${D.pledge_date || "—"}）> ${R.pledge_warn}% 提示；近 ${R.holder_months} 个月董监高与股东净减持 ≥ ${R.net_sell_warn}% 总股本提示；` +
     `${(D.unlock_window || []).join(" ~ ")} 解禁可流通股数 > 当前流通股 ${R.unlock_float_warn}% 提示；${(D.reg_window || []).join(" ~ ")} 巨潮公告标题命中监管类关键词（${D.reg_kinds.join("、")}）≥ 1 条提示（仅标题匹配）；` +
     `PE 分位 ≥ ${R.pe_pct_high}% 提示（近 ${R.valuation_years} 年日频，仅短名单）；业绩预告为预减 / 略减 / 首亏 / 续亏 / 增亏时提示。⚠ 数只统计前 8 项（估值分位和业绩预告不计入）。`);
+  renderSideInd(); nBadges();
 }
 
 function renderLabels() {
   const cnt = {偏价值: 0, 中性: 0, 偏博弈: 0}; D.screen.forEach(r => cnt[r.label]++);
-  $("lbKpis").innerHTML = Object.entries(cnt).map(([k, v]) => `<div class="card"><div class="label"><span class="tag lb-${esc(k)}">${esc(k)}</span></div><div class="kpi">${v}<small> 家</small></div>
+  $("lbKpis").innerHTML = Object.entries(cnt).map(([k, v]) => `<div class="card k-${esc(k)}"><div class="label"><span class="tag lb-${esc(k)}">${esc(k)}</span></div><div class="kpi">${esc(v)}<small> 家</small></div>
     <div class="small"><button type="button" class="linkbtn" data-lb="${esc(k)}">在 ② 中只看这一类</button></div></div>`).join("");
-  $("lbKpis").querySelectorAll("button[data-lb]").forEach(b => b.onclick = () => { state.lb = b.dataset.lb; $("fLb").value = state.lb; render(); location.hash = "#s2"; });
+  $("lbKpis").querySelectorAll("button[data-lb]").forEach(b => b.onclick = () => { state.lb = b.dataset.lb; $("fLb").value = state.lb; render(); goSec("s2"); });
   $("lbRule").innerHTML = `<b>规则（按顺序判断）</b><ul>
     <li><span class="tag lb-偏博弈">偏博弈</span>：满足任一条——年初至今归母净利润 ≤ 0；PE 分位 ≥ ${esc(R.pe_pct_high)}%；未来 ${esc(R.unlock_days)} 天解禁 > 流通股 ${esc(R.unlock_float_warn)}%；近 ${esc(R.holder_months)} 个月净减持 ≥ 总股本 ${esc(R.net_sell_warn)}%；近 ${esc(R.reg_months)} 个月有监管类公告标题命中。</li>
     <li><span class="tag lb-偏价值">偏价值</span>：不满足上面任何一条，且同时满足——盈利；经营现金流 / 归母净利润 ≥ ${esc(R.value_ocf_np_min)}；PE 分位 ≤ ${esc(R.value_pe_pct_max)}%（需要有估值历史）；无监管类标题命中。</li>
@@ -349,16 +590,17 @@ function renderPriority() {
   $("pN").textContent = D.priority.length;
   $("pLead").innerHTML = esc(`候选：② 中归母净利润 > 0、前 8 项风险门槛 ⚠ ≤ ${R.priority_max_warn}、且不属于周期行业的公司（${c.eligible} 家；周期行业 ${c.eligible_cyclical ?? 0} 家单独列在下方）。先按增长、加速、现金流/净利三项百分位均值取前 ${R.shortlist_max} 名作为估值短名单（实际 ${c.shortlist} 家，取到估值历史 ${c.valuation_ok} 家），再在短名单内按四项等权百分位排序：营收同比（高优先）、加速幅度（高优先）、现金流/净利（高优先）、估值分位（低优先；优先用 PE 分位，PE ≤ 0 时用 PB 分位）。缺失的维度不参与平均。`);
   const cols = [
-    {k: "rank", t: "#", n: 1, f: p => p.rank},
+    {k: "rank", t: "#", n: 1, f: p => esc(p.rank)},
     {k: "code", t: "代码", v: p => p.code, f: p => codeCell(p.code)},
     {k: "name", t: "名称", cls: "nw", v: p => BYCODE[p.code].name, f: p => esc(BYCODE[p.code].name)},
+    {k: "note", t: "备注", nosort: 1, cls: "nw", f: p => noteCtl(p.code)},
     {k: "industry", t: "行业", v: p => BYCODE[p.code].industry, f: p => `<span class="small">${esc(BYCODE[p.code].industry)}</span>`},
     {k: "score", t: "综合分", n: 1, f: p => num(p.score)},
     {k: "fg", t: "增长分位", n: 1, v: p => p.f.growth, f: p => `${num(p.f.growth, 0)} <span class="small">(${num(BYCODE[p.code].rev_yoy, 0)}%)</span>`},
     {k: "fa", t: "加速分位", n: 1, v: p => p.f.accel, f: p => `${num(p.f.accel, 0)} <span class="small">(${num(BYCODE[p.code].accel, 0)}pp)</span>`},
     {k: "fo", t: "现金流分位", n: 1, v: p => p.f.ocf, f: p => `${num(p.f.ocf, 0)} <span class="small">(${num(BYCODE[p.code].ocf_np, 2)})</span>`},
     {k: "fv", t: "估值分位得分", n: 1, v: p => p.f.val, f: p => { const r = BYCODE[p.code]; return `${num(p.f.val, 0)} <span class="small">(${esc(p.val_basis || "—")} ${num(p.val_basis === "PB" ? r.pb_pct : r.pe_pct, 0)}%)</span>`; }},
-    {k: "warn_n", t: "⚠ 数", n: 1, v: p => BYCODE[p.code].warn_n, f: p => BYCODE[p.code].warn_n},
+    {k: "warn_n", t: "⚠ 数", n: 1, v: p => BYCODE[p.code].warn_n, f: p => esc(BYCODE[p.code].warn_n)},
     {k: "peg", t: "PEG（参考）", n: 1, v: p => CARDS[p.code]?.peg?.value ?? null, f: p => pegCell(CARDS[p.code]?.peg)},
     {k: "label", t: "标签", v: p => BYCODE[p.code].label, f: p => `<span class="tag lb-${esc(BYCODE[p.code].label)}">${esc(BYCODE[p.code].label)}</span>`},
     {k: "fc", t: "业绩预告", nosort: 1, f: p => gateCell(BYCODE[p.code].gates.fc)},
@@ -371,9 +613,10 @@ function renderPriority() {
   $("cyLead").textContent = `同样满足"盈利、风险门槛 ⚠ ≤ ${R.priority_max_warn}"的周期行业公司共 ${c.eligible_cyclical ?? 0} 家，按营收同比列前 ${cy.length} 家。` +
     `这些公司的增长常来自产品价格上涨，毛利率同比大幅提升是常见信号；PE 低位在周期高点并不代表便宜，所以不和其他公司一起排序。`;
   const ask = r => (r.gm_chg != null && r.gm_chg >= 5 ? `毛利率 +${num(r.gm_chg, 1)}pp：多少来自产品价格` : "量与价各贡献多少") + "；产品价格现在处在近几年什么位置";
-  $("cyBody").innerHTML = cy.map(r => `<tr><td class="nw">${codeCell(r.code)}</td><td class="nw">${esc(r.name)}</td><td class="nw"><span class="small">${esc(r.industry)}</span></td>
+  $("cyBody").innerHTML = cy.map(r => `<tr><td class="nw">${codeCell(r.code)}</td><td class="nw">${esc(r.name)}</td><td class="nw"><span class="small">${esc(r.industry)}</span> <span class="tag t-cyc">周期</span></td>
     <td class="n">${pc(r.rev_yoy)}</td><td class="n">${pc(r.np_yoy)}</td><td class="n">${pp(r.gm_chg, 1)}</td><td class="n">${num(r.ocf_np, 2)}</td><td class="n">${num(r.pe_ttm)}</td>
     <td>${gateCell(r.gates.fc)}</td><td class="small">${esc(ask(r))}</td></tr>`).join("") || `<tr><td colspan="10" class="small">没有符合条件的周期行业公司</td></tr>`;
+  nBadges();
 }
 
 function renderMethod() {
@@ -406,8 +649,8 @@ function renderMethod() {
 }
 
 // ---------- ⑤ evaluation cards
-// Layout mirrors the US dashboard evalCard: rule-generated conclusion, four metric tiles, opportunity vs risk,
-// evidence (factor radar, PE history, price, 主营构成, holders, events, gate checklist), questions, qualitative six dimensions.
+// Layout mirrors the US dashboard evalCard: summary row (code badge, pills, key numbers, note controls), then the rule-generated conclusion,
+// four metric tiles, opportunity vs risk, and collapsible groups: evidence, events, gates & questions, qualitative six dimensions.
 const CARDS = Object.fromEntries((D.cards || []).map(c => [c.code, c]));
 const CM = D.cards_meta || {};
 const CR = CM.rules || {};
@@ -421,15 +664,16 @@ const extA = (url, text) => safeUrl(url) ? `<a href="${esc(safeUrl(url))}" targe
 const ctile = t => `<div class="tile ${esc(t.s)}"><div class="label">${esc(t.label)}</div><div class="tv">${esc(t.main)}</div><div class="small">${esc(t.sub)}</div>${t.sub2 ? `<div class="small" style="margin-top:2px"><span class="${esc(t.sub2_s || "na")}">${ICON[t.sub2_s] || "·"}</span> ${esc(t.sub2)}</div>` : ""}</div>`;
 // PEG: reference item only (not in ranking, labels or the ⚠ count)
 const PEG_TAG = {forward: "前瞻", historical: "历史"};
+const pegKind = g => g && g.value != null && PEG_TAG[g.method] ? PEG_TAG[g.method] : "—";
 const pegTip = g => [g.line || (g.value == null ? "PEG 不显示" : ""), g.reason, ...(g.flags || []).map(f => "不可靠：" + f), g.fwd_note && g.method === "historical" ? `未用前瞻口径：${g.fwd_note}` : ""].filter(Boolean).map(esc).join("<br>");
-const pegCell = g => !g ? "—" : `<span class="${esc(g.status)}" data-tip="${esc(pegTip(g))}">${g.value == null ? "—" : num(g.value, 2)}${(g.flags || []).length && g.value != null ? " ⚠" : ""}</span> <span class="tag">${esc(PEG_TAG[g.method] && g.value != null ? PEG_TAG[g.method] : "—")}</span>`;
+const pegCell = g => !g ? "—" : `<span class="${esc(g.status)}" data-tip="${esc(pegTip(g))}">${g.value == null ? "—" : num(g.value, 2)}${(g.flags || []).length && g.value != null ? " ⚠" : ""}</span> <span class="tag">${esc(pegKind(g))}</span>`;
 const pegChk = g => `<div class="chk"><span class="${esc(g.status)}">${ICON[g.status] || "·"}</span><span>PEG（参考）</span><span class="small">${esc(g.value == null ? "不显示：" + g.reason : g.line)}${(g.flags || []).length ? `<br><span class="warn">不可靠：${esc(g.flags.join("；"))}</span>` : ""}${g.fwd_note && g.method === "historical" ? `<br>未用前瞻口径：${esc(g.fwd_note)}` : ""}</span></div>`;
 const pctTxt = v => v == null ? "—" : `${num(v)}%`;
 
 function radarCN(f, code) {
   const keys = ["growth", "accel", "ocf", "val"], W = 300, H = 200, cx = 150, cy = 100, Rr = 66, n = keys.length;
   const pt = (i, v) => { const a = -Math.PI / 2 + i * 2 * Math.PI / n; return [cx + Math.cos(a) * Rr * v, cy + Math.sin(a) * Rr * v]; };
-  let s = [0.25, 0.5, 0.75, 1].map(v => `<polygon points="${keys.map((_, i) => pt(i, v).join(",")).join(" ")}" fill="none" stroke="${v === 0.5 ? "#4a515b" : "#2a3038"}" ${v === 0.5 ? 'stroke-dasharray="3 3"' : ""}/>`).join("");
+  let s = [0.25, 0.5, 0.75, 1].map(v => `<polygon points="${keys.map((_, i) => pt(i, v).join(",")).join(" ")}" fill="none" stroke="${v === 0.5 ? "#4a5566" : "#283240"}" ${v === 0.5 ? 'stroke-dasharray="3 3"' : ""}/>`).join("");
   s += keys.map((k, i) => { const [x, y] = pt(i, 1.25); return `<text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle">${esc(FACTOR_CN[k])} ${f[k] == null ? "—" : Math.round(f[k])}</text>`; }).join("");
   s += `<polygon points="${keys.map((k, i) => pt(i, (f[k] ?? 0) / 100).map(v => v.toFixed(1)).join(",")).join(" ")}" fill="rgba(55,198,224,.25)" stroke="#37c6e0" stroke-width="2"/>`;
   const al = keys.map(k => `${FACTOR_CN[k]} ${f[k] == null ? "无数据" : Math.round(f[k])}`).join("，");
@@ -447,13 +691,13 @@ function peChart(c) {
   pts.forEach((p, i) => { if (p[1] > 0) { path += `${pen ? "L" : "M"}${xv(i).toFixed(1)},${yv(p[1]).toFixed(1)}`; pen = true; } else pen = false; });
   const b = c.pe_band || {}, last = pts[pts.length - 1], cur = last[1], pe = c.valuation.pe || {};
   const band = b.p20 != null ? `<rect x="${L}" y="${yv(b.p80).toFixed(1)}" width="${W - L - Rm}" height="${Math.max(0, yv(b.p20) - yv(b.p80)).toFixed(1)}" fill="rgba(55,198,224,.10)"/>
-    <line x1="${L}" x2="${W - Rm}" y1="${yv(b.p50).toFixed(1)}" y2="${yv(b.p50).toFixed(1)}" stroke="#4a515b" stroke-dasharray="3 3"/>` : "";
-  const dot = cur > 0 ? `<circle cx="${xv(pts.length - 1).toFixed(1)}" cy="${yv(cur).toFixed(1)}" r="4" fill="#f0a030"/>` : "";
+    <line x1="${L}" x2="${W - Rm}" y1="${yv(b.p50).toFixed(1)}" y2="${yv(b.p50).toFixed(1)}" stroke="#4a5566" stroke-dasharray="3 3"/>` : "";
+  const dot = cur > 0 ? `<circle cx="${xv(pts.length - 1).toFixed(1)}" cy="${yv(cur).toFixed(1)}" r="4" fill="#f0913a"/>` : "";
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:340px" role="img" aria-label="${esc(c.code)} PE(TTM) 近 ${esc(R.valuation_years)} 年走势，当前 ${num(cur)}，历史分位 ${num(pe.percentile, 0)}%">${band}
     <path d="${path}" fill="none" stroke="#37c6e0" stroke-width="1.5"/>${dot}
     <text x="${L - 4}" y="${(yv(hi) + 4).toFixed(1)}" text-anchor="end">${num(hi, 0)}</text><text x="${L - 4}" y="${(yv(lo) + 4).toFixed(1)}" text-anchor="end">${num(lo, 0)}</text>
     <text x="${L}" y="${H - 4}">${esc(pts[0][0])}</text><text x="${W - Rm}" y="${H - 4}" text-anchor="end">${esc(last[0])}</text></svg>
-    <div class="small">PE(TTM) 当前 ${num(cur)}（<span style="color:#f0a030">橙点</span>），近 ${esc(R.valuation_years)} 年分位 ${num(pe.percentile, 0)}%；阴影 = 20–80 分位（${num(b.p20, 0)}–${num(b.p80, 0)}），虚线 = 中位 ${num(b.p50, 0)}。纵轴截去两端 2% 极值，PE ≤ 0 区间断开。PB 分位 ${num((c.valuation.pb || {}).percentile, 0)}%</div>`;
+    <div class="small">PE(TTM) 当前 ${num(cur)}（<span style="color:#f0913a">橙点</span>），近 ${esc(R.valuation_years)} 年分位 ${num(pe.percentile, 0)}%；阴影 = 20–80 分位（${num(b.p20, 0)}–${num(b.p80, 0)}），虚线 = 中位 ${num(b.p50, 0)}。纵轴截去两端 2% 极值，PE ≤ 0 区间断开。PB 分位 ${num((c.valuation.pb || {}).percentile, 0)}%</div>`;
 }
 function priceSpark(c) {
   const p = c.price || [];
@@ -486,14 +730,15 @@ function fhTable(rows) {
     <tbody>${cur.map(r => `<tr><td>${num(r.rank, 0)}</td><td>${esc(r.holder)}<div class="small">${esc(r.holder_type || "")}</div></td><td class="n">${wan(r.shares)}</td><td class="n">${pctTxt(r.float_ratio_pct)}</td><td class="n">${chg(r)}</td></tr>`).join("")}</tbody></table>
     ${ex.length ? `<div class="small" style="margin-top:4px">退出前十：${ex.map(r => `${esc(r.holder)}（上期 ${wan(r.shares)} 万股）`).join("；")}</div>` : ""}`;
 }
+const FC_BAD = ["decrease", "slight_decrease", "first_loss", "continued_loss", "larger_loss"];
 const fcRange = f => [f.profit_low != null ? `${yi(f.profit_low)} ~ ${yi(f.profit_high ?? f.profit_low)} 亿` : "",
   f.yoy_low_pct != null || f.yoy_high_pct != null ? `同比 ${num(f.yoy_low_pct, 0)}% ~ ${num(f.yoy_high_pct, 0)}%` : ""].filter(Boolean).join("；") || "—";
 const fcRows = c => c.forecasts.length ? `<table><thead><tr><th scope="col">公告日</th><th scope="col">报告期</th><th scope="col">类型</th><th scope="col">预告区间</th></tr></thead>
-  <tbody>${c.forecasts.map(f => `<tr><td class="nw">${esc(f.notice_date)}</td><td class="nw">${esc(f.report_period)}</td><td class="${["decrease", "slight_decrease", "first_loss", "continued_loss", "larger_loss"].includes(f.forecast_type) ? "warn" : ""}">${esc(f.forecast_type_cn)}</td><td>${fcRange(f)}</td></tr>`).join("")}</tbody></table>`
+  <tbody>${c.forecasts.map(f => `<tr><td class="nw">${esc(f.notice_date)}</td><td class="nw">${esc(f.report_period)}</td><td class="${FC_BAD.includes(f.forecast_type) ? "warn" : ""}">${esc(f.forecast_type_cn)}</td><td>${fcRange(f)}</td></tr>`).join("")}</tbody></table>`
   : `<div class="small muted">近 ${esc(R.holder_months)} 个月没有归母净利润业绩预告</div>`;
 const holdRows = c => c.holders.length ? `<table><thead><tr><th scope="col">日期</th><th scope="col">来源</th><th scope="col">主体</th><th scope="col" class="n">变动（万股）</th><th scope="col" class="n">占总股本</th></tr></thead>
   <tbody>${c.holders.map(h => `<tr><td class="nw">${esc(h.date)}</td><td class="nw">${esc(h.src)}</td><td>${esc(h.holder)}</td><td class="n"><span class="${h.shares < 0 ? "neg" : "pos"}">${h.shares > 0 ? "+" : ""}${wan(h.shares)}</span></td><td class="n">${h.ratio_pct == null ? "—" : num(h.ratio_pct, 3) + "%"}</td></tr>`).join("")}</tbody></table>
-  <div class="small">共 ${c.holders_n} 条${c.holders_n > c.holders.length ? `，显示最近 ${c.holders.length} 条` : ""}；合计${c.holders_net_pct == null ? " —" : `净${c.holders_net_pct < 0 ? "减" : "增"}持 ${num(Math.abs(c.holders_net_pct), 2)}% 总股本`}（董监高与股东两张表直接相加）</div>`
+  <div class="small">共 ${esc(c.holders_n)} 条${c.holders_n > c.holders.length ? `，显示最近 ${c.holders.length} 条` : ""}；合计${c.holders_net_pct == null ? " —" : `净${c.holders_net_pct < 0 ? "减" : "增"}持 ${num(Math.abs(c.holders_net_pct), 2)}% 总股本`}（董监高与股东两张表直接相加）</div>`
   : `<div class="small muted">近 ${esc(R.holder_months)} 个月没有增减持记录</div>`;
 const unlockRows = c => c.unlocks.length ? `<table><thead><tr><th scope="col">日期</th><th scope="col">类型</th><th scope="col" class="n">可流通（万股）</th><th scope="col" class="n">占流通</th><th scope="col" class="n">市值（亿）</th></tr></thead>
   <tbody>${c.unlocks.map(u => `<tr><td class="nw">${esc(u.date)}</td><td>${esc(u.type_cn)}</td><td class="n">${wan(u.tradable_shares ?? u.shares)}</td><td class="n">${pctTxt(u.ratio_float_pct)}</td><td class="n">${yi(u.unlock_value)}</td></tr>`).join("")}</tbody></table>`
@@ -512,10 +757,11 @@ function autoCN(c, k) {
       return xs.length ? `<div class="small">${xs.map(x => `${x[0]}：${esc(x[1])}`).join("；")}${p.employees ? `；员工 ${num(p.employees, 0)} 人` : ""}</div><div class="small">F10 公司概况；任期、持股与执行记录待研究</div>` : ""; }
     case "industry": return p.industry_em || p.industry_csrc ? `<div class="small">东财行业：${esc(p.industry_em || "—")}<br>证监会行业：${esc(p.industry_csrc || "—")}</div>` : "";
     case "product": return c.mainop_product.length ? `<div class="small">主营构成：${c.mainop_product.map(m => `${esc(m.item)} ${num(m.share_pct, 0)}%`).join("、")}</div>` : "";
-    case "risks": return c.reg.length || c.warn_n ? `<div class="small">规则提示：前 8 项门槛 ⚠ ${c.warn_n} 项；监管类公告标题 ${c.reg.length} 条（见上方证据）</div>` : "";
+    case "risks": return c.reg.length || c.warn_n ? `<div class="small">规则提示：前 8 项门槛 ⚠ ${esc(c.warn_n)} 项；监管类公告标题 ${c.reg.length} 条（见上方“事件”）</div>` : "";
   }
   return "";
 }
+// qualitative six dimensions as a collapsible group: open when a research file exists, collapsed when it only holds raw F10 extracts
 function qualCN(c) {
   const rs = c.research;
   const head = rs ? `<span class="tag ${rs.status === "reviewed" ? "rt-ok" : "rt-warn"}">${rs.status === "reviewed" ? "已人工审核" : "调研草稿 · 待人工审核"}</span> <span class="small">${esc(rs.author || "")} · ${esc(rs.as_of || "")}</span>${rs.summary ? `<div class="small" style="margin-top:4px">${esc(rs.summary)}</div>` : ""}`
@@ -526,12 +772,14 @@ function qualCN(c) {
       : au ? `<div class="small muted">公开资料摘录：</div>${au}` : `<div class="small muted">没有资料</div>`;
     return `<div class="dim"><div class="dh"><b>${esc(name)}</b> <span class="tag ${r[1]}">${d ? r[0] : "待研究"}</span></div>${body}</div>`;
   }).join("");
-  return `<div class="card" style="margin-top:10px"><h4>定性六维：业务、客户、管理层、行业、产品、风险</h4><div style="margin-bottom:8px">${head}</div><div class="grid g3 dims">${cells}</div></div>`;
+  return `<details class="grp" ${rs ? "open" : ""}><summary>定性六维 <span class="small">业务 · 客户 · 管理层 · 行业 · 产品 · 风险${rs ? "" : " · 没有调研文件"}</span></summary>
+    <div class="grp-body"><div style="margin-bottom:8px">${head}</div><div class="grid g3 dims">${cells}</div></div></details>`;
 }
 function evalCardCN(c) {
-  const rs = c.research || {}, mk = ["STAR", "SH_MAIN"].includes(c.board) ? "SH" : c.board === "BSE" ? "BJ" : "SZ";
-  const rk = c.rank ? ` · 研究优先级第 ${c.rank} 名，综合分 ${num(c.score)}` : ` · 「偏价值」标签，不在优先级前 ${R.priority_top}`;
+  const rs = c.research || {}, f = c.fin || {}, mk = ["STAR", "SH_MAIN"].includes(c.board) ? "SH" : c.board === "BSE" ? "BJ" : "SZ";
+  const rk = c.rank ? `研究优先级第 ${c.rank} 名 · 综合分 ${num(c.score)}` : `「偏价值」标签 · 不在优先级前 ${R.priority_top}`;
   const gates = GATES.map(([k, t]) => { const g = c.gates[k]; return `<div class="chk"><span class="${esc(g.s)}">${ICON[g.s] || "·"}</span><span>${esc(t)}</span><span class="small">${esc(g.v)}</span></div>`; }).join("");
+  const nq = (rs.open_questions || []).length + (c.questions || []).length;
   const qs = (rs.open_questions || []).map(x => `<li>${esc(x)} <span class="tier">调研</span></li>`).join("") + lis(c.questions);
   const src = [`财报 ${D.periods.latest}（RPT_LICO_FN_CPD / RPT_DMSK_FN_CASHFLOW / RPT_F10_FINANCE_GBALANCE）`, `行情与 PE/PB ${D.quote_date || "—"}（RPT_VALUEANALYSIS_DET）`,
     c.valuation.first ? `估值与价格历史 ${c.valuation.first} ~ ${c.valuation.last}` : null,
@@ -540,53 +788,324 @@ function evalCardCN(c) {
     c.profile ? "公司概况（RPT_F10_BASIC_ORGINFO）" : null, c.consensus ? "一致预期（RPT_WEB_RESPREDICT）" : null,
     CM.fetched_at ? `F10 数据抓取 ${CM.fetched_at}` : "未抓取 F10 数据",
     `增减持近 ${R.holder_months} 个月 · 质押 ${D.pledge_date || "—"} · 解禁 ${(D.unlock_window || []).join("~")} · 监管 ${(D.reg_window || []).join("~")}（巨潮标题检索）`].filter(Boolean);
+  // summary pills: price, market cap, PE(TTM), PE percentile, PEG reference (前瞻 / 历史 / —), ⚠ count
+  const g = c.peg, vs = c.gates.val?.s;
+  const pegNp = `<span class="np ${g && g.value != null && (g.flags || []).length ? "unrel" : g && g.status === "ok" ? "good" : g && g.status === "warn" ? "unrel" : ""}"${g ? ` data-tip="${esc(pegTip(g))}"` : ""}>PEG 参考 <b>${g && g.value != null ? num(g.value, 2) : "—"}</b><span class="tag">${esc(pegKind(g))}</span></span>`;
+  const evWarn = ["pledge", "selling", "unlock", "reg"].some(k => c.gates[k]?.s === "warn") || c.forecasts.some(x => FC_BAD.includes(x.forecast_type));
   return `<details class="ec" id="card-${esc(c.code)}">
-    <summary><b>${esc(c.code)}</b>${esc(c.name)} <span class="tag">${esc(c.industry)}</span> <span class="tag">${esc(BOARD_CN[c.board] || c.board)}</span> <span class="tag lb-${esc(c.label)}">${esc(c.label)}</span>
-      <span class="small">${esc(rk)}</span></summary>
+    <summary><span class="ec-tk">${esc(c.code)}</span><span class="ec-nm">${esc(c.name)}</span><span class="tag">${esc(c.industry)}</span><span class="tag">${esc(BOARD_CN[c.board] || c.board)}</span><span class="tag lb-${esc(c.label)}">${esc(c.label)}</span>
+      <span class="ec-meta">${esc(rk)}</span>
+      <span class="ec-nums"><span class="np">股价 <b>${f.price != null ? num(f.price, 2) + " 元" : "—"}</b></span><span class="np">总市值 <b>${yi(f.mcap)} 亿</b></span><span class="np">PE(TTM) <b>${num(f.pe_ttm)}</b></span>
+        <span class="np ${vs === "warn" ? "unrel" : vs === "ok" ? "good" : ""}">PE 分位 <b>${f.pe_pct == null ? "—" : num(f.pe_pct, 0) + "%"}</b></span>${pegNp}
+        <span class="np ${c.warn_n ? "unrel" : "good"}" data-tip="前 8 项风险门槛中触发提示的项数">⚠ <b>${esc(c.warn_n)}</b></span>
+        ${noteCtl(c.code)}</span></summary>
+    <div class="ec-body">
     <div class="ec-head"><div class="one">${esc(c.oneliner) || '<span class="muted">没有取到主营业务描述</span>'}</div>
       <div class="concl"><b>结论（规则生成）：</b>${esc(c.conclusion)}</div></div>
     <div class="grid g4">${c.tiles.map(ctile).join("")}</div>
     <div class="grid g2" style="margin-top:10px">
-      <div class="card"><h4 class="ok">机会</h4>${(rs.bull || []).length ? `<div class="small"><b>调研层面</b></div><ul>${lis(rs.bull)}</ul><div class="small" style="margin-top:4px"><b>数据层面</b></div>` : ""}<ul>${lis(c.bull) || "<li>数据上没有突出的机会信号</li>"}</ul></div>
-      <div class="card"><h4 class="warn">风险</h4>${(rs.bear || []).length ? `<div class="small"><b>调研层面</b></div><ul>${lis(rs.bear)}</ul><div class="small" style="margin-top:4px"><b>数据层面</b></div>` : ""}<ul>${lis(c.bear) || "<li>规则没有触发风险提示</li>"}</ul></div>
+      <div class="card opp"><h4>机会</h4>${(rs.bull || []).length ? `<div class="small"><b>调研层面</b></div><ul>${lis(rs.bull)}</ul><div class="small" style="margin-top:4px"><b>数据层面</b></div>` : ""}<ul>${lis(c.bull) || "<li>数据上没有突出的机会信号</li>"}</ul></div>
+      <div class="card risk"><h4>风险</h4>${(rs.bear || []).length ? `<div class="small"><b>调研层面</b></div><ul>${lis(rs.bear)}</ul><div class="small" style="margin-top:4px"><b>数据层面</b></div>` : ""}<ul>${lis(c.bear) || "<li>规则没有触发风险提示</li>"}</ul></div>
     </div>
-    <div class="grid g3" style="margin-top:10px">
+    <details class="grp" open><summary>证据 <span class="small">${c.factors ? "因子雷达 · " : ""}PE 历史 · 价格 · 一致预期 · 主营构成 · 前十大流通股东</span></summary>
+    <div class="grid g2 grp-body">
       <div class="card"><h4>${c.factors ? "因子画像" : "估值位置"}</h4>${c.factors ? radarCN(c.factors, c.code) : ""}<h4 style="margin-top:8px">PE 历史</h4>${peChart(c)}
         <h4 style="margin-top:8px">近一年价格</h4>${priceSpark(c)}<h4 style="margin-top:8px">机构一致预期</h4>${consensusCN(c)}</div>
       <div class="card"><h4>主营构成</h4>${moTable(c.mainop_product, "按产品") || '<div class="small muted">没有取到主营构成</div>'}${moTable(c.mainop_region, "按地区")}
         <h4 style="margin-top:10px">前十大流通股东</h4>${fhTable(c.float_holders)}</div>
-      <div class="card"><h4>门槛清单（10 项）</h4>${gates}${c.peg ? `<div class="label" style="margin-top:6px">参考项（不计入 ⚠ 数、标签和排序）</div>${pegChk(c.peg)}` : ""}<div class="small" style="margin-top:4px">标签原因：${esc(c.reasons.join("；"))}</div>
-        <h4 style="margin-top:10px">待核实问题</h4><ol class="small">${qs}</ol></div>
-    </div>
-    <div class="grid g3" style="margin-top:10px">
+    </div></details>
+    <details class="grp" ${evWarn ? "open" : ""}><summary>事件 <span class="small">业绩预告 ${c.forecasts.length} · 增减持 ${esc(c.holders_n)} · 解禁 ${c.unlocks.length} · 监管标题 ${c.reg.length}${evWarn ? ' · <span class="warn">有提示</span>' : ""}</span></summary>
+    <div class="grid g3 grp-body">
       <div class="card"><h4>业绩预告（归母净利润）</h4>${fcRows(c)}</div>
       <div class="card"><h4>增减持明细（近 ${esc(R.holder_months)} 个月）</h4>${holdRows(c)}</div>
       <div class="card"><h4>解禁计划（${esc((D.unlock_window || []).join(" ~ "))}）</h4>${unlockRows(c)}
         <h4 style="margin-top:10px">监管类公告 <span class="tier">标题匹配，需阅读原文</span></h4>${regRows(c)}</div>
-    </div>
+    </div></details>
+    <details class="grp" open><summary>门槛与待核实 <span class="small">10 项门槛 · ⚠ ${esc(c.warn_n)} 项 · PEG 参考 · 待核实问题 ${nq} 条</span></summary>
+    <div class="grid g2 grp-body">
+      <div class="card"><h4>门槛清单（10 项）</h4>${gates}${g ? `<div class="label" style="margin-top:6px">参考项（不计入 ⚠ 数、标签和排序）</div>${pegChk(g)}` : ""}<div class="small" style="margin-top:4px">标签原因：${esc(c.reasons.join("；"))}</div></div>
+      <div class="card"><h4>待核实问题</h4><ol class="small">${qs || "<li>没有</li>"}</ol></div>
+    </div></details>
     ${qualCN(c)}
-    <div class="small" style="margin-top:8px">数据来源与时点：${src.map(esc).join("；")}。
+    <div class="small" style="margin-top:10px">数据来源与时点：${src.map(esc).join("；")}。
       <a href="https://emweb.securities.eastmoney.com/PC_HSF10/CompanySurvey/Index?type=web&amp;code=${mk}${esc(c.code)}" target="_blank" rel="noopener noreferrer">东方财富 F10</a>
       ${c.errors && c.errors.length ? ` · <span class="warn">抓取失败字段：${esc(c.errors.join("、"))}</span>` : ""}</div>
+    </div>
   </details>`;
 }
-function openCard(code, scroll) {
-  const el = document.getElementById("card-" + code); if (!el) return;
-  el.open = true; if (scroll) el.scrollIntoView({block: "start"});
+function openCard(code, scroll, smooth) {
+  const el = document.getElementById("card-" + code); if (!el) return false;
+  el.open = true; if (scroll) el.scrollIntoView({behavior: smooth ? "smooth" : "auto", block: "start"});
+  return el;
 }
 function renderCards() {
   const cs = D.cards || [];
   $("ecN").textContent = cs.length;
-  $("ecLead").innerHTML = esc(`范围：④ 研究优先级前 ${D.priority.length} 名 + ② 中所有「偏价值」公司，去重后 ${cs.length} 家。每张卡依次是规则生成的结论、四个指标块、机会与风险、证据（因子雷达、PE 历史、价格、主营构成、前十大流通股东、业绩预告、增减持、解禁、监管标题、10 项门槛）、待核实问题和定性六维。判断句都是按固定规则从数字生成的，需要人工核实；不包含买卖含义。` +
-    `估值块和门槛清单下方另列 PEG（参考项，不参与排序、标签和 ⚠ 数）：优先用前瞻口径 = PE(TTM) ÷ 机构一致预期 EPS 从当年预期到两年后预期的年化增速（覆盖机构 ≥ ${CR.peg_min_org} 家、所用预期均 > 0）；` +
+  $("ecLead").innerHTML = esc(`范围：④ 研究优先级前 ${D.priority.length} 名 + ② 中所有「偏价值」公司，去重后 ${cs.length} 家。每张卡依次是规则生成的结论、四个指标块、机会与风险，然后是可折叠的分组：证据（因子雷达、PE 历史、价格、一致预期、主营构成、前十大流通股东）、事件（业绩预告、增减持、解禁、监管标题）、门槛与待核实（10 项门槛、PEG 参考项、待核实问题）、定性六维。判断句都是按固定规则从数字生成的，需要人工核实；不包含买卖含义。` +
+    `PEG 是参考项，不参与排序、标签和 ⚠ 数：优先用前瞻口径 = PE(TTM) ÷ 机构一致预期 EPS 从当年预期到两年后预期的年化增速（覆盖机构 ≥ ${CR.peg_min_org} 家、所用预期均 > 0）；` +
     `没有可用一致预期时用历史口径（扣非，年初至今同比）；周期行业、PE ≤ 0、增速 ≤ 0 时不显示。PEG ≤ ${CR.peg_ok_max} 记 ✓，> ${CR.peg_warn_min} 记 ⚠，其余或不可靠时记 ·。`);
   $("ecMeta").textContent = CM.file ? `F10 数据：${CM.file}（抓取 ${CM.fetched_at}），${CM.n_extra} / ${CM.n} 家有数据` : "没有 cards 文件，只显示快照数据（运行 python -m cn cards 补全）";
   $("ecList").innerHTML = cs.map(evalCardCN).join("") || `<div class="small">没有评估卡</div>`;
   $("ecOpen").onclick = () => document.querySelectorAll("details.ec").forEach(d => d.open = true);
   $("ecClose").onclick = () => document.querySelectorAll("details.ec").forEach(d => d.open = false);
+  nBadges();
 }
 document.addEventListener("click", ev => { const a = ev.target.closest && ev.target.closest("a[data-card]"); if (a) openCard(a.dataset.card, false); });
 window.addEventListener("hashchange", () => { if (location.hash.startsWith("#card-")) openCard(decodeURIComponent(location.hash.slice(6)), true); });
+
+// ---------- jump to a company: open its evaluation card, or locate it in the ② screen table (filter by code + expand the detail row)
+function jumpCN(code) {
+  if (CARDS[code]) {
+    const el = openCard(code, true, true); if (!el) return false;
+    el.querySelector("summary")?.focus({preventScroll: true});
+    return true;
+  }
+  if (!BYCODE[code]) return false;
+  Object.assign(state, {ind: "", lb: "", w: "", q: code, hl: code}); state.open.add(code);
+  $("fInd").value = ""; $("fLb").value = ""; $("fW").value = ""; $("fQ").value = code;
+  renderScreen();
+  $("scScroll").scrollTop = 0;
+  $("s2").scrollIntoView({behavior: "smooth", block: "start"});
+  $("scBody").querySelector(`tr[data-code="${CSS.escape(code)}"] button[data-open]`)?.focus({preventScroll: true});
+  return true;
+}
+
+// ---------- left sidebar: section links with scroll-spy, industries (by number of screened companies)
+const SECTS = [["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["s3", "③ 价值·博弈"], ["s4", "④ 研究优先级"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
+let curSec = "s1";
+function markSec() {
+  document.querySelectorAll("#side a[data-sec], .steps a").forEach(a => { const on = (a.dataset.sec || a.getAttribute("href").slice(1)) === curSec;
+    a.classList.toggle("on", on); if (on) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current"); });
+  $("topCtx").textContent = "· " + (SECTS.find(x => x[0] === curSec) || SECTS[0])[1];
+}
+const SIND = Object.entries(SCNT).filter(([k]) => k && k !== "undefined").sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "zh-CN"));
+function renderSideInd() {
+  const top = state.sideIndAll ? SIND : SIND.slice(0, 25);
+  $("sideInd").innerHTML = `<li><button type="button" class="sl ${state.ind ? "" : "cur"}" data-side-ind=""><span>全部行业</span><span class="cnt">${D.screen.length}</span></button></li>`
+    + top.map(([k, n]) => `<li><button type="button" class="sl ${state.ind === k ? "cur" : ""}" data-side-ind="${esc(k)}" aria-current="${state.ind === k ? "true" : "false"}" title="在 ② 中筛选 ${esc(k)}"><span>${esc(k)}</span><span class="cnt">${n}</span></button></li>`).join("")
+    + (SIND.length > 25 ? `<li><button type="button" class="sl" data-side-more><span class="small">${state.sideIndAll ? "只显示前 25 个" : `显示全部 ${SIND.length} 个行业`}</span></button></li>` : "");
+}
+$("side").addEventListener("click", ev => {
+  const more = ev.target.closest("[data-side-more]");
+  if (more) { state.sideIndAll = !state.sideIndAll; renderSideInd(); return; }
+  const b = ev.target.closest("[data-side-ind]");
+  if (b) { if (narrow()) sideClose(false); setInd(b.dataset.sideInd); return; }
+  if (ev.target.closest("a[href^='#']") && narrow()) sideClose(false);
+});
+function sideOpen() { document.body.classList.add("side-open"); $("sideBtn").setAttribute("aria-expanded", "true"); requestAnimationFrame(() => $("qs").focus()); }
+function sideClose(refocus = true) { if (!document.body.classList.contains("side-open")) return; document.body.classList.remove("side-open"); $("sideBtn").setAttribute("aria-expanded", "false"); if (refocus) $("sideBtn").focus(); }
+$("sideBtn").onclick = () => document.body.classList.contains("side-open") ? sideClose() : sideOpen();
+$("sideBack").onclick = () => sideClose();
+// current section: the last observed section whose box overlaps the band just below the sticky bar
+const secVis = new Map();
+const secIO = new IntersectionObserver(es => {
+  es.forEach(x => secVis.set(x.target.id, x.isIntersecting));
+  const hit = SECTS.filter(([id]) => secVis.get(id)).at(-1);
+  if (hit && hit[0] !== curSec) { curSec = hit[0]; markSec(); }
+}, {rootMargin: "-90px 0px -60% 0px"});
+SECTS.forEach(([id]) => $(id) && secIO.observe($(id)));
+
+// ---------- quick company search over D.screen ∪ D.cards (debounced; code matches rank first)
+const QIDX = (() => { const m = new Map();
+  D.screen.forEach(r => m.set(r.code, {code: r.code, name: r.name || "", ind: r.industry || "", mcap: r.mcap || 0}));
+  (D.cards || []).forEach(c => { if (!m.has(c.code)) m.set(c.code, {code: c.code, name: c.name || "", ind: c.industry || "", mcap: c.fin?.mcap || 0}); });
+  return [...m.values()].map(x => ({...x, card: !!CARDS[x.code], k: (x.code + " " + x.name).toLowerCase(), nl: x.name.toLowerCase()})); })();
+let qsHits = [];
+function qsRender() {
+  const q = $("qs").value.trim().toLowerCase();
+  if (!q) { qsHits = []; $("qsRes").innerHTML = ""; return; }
+  const rk = x => x.code === q ? 0 : x.code.startsWith(q) ? 1 : x.nl.startsWith(q) ? 2 : 3;
+  qsHits = QIDX.filter(x => x.k.includes(q)).sort((a, b) => rk(a) - rk(b) || (b.card - a.card) || (b.mcap - a.mcap)).slice(0, 12);
+  $("qsRes").innerHTML = qsHits.map((x, i) => `<button type="button" data-qi="${i}"><b>${esc(x.code)}</b>${esc(x.name.slice(0, 16))}<br><span>${esc(x.ind)} · ${x.card ? "评估卡" : "② 筛选表"}</span></button>`).join("")
+    || `<span class="small">没有匹配的公司（只收录进入 ② 筛选的公司）</span>`;
+}
+const qsGo = i => { const x = qsHits[i]; if (!x) return; if (narrow()) sideClose(false); jumpCN(x.code); };
+$("qs").addEventListener("input", debounce(qsRender, 150));
+$("qs").addEventListener("keydown", ev => {
+  if (ev.key === "Enter") { ev.preventDefault(); qsRender(); qsGo(0); }
+  else if (ev.key === "ArrowDown") { const b = $("qsRes").querySelector("button"); if (b) { ev.preventDefault(); b.focus(); } }
+  else if (ev.key === "Escape" && $("qs").value) { ev.stopPropagation(); $("qs").value = ""; qsRender(); }
+});
+$("qsRes").addEventListener("click", ev => { const b = ev.target.closest("[data-qi]"); if (b) qsGo(+b.dataset.qi); });
+$("qsRes").addEventListener("keydown", ev => {
+  const bs = [...$("qsRes").querySelectorAll("button")], i = bs.indexOf(document.activeElement);
+  if (ev.key === "ArrowDown" && i >= 0) { ev.preventDefault(); bs[Math.min(bs.length - 1, i + 1)].focus(); }
+  if (ev.key === "ArrowUp" && i >= 0) { ev.preventDefault(); (i ? bs[i - 1] : $("qs")).focus(); }
+});
+
+// ---------- back to top
+let ttRaf = 0;
+addEventListener("scroll", () => { if (ttRaf) return; ttRaf = requestAnimationFrame(() => { ttRaf = 0; $("toTop").classList.toggle("show", scrollY > 700); }); }, {passive: true});
+$("toTop").onclick = () => { scrollTo({top: 0, behavior: "smooth"}); $("pageTop").focus({preventScroll: true}); };
+
+// ---------- user notes: stored only in this browser (localStorage), never in the generated HTML.
+// Same key and file format as the US dashboard, so one export covers both pages:
+//   localStorage["industry-radar-notes-v1"] = {version: 1, saved_at, notes: [note]}
+//   note = {id, text, tag, status, due, created, updated, anchor: {type: company|section, sector, ticker, kind, section, label} | null, market?}
+// Notes created here carry market: "CN" and anchor.kind = "cn" (anchor.ticker = 6-digit code, anchor.section = "cn-<section id>"),
+// so they stay recognisable even if the US page re-saves them without the market field. Notes without either are treated as US notes.
+const NKEY = "industry-radar-notes-v1", NTAGS = ["想法", "问题", "待核实", "结论"], NSTAT = ["待跟进", "已完成"];
+const NTAGCLS = {"想法": "", "问题": "t-q", "待核实": "t-cyc", "结论": "t-acc"};
+let NOTES = [], nEdit = null, nAnchor = null, nOpener = null;
+const nStr = (v, n) => typeof v === "string" ? v.slice(0, n) : "";
+const nIso = v => typeof v === "string" && !isNaN(Date.parse(v)) ? v : null;
+const nId = () => "n" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const isCN = n => n.market === "CN" || n.anchor?.kind === "cn";
+function nClean(x) {
+  if (!x || typeof x !== "object" || typeof x.id !== "string" || !x.id.trim() || typeof x.text !== "string") return null;
+  const a = x.anchor && typeof x.anchor === "object" ? x.anchor : null, now = new Date().toISOString();
+  const n = {id: x.id.slice(0, 80), text: x.text.slice(0, 20000), tag: NTAGS.includes(x.tag) ? x.tag : NTAGS[0], status: NSTAT.includes(x.status) ? x.status : NSTAT[0],
+    due: /^\d{4}-\d{2}-\d{2}$/.test(x.due || "") ? x.due : "", created: nIso(x.created) || now, updated: nIso(x.updated) || nIso(x.created) || now,
+    anchor: a ? {type: a.type === "company" ? "company" : "section", sector: nStr(a.sector, 80), ticker: nStr(a.ticker, 40), kind: nStr(a.kind, 20), section: nStr(a.section, 20), label: nStr(a.label, 200)} : null};
+  const mk = x.market === "CN" || n.anchor?.kind === "cn" ? "CN" : nStr(x.market, 8);
+  if (mk) n.market = mk;
+  return n;
+}
+function nLoad() {
+  try { const raw = localStorage.getItem(NKEY), j = raw ? JSON.parse(raw) : null; NOTES = (Array.isArray(j) ? j : (j && j.notes) || []).map(nClean).filter(Boolean); }
+  catch (err) { NOTES = []; $("nHint").textContent = "这个浏览器不允许读取本地存储，备注无法保存。可以先写好后用“导出 JSON”保存。"; }
+}
+function nSave() {
+  try { localStorage.setItem(NKEY, JSON.stringify({version: 1, saved_at: new Date().toISOString(), notes: NOTES})); return true; }
+  catch (err) { $("nfMsg").textContent = "保存失败：浏览器不允许本地存储或空间已满，请导出备份"; return false; }
+}
+const fmtT = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleString("zh-CN", {hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"}); };
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+const coOf = code => BYCODE[code] || CARDS[code];
+const companyAnchor = code => { const r = coOf(code);
+  return {type: "company", sector: "", ticker: code, kind: "cn", section: CARDS[code] ? "cn-s6" : "cn-s2", label: `${code} · ${r?.name || ""} · ${r?.industry || ""}`}; };
+const ctxAnchor = () => { const s = SECTS.find(x => x[0] === curSec) || SECTS[0];
+  return {type: "section", sector: "", ticker: "", kind: "cn", section: "cn-" + s[0], label: `A 股 · ${s[1]}`}; };
+// "不关联" on this page still keeps a page-level anchor (kind "cn", empty section) so the note stays marked as an A-share note
+const pageAnchor = () => ({type: "section", sector: "", ticker: "", kind: "cn", section: "", label: "A 股看板（未关联具体位置）"});
+// "＋备注" button and count badge used on evaluation cards, priority rows and screen rows (counted per 6-digit code)
+const noteCtl = code => `<button type="button" class="nbadge" data-nbt="${esc(code)}" hidden></button><button type="button" class="addn" data-addnote data-nc="${esc(code)}" aria-label="为 ${esc(code)} ${esc(coOf(code)?.name || "")} 添加备注">＋备注</button>`;
+function nBadges() {
+  const c = {}; NOTES.forEach(n => { if (isCN(n) && n.anchor?.type === "company" && n.anchor.ticker) { const k = n.anchor.ticker; c[k] = c[k] || [0, 0]; c[k][0]++; if (n.status !== "已完成") c[k][1]++; } });
+  document.querySelectorAll("[data-nbt]").forEach(b => { const v = c[b.dataset.nbt];
+    b.hidden = !v; if (v) { b.textContent = `备注 ${v[0]}`; b.setAttribute("aria-label", `查看 ${b.dataset.nbt} 的 ${v[0]} 条备注（${v[1]} 条待跟进）`); } });
+  const cn = NOTES.filter(isCN), open = cn.filter(n => n.status !== "已完成").length;
+  $("notesN").textContent = cn.length;
+  $("notesBtn").title = `A 股备注 ${cn.length} 条，${open} 条待跟进（本浏览器共 ${NOTES.length} 条，含美股）`;
+  $("notesStat").textContent = `A 股 ${cn.length} 条 · 待跟进 ${open}${NOTES.length > cn.length ? ` · 美股 ${NOTES.length - cn.length}` : ""}`;
+}
+const anchorTxt = a => a && a.section !== "" || a?.type === "company" ? a.label : "（不关联）";
+function nFormSet(note, anchor) {
+  nEdit = note ? note.id : null; nAnchor = note ? note.anchor : anchor === undefined ? ctxAnchor() : anchor || pageAnchor();
+  $("nfTitle").textContent = note ? (isCN(note) ? "编辑备注" : "编辑备注（美股看板）") : "新建备注";
+  $("nfText").value = note ? note.text : ""; $("nfTag").value = note ? note.tag : NTAGS[0]; $("nfStatus").value = note ? note.status : NSTAT[0]; $("nfDue").value = note ? note.due : "";
+  $("nfCancel").hidden = !note; $("nfSave").textContent = note ? "保存修改" : "保存";
+  $("nfAnchor").textContent = nAnchor ? anchorTxt(nAnchor) : "（不关联）";
+}
+const isOpen = () => $("notes").classList.contains("open");
+function nOpen(anchor, opener, focusText = true) {
+  if (!isOpen()) { nOpener = opener || document.activeElement; $("notes").classList.add("open"); document.body.classList.add("notes-open"); $("notesBtn").setAttribute("aria-expanded", "true"); }
+  if (anchor !== false) nFormSet(null, anchor);
+  nRenderList();
+  if (focusText) requestAnimationFrame(() => $("nfText").focus());
+}
+function nClose(refocus = true) {
+  if (!isOpen()) return;
+  $("notes").classList.remove("open"); document.body.classList.remove("notes-open"); $("notesBtn").setAttribute("aria-expanded", "false");
+  if (refocus) (nOpener && document.contains(nOpener) && nOpener.offsetParent !== null ? nOpener : $("notesBtn")).focus();
+}
+function nRenderList() {
+  if (!isOpen()) return;
+  const q = $("nfQ").value.trim().toLowerCase(), st = $("nfFS").value, tg = $("nfFT").value, all = $("nfMk").value === "all", td = today();
+  const pool = all ? NOTES : NOTES.filter(isCN);
+  const list = pool.filter(n => (!st || n.status === st) && (!tg || n.tag === tg)
+      && (!q || (n.text + " " + (n.anchor?.label || "") + " " + (n.anchor?.ticker || "")).toLowerCase().includes(q)))
+    .sort((a, b) => b.updated.localeCompare(a.updated));
+  $("nfCount").textContent = `${list.length} / ${pool.length} 条${all ? "" : `（另有美股 ${NOTES.length - pool.length} 条）`}`;
+  $("nList").innerHTML = list.map(n => { const done = n.status === "已完成", late = !done && n.due && n.due < td, cn = isCN(n);
+    const showA = n.anchor && (n.anchor.type === "company" || n.anchor.section !== "" || !cn);
+    return `<article class="nitem ${done ? "done" : ""}" data-id="${esc(n.id)}">
+      <div class="nmeta">${all ? `<span class="tag ${cn ? "t-acc" : ""}">${cn ? "A 股" : "美股"}</span>` : ""}<span class="tag ${NTAGCLS[n.tag] || ""}">${esc(n.tag)}</span><span class="tag ${done ? "t-ok" : "t-warn"}">${esc(n.status)}</span>
+        ${n.due ? `<span class="small ${late ? "neg" : ""}">跟进 ${esc(n.due)}${late ? "（已过期）" : ""}</span>` : ""}</div>
+      ${showA ? `<button type="button" class="nanchor" data-act="go" title="${cn ? "跳转到关联位置" : "美股看板的备注"}">${n.anchor.type === "company" ? "◆" : "§"} ${esc(n.anchor.label)}</button>` : ""}
+      <div class="ntext">${esc(n.text)}</div>
+      <div class="nfoot"><span class="small">更新 ${esc(fmtT(n.updated))}${n.created !== n.updated ? ` · 创建 ${esc(fmtT(n.created))}` : ""}</span>
+        <span class="nacts"><button type="button" data-act="done">${done ? "重新打开" : "标记完成"}</button><button type="button" data-act="edit">编辑</button><button type="button" data-act="del" class="danger">删除</button></span></div>
+    </article>`; }).join("") || `<p class="small">${pool.length ? "没有符合筛选条件的备注。" : "还没有 A 股备注。可以直接在上面写，或点评估卡、④ 优先级表、② 筛选表里的“＋备注”。"}</p>`;
+}
+function nChanged() { nBadges(); nRenderList(); }
+function nGo(n) {
+  const a = n.anchor; if (!a) return;
+  if (!isCN(n)) { $("nfMsg").textContent = "这是美股看板的备注，请在美股看板打开对应位置"; return; }
+  if (a.type === "company") {
+    if (!jumpCN(a.ticker)) { $("nfMsg").textContent = "当前数据里找不到这家公司（可能已不在筛选结果中）"; return; }
+  } else {
+    const id = a.section.replace(/^cn-/, ""); if (!id || !$(id)) return;
+    $(id).scrollIntoView({behavior: "smooth", block: "start"});
+  }
+  if (innerWidth < 1280) nClose(false);   // the drawer would cover the target
+}
+$("nForm").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const text = $("nfText").value.trim();
+  if (!text) { $("nfMsg").textContent = "请先写备注内容"; $("nfText").focus(); return; }
+  const now = new Date().toISOString(), f = {text, tag: $("nfTag").value, status: $("nfStatus").value, due: $("nfDue").value, anchor: nAnchor}, wasEdit = !!nEdit;
+  const cur = nEdit && NOTES.find(x => x.id === nEdit);
+  if (cur) { const keepMk = cur.market; Object.assign(cur, f, {updated: now}); if (keepMk) cur.market = keepMk; }
+  else NOTES.push(nClean({id: nId(), ...f, market: "CN", created: now, updated: now}));
+  nSave(); nFormSet(null, wasEdit && cur && !isCN(cur) ? undefined : nAnchor); nChanged();
+  $("nfMsg").textContent = wasEdit ? "已更新" : "已保存";
+  $("nfText").focus();
+});
+$("nfText").addEventListener("keydown", ev => { if (ev.key === "Enter" && (ev.ctrlKey || ev.metaKey)) { ev.preventDefault(); $("nForm").requestSubmit(); } });
+$("nfCancel").onclick = () => { nFormSet(null); $("nfMsg").textContent = ""; $("nfText").focus(); };
+$("nfHere").onclick = () => { nAnchor = ctxAnchor(); $("nfAnchor").textContent = nAnchor.label; };
+$("nfNoA").onclick = () => { const ed = nEdit && NOTES.find(x => x.id === nEdit); nAnchor = ed && !isCN(ed) ? null : pageAnchor(); $("nfAnchor").textContent = "（不关联）"; };
+$("nList").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-act]"), it = b && b.closest("[data-id]"); if (!it) return;
+  const n = NOTES.find(x => x.id === it.dataset.id); if (!n) return;
+  const act = b.dataset.act;
+  if (act === "go") nGo(n);
+  else if (act === "edit") { nFormSet(n); $("nfMsg").textContent = ""; $("notes").querySelector(".dw-body").scrollTop = 0; $("nfText").focus(); }
+  else if (act === "done") { n.status = n.status === "已完成" ? "待跟进" : "已完成"; n.updated = new Date().toISOString(); nSave(); nChanged();
+    const again = $("nList").querySelector(`[data-id="${CSS.escape(n.id)}"] [data-act="done"]`); (again || $("nList")).focus(); }
+  else if (act === "del" && confirm("删除这条备注？删除后不能恢复（除非之前导出过）。")) {
+    NOTES = NOTES.filter(x => x.id !== n.id); if (nEdit === n.id) nFormSet(null); nSave(); nChanged(); $("nList").focus(); }
+});
+const nListDeb = debounce(nRenderList, 200);
+$("nfQ").addEventListener("input", nListDeb);
+["nfFS", "nfFT", "nfMk"].forEach(id => $(id).addEventListener("change", nRenderList));
+$("notesBtn").onclick = () => isOpen() ? nClose() : nOpen(undefined, $("notesBtn"));
+$("notesClose").onclick = () => nClose();
+// delegated: "＋备注" opens the drawer with the company anchor; the count badge opens it filtered to that code.
+// preventDefault stops the click from also toggling the <details> when the button sits in a <summary>
+document.addEventListener("click", ev => {
+  const add = ev.target.closest && ev.target.closest("[data-addnote]"), bd = ev.target.closest && ev.target.closest("[data-nbt]");
+  if (!add && !bd) return;
+  ev.preventDefault(); ev.stopPropagation();
+  if (add) nOpen(companyAnchor(add.dataset.nc), add);
+  else { $("nfQ").value = bd.dataset.nbt; $("nfFS").value = ""; $("nfFT").value = ""; $("nfMk").value = "cn"; nOpen(false, bd, false); $("nfQ").focus(); }
+});
+document.addEventListener("keydown", ev => {
+  if (ev.key !== "Escape") return;
+  if (isOpen()) { ev.preventDefault(); nClose(); } else if (document.body.classList.contains("side-open")) sideClose();
+});
+// export / import (merge by note id; the newer "updated" wins, no duplicates). Export contains all notes (A 股 and 美股).
+$("nExport").onclick = () => {
+  const blob = new Blob([JSON.stringify({app: "industry-radar", version: 1, exported_at: new Date().toISOString(), notes: NOTES}, null, 2)], {type: "application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `industry-radar-notes-${today()}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  const cn = NOTES.filter(isCN).length;
+  $("nIoMsg").textContent = `已导出 ${NOTES.length} 条（A 股 ${cn}，美股 ${NOTES.length - cn}）`;
+};
+$("nImportBtn").onclick = () => $("nImport").click();
+$("nImport").onchange = async ev => {
+  const file = ev.target.files[0]; ev.target.value = ""; if (!file) return;
+  if (file.size > 5e6) { $("nIoMsg").textContent = "文件太大（超过 5 MB）"; return; }
+  let j; try { j = JSON.parse(await file.text()); } catch (err) { $("nIoMsg").textContent = "不是有效的 JSON 文件"; return; }
+  const inc = (Array.isArray(j) ? j : (j && Array.isArray(j.notes) ? j.notes : [])).map(nClean).filter(Boolean);
+  let add = 0, upd = 0, same = 0; const by = new Map(NOTES.map(n => [n.id, n]));
+  inc.forEach(n => { const o = by.get(n.id); if (!o) { by.set(n.id, n); add++; } else if (n.updated > o.updated) { by.set(n.id, n); upd++; } else same++; });
+  NOTES = [...by.values()]; nSave(); nChanged();
+  $("nIoMsg").textContent = `导入：新增 ${add} 条，更新 ${upd} 条，跳过 ${same} 条`;
+};
+addEventListener("storage", ev => { if (ev.key === NKEY) { nLoad(); nChanged(); } });   // another tab changed the notes
+nLoad(); nFormSet(null, null);
 
 function render() { renderHeat(); renderScreen(); renderPriority(); }
 function init() {
@@ -596,11 +1115,12 @@ function init() {
   $("fInd").onchange = e => { state.ind = e.target.value; renderScreen(); };
   $("fLb").onchange = e => { state.lb = e.target.value; renderScreen(); };
   $("fW").onchange = e => { state.w = e.target.value; renderScreen(); };
-  $("fQ").oninput = e => { state.q = e.target.value; renderScreen(); };
-  $("fClear").onclick = () => { Object.assign(state, {ind: "", lb: "", w: "", q: ""}); ["fInd", "fLb", "fW", "fQ"].forEach(i => $(i).value = ""); renderScreen(); };
+  const qDeb = debounce(() => renderScreen(), 180);
+  $("fQ").oninput = e => { state.q = e.target.value; state.hl = ""; qDeb(); };
+  $("fClear").onclick = () => { Object.assign(state, {ind: "", lb: "", w: "", q: "", hl: ""}); ["fInd", "fLb", "fW", "fQ"].forEach(i => $(i).value = ""); renderScreen(); };
   $("indMore").onclick = () => { state.indAll = !state.indAll; renderHeat(); };
   $("scMore").onclick = () => { state.limit += 200; renderScreen(); };
-  renderLabels(); renderMethod(); render(); renderCards();
+  renderLabels(); renderMethod(); render(); renderCards(); markSec(); nBadges();
   if (location.hash.startsWith("#card-")) openCard(decodeURIComponent(location.hash.slice(6)), true);
 }
 init();
