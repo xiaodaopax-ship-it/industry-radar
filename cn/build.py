@@ -594,7 +594,14 @@ def build(path=None):
                               "n_price": sum(1 for r in res["screen"] if r.get("price") is not None),
                               "n_range": sum(1 for r in res["screen"] if (r.get("rng") or {}).get("hi52") is not None),
                               "n_pos": sum(1 for r in res["screen"] if r.get("pos52") is not None)}
+    # tracked holders in the top-10 float holders: attached AFTER analyze(), display only (never in any score / label / rank)
+    from . import holders as hmod
+    hdoc, hpath = hmod.load_latest()
+    hmod.attach(res["screen"], hdoc)
+    payload["inst_meta"] = hmod.meta(hdoc, hpath, res["screen"])
     payload["cards"] = cardmod.card_payload(snap, res, cdoc, RULES)
+    for c in payload["cards"]:
+        c["inst"] = {k: hmod.compact(v) for k, v in hmod.derive_code(hdoc, c["code"]).items()}
     have = set((cdoc or {}).get("cards", {}))
     payload["cards_meta"] = {"file": os.path.basename(cpath) if cpath else None, "fetched_at": (cdoc or {}).get("fetched_at"),
                              "snap": (cdoc or {}).get("snap"), "rules": cardmod.CARD_RULES,
@@ -622,4 +629,15 @@ def build(path=None):
     log(f"prices: screen {rm['n_price']}/{rm['n_screen']}; 52w ranges {rm['n_range']}/{rm['n_screen']} (pos52 {rm['n_pos']}) "
         f"from {rm['file']}; cards with range {sum(1 for c in ct if (c['range'].get('rng') or {}).get('hi52') is not None)}/{len(ct)}, "
         f"with target median (>= {cardmod.CARD_RULES['target_min_org']} institutions) {sum(1 for c in ct if c['target']['median'] is not None)}/{len(ct)}")
+    im = payload["inst_meta"]
+    if im.get("file"):
+        log(f"holders: {im['file']} periods {im['periods'][0]}..{im['periods'][-1]} partial "
+            f"{[(p['period'], p['n_reported']) for p in im['partial']]}; screen rows with a top-10 list at {im['periods'][-1]}: "
+            f"{im['n_reported_screen']}/{im['n_screen']}")
+        for k, v in im["counts"].items():
+            a, b = v["all"], v["value"]
+            log(f"  {k}: in_top10_latest={a['in_latest']} new={a['new']} up={a['up']} down={a['down']} out={a['out']} "
+                f"| value-label: in_latest={b['in_latest']} new={b['new']} up={b['up']} new_or_up={b['new'] + b['up']}")
+    else:
+        log("holders: no data/cn/holders_*.json (run `python -m cn holders`); 机构动向 column empty")
     return out

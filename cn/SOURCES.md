@@ -1,7 +1,7 @@
 # cn/ 数据源核验记录（A 股）
 
 核验时间：2026-10-21 ~ 2026-10-22（本机，Python 3.13 标准库）。个人研究工具，不构成投资建议。
-运行 `python -m cn.smoke`（在 `industry-radar/` 根目录）复现；最近一次结果 **51/51 检查通过**。
+运行 `python -m cn.smoke`（在 `industry-radar/` 根目录）复现；最近一次结果 **71/71 检查通过**（2026-10-23）。
 
 ## 通用约定
 
@@ -242,6 +242,30 @@ PEG（评估卡参考项，规则与阈值在 `cn/cards.py` 的 `CARD_RULES["peg
 规则（`cards.target_median()`，`CARD_RULES["target_window_days"]=180`、`["target_min_org"]=3`）：每篇目标价 = 上下限只给一个或相等时取该值，否则取中值；窗口内（且不晚于行情日）有送转除权时，除权前发布的目标价股本口径不同，剔除（该机构除权后若有新研报则用新的）；每家机构取最新一篇；≥ 3 家才给中位数，同时记录 n、min、max、窗口、最新日期和逐篇来源；不足 3 家显示"机构目标价样本不足，不显示"，**不用** RPT_WEB_RESPREDICT 的 DEC_AIMPRICEMAX/MIN 代替（统计窗口未公开）。现金分红不调整，只在卡片注明除息日。
 
 `cards_<ts>.json` 结构：`fetched_at, snap（来源快照文件名）, codes, rules, cards{code: {profile, mainop, float_holders, consensus, pe_series（PE(TTM) 降采样至约 260 点）, pe_band{p20,p50,p80,n}, price, hist_range, deducted{report_date: {eps, eps_deducted, parent_net_profit, deducted_net_profit}}, reports{window, n_reports, with_target[]}, bonus[], errors}}, failed_fields, http`。快照文件不被修改；`build()` 读取最新的 cards 文件，只合并当前评估卡名单内的代码。
+
+## k. 机构动向：跟踪机构在前十大流通股东中的 12 个月变化（`python -m cn holders`，只展示）
+
+核验时间 2026-10-23。**不进入** ④ 综合分、价值 / 博弈标签、warn_n 和对比池 bkScore；build 在 `analyze()` 之后才挂到 ② 行（`r.inst`）和评估卡（`c.inst`）。
+
+| 接口 | 参数 | 字段 → 输出键 | 结果 |
+|---|---|---|---|
+| RPT_F10_EH_FREEHOLDERS（前十大流通股东），**全市场** | `(HOLDER_NAME="香港中央结算有限公司")(END_DATE='2026-06-30')`，`SECURITY_CODE,HOLDER_RANK` 升序，500 行/页 | SECURITY_CODE，SECURITY_NAME_ABBR，END_DATE → period，UPDATE_DATE，HOLDER_RANK → rank，HOLDER_NAME，HOLDER_TYPE，HOLDER_NEWTYPE，SHARES_TYPE（只保留含"A股"的行），HOLD_NUM → shares（股），FREE_HOLDNUM_RATIO → float_pct（占流通 A 股 %），HOLD_NUM_CHANGE（带符号股数文本 / "新进" / "不变"）→ change_shares，HOLDNUM_CHANGE_NAME（新进 / 增加 / 减少 / 不变）→ status，CHANGE_RATIO | works：HKSCC 2026-06-30 2,844 行（无重复代码；新进 388 / 增加 1,270 / 减少 1,185 / 不变 1），6 页 |
+| 同上，按股东类型 | `(HOLDER_TYPE="全国社保基金")` / `(HOLDER_TYPE="基本养老基金")` + END_DATE | 同上，再在本地按名称前缀匹配 | works（2026-06-30：社保 778 行、养老 207 行）。`like` 过滤被拒（code 9501"不支持like查询"），所以前缀规则只能先按类型取再本地匹配 |
+| 同上，披露覆盖 | `(END_DATE='…')(HOLDER_RANK=1)` | SECURITY_CODE | works：各期有名单的公司 5,494 / 5,521 / 5,557 / 5,582 / 5,612（2025-06-30 … 2026-06-30），2026-09-30 697 家（部分披露） |
+| RPT_SHAREBONUS_DET | `(EX_DIVIDEND_DATE>='2025-06-30')(EX_DIVIDEND_DATE<='2026-09-30')` | BONUS_IT_RATIO（每 10 股送转）用于股数调整 | works，6,332 行，449 家有送转 |
+| RPT_MUTUAL_HOLDSTOCKNORTH_STA（北向持股） | — | TRADE_DATE，HOLD_SHARES，FREE_SHARES_RATIO，MUTUAL_TYPE（001 沪股通 / 003 深股通） | **未使用**：仍有数据，但每只股票只有一个日期（2026-10-23 时为 2026-09-30，`TRADE_DATE<'2026-09-30'` 返回空），没有历史，算不出 12 个月变化。港交所 2024 年 8 月起已停止逐日逐股披露北向持股 |
+
+一共约 140 次请求（6 期 × 6 条规则 + 6 次覆盖查询，HKSCC 每期约 6 页），逐代码查询则要 1236 × 5 次。
+
+跟踪名单 `cn/holders.py` `HOLDER_RULES`（匹配方式逐条声明）：香港中央结算有限公司（精确；陆股通名义持有人，汇总所有境外投资者，不代表单一机构；**香港中央结算(代理人)有限公司是 H 股名义持有人，名称不同，不计入**）；中央汇金投资有限责任公司、中央汇金资产管理有限责任公司、中国证券金融股份有限公司（精确）；全国社保基金（前缀"全国社保"，数据里有 1 处"全国社保一一零组合"缺"基金"二字；另含"XX基金管理有限公司-社保基金N组合"；名称含"划转"的国有股划转账户排除）；基本养老保险基金（前缀，"XX养老金产品"是企业年金 / 职业年金产品，不计入）。同一公司同一期多个社保 / 养老组合合计。
+
+期间：法定披露截止日（一季报 04-30、中报 08-31、三季报 10-31、年报次年 04-30）已过的最近 5 个季末 = 4 个环比，约 12 个月；之后已有部分披露的季末作为 `partial_periods`（带已披露家数）单独显示，不计入状态。2026-10-23：2025-06-30 … 2026-06-30，2026-09-30 部分披露 697 家。
+
+派生（`holders.derive()`，纯函数，smoke 有合成数据测试，含送转用例）：期初 = 5 期中公司第一个有名单的期，期末 = 最后一个有名单的完整期。两期都在前十：期初股数 × Π(1 + 每股送转)（除权日在 (期初, 期末]）后与期末比较 → 增持 / 减持 / 不变（相对差 ≤ 1e-4 记不变）；送转数据取不到时改比 float_pct（±0.005pp）并标 basis=float_pct。期初不在、期末在 = 新进前十；期初在、期末不在 = 跌出前十；只在中间出现 = 期间进出前十。另给 net_shares、net_pp（期末 − 期初占流通 %，解禁会影响）、相邻两期都在时的增 / 减季数、first_seen。**不在前十 ≠ 没有持股**，页面统一用"进入 / 跌出前十"措辞。
+
+核验：smoke 中 000001 HKSCC 2026-06-30 全市场查询 = 逐代码 F10 查询（736,878,410 股）；无送转公司的相邻季方向与东财 HOLDNUM_CHANGE_NAME 一致 10,919 / 10,919；与 `cards_*.json` 的 float_holders 逐行比对（季末期）27 / 27 一致（HKSCC 23 行）。评估卡的 float_holders 取的是最新 END_DATE，个别公司是非季末（招股 / 上市公告书，如 2026-07-31），这些不在本数据里。
+
+`holders_<ts>.json`：`fetched_at, today, periods[5], partial_periods[{period, n_reported, deadline}], deadlines, n_reported, reported{period: [codes]}, rules, fetch_rules, complete, failed, items{code: {rule_key: [{period, shares, float_pct, change_shares, status, n, rank, update, parts?}]}}, bonus{code: [{ex_date, bonus_it_per10, cash_per10}]}, bonus_ok, unmatched_top, src, http`。缓存 ttl：完整期 7 天、部分期 0.5 天；每次查询后写检查点；中断后重跑从缓存续上。
 
 ---
 

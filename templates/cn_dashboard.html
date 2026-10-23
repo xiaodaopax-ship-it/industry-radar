@@ -92,6 +92,10 @@
   .lb-偏博弈, .rt-warn { background:rgba(230,180,80,.12); color:var(--warn); border-color:rgba(230,180,80,.38); }
   .lb-中性 { background:rgba(154,166,180,.13); color:#c5cdd7; border-color:rgba(154,166,180,.26); }
   .tier { font-size:11px; color:var(--muted); margin-left:4px; }
+  /* 机构动向 badges (tracked top-10 float holders, display only) */
+  .ib { margin:1px 3px 1px 0; font-size:11.5px; line-height:18px; padding:0 6px; }
+  .ib.up { color:var(--pos); border-color:rgba(80,190,130,.4); } .ib.down { color:var(--neg); border-color:rgba(230,100,90,.4); }
+  table.ih td, table.ih th { font-size:12px; } table.ih td.n { white-space:nowrap; }
   .chk { display:grid; grid-template-columns:18px 120px 1fr; gap:4px; font-size:12.5px; padding:3px 0; border-bottom:1px solid var(--line); }
 
   /* evaluation card (same structure as the US evalCard) */
@@ -340,10 +344,13 @@
       <label>行业 <select id="fInd"><option value="">全部</option></select></label>
       <label>标签 <select id="fLb"><option value="">全部</option><option>偏价值</option><option>中性</option><option>偏博弈</option></select></label>
       <label>风险门槛 ⚠ 数 <select id="fW"><option value="">不限</option><option value="0">0</option><option value="1">≤ 1</option><option value="2">≤ 2</option></select></label>
+      <label>机构 <select id="fInst" aria-describedby="instHint"><option value="">不限</option></select></label>
+      <label>近 12 个月 <select id="fInstS" aria-describedby="instHint"><option value="">不限</option><option value="any">新进前十或增持</option><option value="new">新进前十</option><option value="up">增持</option><option value="downout">减持或跌出前十</option><option value="latest">最新期在前十</option></select></label>
       <label>搜索 <input id="fQ" type="search" placeholder="代码或名称" size="12"></label>
       <button class="btn" type="button" id="fClear">清除筛选</button>
       <span class="small" id="scCount"></span>
     </div>
+    <p class="small muted" id="instHint" style="margin:0 0 6px"></p>
     <div class="tscroll" id="scScroll"><table><thead><tr id="scHead"></tr></thead><tbody id="scBody"></tbody></table></div>
     <div class="toolbar"><button class="btn" type="button" id="scMore">显示更多</button><span class="small">点击公司名称展开全部门槛数值、标签原因和监管类公告标题。</span></div>
     <p class="note" id="gateNote"></p>
@@ -354,6 +361,7 @@
     <p class="lead">按固定规则给每家筛选出的公司打一个描述性标签，说明它目前更接近"基本面与估值数据较扎实"还是"受事件、资金或估值位置影响较大"。标签不是结论，原因列在 ② 表格最后一列。</p>
     <div class="grid g3" id="lbKpis"></div>
     <div class="rule" id="lbRule"></div>
+    <div id="instX" style="margin-top:14px"></div>
   </section>
 
   <section id="s4">
@@ -431,6 +439,7 @@
         <p class="note">估值历史只为短名单（最多 <span id="slMax"></span> 只）拉取，以控制请求量；其余公司的估值分位显示为"未取"。PE ≤ 0（亏损期）不计入分位样本。</p>
         <p class="note">评估卡：主营构成、前十大流通股东、公司概况、机构一致预期来自东方财富 F10（RPT_F10_FN_MAINOP / RPT_F10_EH_FREEHOLDERS / RPT_F10_BASIC_ORGINFO / RPT_WEB_RESPREDICT），只为评估卡上的公司单独抓取。"近一年价格"走势用估值历史里的日收盘价，<b>未复权</b>，送转、分红会造成跳变（52 周区间另用前复权口径，见下）。机构一致预期只显示覆盖家数和 EPS 均值，不显示评级用词；汇总表的目标价上下限统计窗口未公开，仍不显示。结论、机会、风险和待核实问题都是按固定规则从数字生成的，不是研究结论。</p>
         <p class="note" id="rngNote"></p>
+        <p class="note" id="instNote"></p>
         <p class="note" id="pegNote"></p>
         <p class="note">本页只整理公开披露的数字，不对任何政策、监管决定或宏观事项做评价。</p>
       </div>
@@ -492,7 +501,7 @@ const growthColor = v => { if (v == null) return "#4a515b"; const t = Math.max(-
 const BYCODE = Object.fromEntries(D.screen.map(r => [r.code, r]));
 const GATES = [["ocf", "现金流/净利"], ["ar", "应收增速"], ["inv", "存货增速"], ["goodwill", "商誉/权益"], ["pledge", "质押比例"],
   ["selling", "6 月净增减持"], ["unlock", "90 天解禁"], ["reg", "监管类标题"], ["val", "PE 分位"], ["fc", "业绩预告"]];
-const state = {indAll: false, ind: "", lb: "", w: "", q: "", limit: 150, open: new Set(), hl: "", sideIndAll: false, sort: {ind: ["revenue", -1], sc: ["rev_yoy", -1], p: ["rank", 1], bk: ["added", 1]}};
+const state = {indAll: false, ind: "", lb: "", w: "", q: "", inst: "", instS: "", limit: 150, open: new Set(), hl: "", sideIndAll: false, sort: {ind: ["revenue", -1], sc: ["rev_yoy", -1], p: ["rank", 1], bk: ["added", 1]}};
 const debounce = (fn, ms) => { let t = 0; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 const narrow = () => matchMedia("(max-width:1099.98px)").matches;
 // scroll to a section; setting the same hash again would not scroll, so fall back to scrollIntoView
@@ -582,7 +591,8 @@ const SCNT = {}; D.screen.forEach(r => SCNT[r.industry] = (SCNT[r.industry] || 0
 function screenRows() {
   const q = state.q.trim().toLowerCase();
   return D.screen.filter(r => (!state.ind || r.industry === state.ind) && (!state.lb || r.label === state.lb)
-    && (state.w === "" || r.warn_n <= +state.w) && (!q || r.code.includes(q) || String(r.name || "").toLowerCase().includes(q)));
+    && (state.w === "" || r.warn_n <= +state.w) && instMatch(r, state.inst, state.instS)
+    && (!q || r.code.includes(q) || String(r.name || "").toLowerCase().includes(q)));
 }
 const gateCell = g => g ? `<span class="${esc(g.s)}" data-tip="${esc(esc(g.v))}">${ICON[g.s] || "·"} ${esc(g.sv)}</span>` : "—";
 function detail(r) {
@@ -591,6 +601,7 @@ function detail(r) {
     <div><div class="label">标签：<span class="tag lb-${esc(r.label)}">${esc(r.label)}</span></div><ul class="small">${r.reasons.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
       <div class="label">财务</div><div class="small">营收 ${yi(r.revenue)} 亿元 · 同比 ${num(r.rev_yoy)}%（上期累计 ${num(r.rev_yoy_prev)}%）· 归母净利润 ${yi(r.np)} 亿元 · 净利同比 ${num(r.np_yoy)}% · 毛利率 ${num(r.gm)}%（同比 ${num(r.gm_chg)} pp）· 总市值 ${yi(r.mcap)} 亿元 · PE(TTM) ${num(r.pe_ttm)} · PB ${num(r.pb, 2)}</div>
       <div class="label" style="margin-top:6px">股价与 52 周区间 <span class="tier">只展示，不参与标签和排序</span></div>${rangeBarCN(r, null, r)}
+      <div class="label" style="margin-top:6px">机构动向（前十大流通股东，近 12 个月）</div>${instBlock(r.inst)}
       ${r.reg_items.length ? `<div class="label" style="margin-top:6px">监管类公告标题（最近 3 条，标题匹配）</div><ul class="small">${r.reg_items.map(x => `<li>${esc(x.date)} [${esc(x.kind)}] ${extA(x.url, x.title)}</li>`).join("")}</ul>` : ""}
     </div></div></td></tr>`;
 }
@@ -609,6 +620,7 @@ function renderScreen() {
     {k: "np_yoy", t: "净利同比", n: 1, f: r => pc(r.np_yoy)},
     {k: "price", t: "股价", n: 1, f: r => priceCell(r)},
     {k: "pos52", t: "52 周位置", n: 1, cls: "nw", f: r => miniRange(r, r)},
+    {k: "inst", t: "机构动向", cls: "nw", v: instSort, f: r => instBadges(r)},
     ...GATES.map(([k, t]) => ({k: "g_" + k, t, v: r => ({warn: 0, ok: 1, na: 2})[r.gates[k].s], g: 1, f: r => gateCell(r.gates[k])})),
     {k: "warn_n", t: "⚠ 数", n: 1, f: r => esc(r.warn_n)},
     {k: "label", t: "标签", f: r => `<span class="tag lb-${esc(r.label)}">${esc(r.label)}</span>`},
@@ -626,6 +638,9 @@ function renderScreen() {
     `质押比例（公司整体，统计日 ${D.pledge_date || "—"}）> ${R.pledge_warn}% 提示；近 ${R.holder_months} 个月董监高与股东净减持 ≥ ${R.net_sell_warn}% 总股本提示；` +
     `${(D.unlock_window || []).join(" ~ ")} 解禁可流通股数 > 当前流通股 ${R.unlock_float_warn}% 提示；${(D.reg_window || []).join(" ~ ")} 巨潮公告标题命中监管类关键词（${D.reg_kinds.join("、")}）≥ 1 条提示（仅标题匹配）；` +
     `PE 分位 ≥ ${R.pe_pct_high}% 提示（近 ${R.valuation_years} 年日频，仅短名单）；业绩预告为预减 / 略减 / 首亏 / 续亏 / 增亏时提示。⚠ 数只统计前 8 项（估值分位和业绩预告不计入）。`);
+  $("instHint").textContent = IM.file ? `机构 / 近 12 个月：按前十大流通股东 ${IPER[0] || "—"} → ${instLast}（5 期）判断，只展示、不参与标签、⚠ 数和 ④ 排序；“机构”选不限时匹配任一跟踪机构。` +
+    `“新进前十” = 期初不在前十、最新期在前十；“跌出前十” ≠ 清仓。北向 = 香港中央结算有限公司（陆股通名义持有人，汇总所有境外投资者），不代表单一机构判断。不是买卖建议。`
+    : "机构持仓数据未抓取（python -m cn holders），机构筛选不可用。";
   renderSideInd(); nBadges(); bkSync();
 }
 
@@ -693,6 +708,7 @@ function renderMethod() {
     ["解禁窗口", (D.unlock_window || []).join(" ~ ")],
     ["监管标题检索窗口", (D.reg_window || []).join(" ~ ")],
     ["股价 / 52 周区间覆盖（② 筛选）", RM.file ? `${RM.n_price} / ${RM.n_range} / ${RM.n_screen}（${RM.file}，${RM.window_start} ~ ${RM.as_of}${RM.complete === false ? "，未抓完" : ""}）` : `${RM.n_price ?? 0} / 0 / ${RM.n_screen ?? 0}（未抓取区间）`],
+    ["机构动向（② 筛选中 " + instLast + " 有前十大流通股东名单 / 北向在前十）", IM.file ? `${IM.n_reported_screen} / ${D.screen.filter(r => r.inst && r.inst.hkscc && r.inst.hkscc.il).length} / ${D.screen.length}（${IM.file}）` : "未抓取"],
     ["评估卡机构目标价中位数（≥ " + (CR.target_min_org ?? "—") + " 家）", `${(D.cards || []).filter(c => c.target && c.target.median != null).length} / ${(D.cards || []).length}`],
   ].map(([k, v]) => `<tr><td class="small">${esc(k)}</td><td>${esc(v)}</td></tr>`).join("");
   $("defs").innerHTML = esc(`年初至今（YTD）累计：利润表、现金流量表按中国披露习惯为年初至报告期末累计。营收同比使用业绩报表披露的 YSTZ 字段。` +
@@ -706,6 +722,14 @@ function renderMethod() {
     `${RNG_NOTE}。` +
     `机构目标价：逐篇读取东方财富个股研报列表，取近 ${CR.target_window_days ?? 180} 天内每家机构最新一篇带目标价的研报（给出区间时取中值），至少 ${CR.target_min_org ?? 3} 家机构才显示中位数，标为"机构目标价中位数（n 家，近 ${CR.target_window_days ?? 180} 天），不是预测"；不足时显示"机构目标价样本不足，不显示"，不用汇总表的目标价上下限代替。` +
     `窗口内有送转除权时，除权前发布的目标价股本口径不同，不计入；现金分红不调整，只在卡片注明。目标价是第三方观点，大多数研报不给目标价，覆盖偏向大公司；本页不显示评级用词。`);
+  const nr = IM.n_reported || {};
+  $("instNote").innerHTML = `<b>机构动向（只展示）</b>：<b>不参与 ④ 排序、价值 / 博弈标签、⚠ 数和对比池评分</b>。` + (IM.file ? esc(
+    `来源：东方财富 RPT_F10_EH_FREEHOLDERS（前十大流通股东），按股东名称 / 股东类型做全市场查询，期末 ${IPER.join("、")}（各期有前十大流通股东名单的公司 ${IPER.map(p => nr[p] ?? "—").join(" / ")} 家）；` +
+    (instPart ? `${instPart.period} 为部分披露（${instPart.n_reported} 家，截止 ${instPart.deadline}），单独显示，不计入近 12 个月状态。` : "") +
+    `跟踪名单（cn/holders.py HOLDER_RULES）：${IRULES.map(q => `${q.short} = ${q.label}（${q.note}）`).join(" ")}` +
+    `状态：以 ${IPER[0]}（公司之后才有定期报告时取第一期）为期初、${instLast} 为期末——两期都在前十时比较持股数（期初股数按期间送转除权调整${IM.bonus_ok === false ? "；本次送转数据未取到，改为比较占流通比例" : ""}）：增持 / 减持 / 不变；期初不在、期末在 = 新进前十；期初在、期末不在 = 跌出前十；只在中间几期出现 = 期间进出前十。` +
+    `占流通 pp = 期末占流通 A 股比例 − 期初（解禁等流通股本变化也会影响）。环比增 / 减季数只数相邻两期都在前十的情形。多个社保 / 养老组合按公司合计。` +
+    `抓取 ${IM.fetched_at}（${IM.file}${IM.complete === false ? "，未抓完" : ""}）。${INST_CAVEAT}`) : "未抓取（python -m cn holders）。");
   $("pegNote").innerHTML = `<b>PEG（评估卡参考项）</b>：PEG = PE(TTM) ÷ 每年盈利增速（%）。<b>不参与 ④ 排序，也不影响价值 / 博弈标签和 ⚠ 数</b>，只在评估卡和 ④ 的 PEG 列显示。` + esc(
     `① 前瞻口径（优先）：当年 = 第一个年份 ≥ 最新报告期（${D.periods.latest}）所在年的预测年度；增速 = (两年后预期 EPS ÷ 当年预期 EPS)^(1/2) − 1，只有当年和下一年预期时用 1 年增速并注明。` +
     `要求覆盖机构 ≥ ${CR.peg_min_org} 家、有当年预期、所用各年预期 EPS 均 > 0，否则改用历史口径。` +
@@ -725,6 +749,96 @@ const CARDS = Object.fromEntries((D.cards || []).map(c => [c.code, c]));
 const CM = D.cards_meta || {};
 const CR = CM.rules || {};
 const RM = D.ranges_meta || {};
+
+// ---------- 机构动向: tracked holders in the top-10 float holders (前十大流通股东), last 5 report dates. Display only:
+// never part of the ④ score, the 价值 / 博弈 label, the ⚠ count or the 对比池 bkScore.
+// r.inst = {key: {s: status, il: in top 10 at the latest full period, fs: first seen, b: base period, l: latest reported,
+//   ns: net shares (送转-adjusted), np: net float pp, nu / nd: quarters up / down, adj: 送转 factor, h: [[period, shares, float_pct, change, status, n]], q: partial period}}
+const IM = D.inst_meta || {};
+const IRULES = IM.rules || [];
+const IRK = Object.fromEntries(IRULES.map(r => [r.key, r]));
+const IPER = IM.periods || [];
+const INST_S = {new: "新进前十", up: "增持", down: "减持", flat: "不变", out: "跌出前十", inout: "期间进出前十"};
+const INST_F = {any: ["new", "up"], new: ["new"], up: ["up"], downout: ["down", "out"]};
+const INST_FT = {"": "不限", any: "新进前十或增持", new: "新进前十", up: "增持", downout: "减持或跌出前十", latest: "最新期在前十"};
+const instLast = IPER[IPER.length - 1] || "—";
+const instPart = (IM.partial || [])[0];
+const INST_CAVEAT = `香港中央结算有限公司 = 陆股通（北向）名义持有人，汇总所有境外投资者，含指数被动资金，不代表单一机构判断；只看前十大流通股东，掉出前十不等于清仓，不在前十也不等于没有持股；` +
+  `季报披露有滞后（最新完整期 ${instLast} 法定披露截止 ${(IM.deadlines || {})[instLast] || "—"}${instPart ? `；${instPart.period} 截止 ${instPart.deadline}，目前 ${instPart.n_reported} 家已披露，单列不计入近 12 个月状态` : ""}）；` +
+  `送转会改变股数（早期股数已按送转除权调整）；跟随机构持仓不是经过验证的选股信号；不是买卖建议。`;
+const instHit = (x, s) => !!x && (!s || (s === "latest" ? x.il : (INST_F[s] || []).includes(x.s)));
+// filter: holder (or any tracked holder) with the selected 12-month status
+function instMatch(r, key, s) {
+  if (!key && !s) return true;
+  return (key ? [key] : IRULES.map(q => q.key)).some(k => instHit((r.inst || {})[k], s));
+}
+const ppTxt = v => v == null ? "" : `${v > 0 ? "+" : v < 0 ? "−" : "±"}${Math.abs(v).toFixed(2)}pp`;
+const instCls = s => s === "new" || s === "up" ? "up" : s === "down" || s === "out" ? "down" : "";
+function instHistTxt(x) {
+  const H = Object.fromEntries((x.h || []).map(e => [e[0], e]));
+  const val = (p, e) => e ? `${esc(wan(e[1]))} 万股，占流通 ${esc(num(e[2], 2))}%${e[5] > 1 ? `（${e[5]} 个组合合计）` : e[4] ? `，${esc(e[4])}` : ""}`
+    : (x.b && p < x.b ? "该公司尚无此期定期报告" : "不在前十大流通股东");
+  return IPER.map(p => `${esc(p)}：${val(p, H[p])}`)
+    .concat(x.q ? [`<i>${esc(x.q.p)}（部分披露）</i>：${val(x.q.p, x.q.e)}；对比 ${esc(instLast)}：${esc(INST_S[x.q.s] || "—")}`] : []);
+}
+function instSum(x) {
+  const st = INST_S[x.s] || (x.il ? "在前十（仅一期，无变化可比）" : "—");
+  const parts = [st];
+  if (x.np != null) parts.push(`占流通 ${ppTxt(x.np)}`);
+  if (x.ns != null) parts.push(`${x.ns > 0 ? "+" : ""}${wan(x.ns)} 万股${x.adj && x.adj !== 1 ? `（期初股数 × ${num(x.adj, 3)} 送转调整）` : ""}`);
+  if (x.nu || x.nd) parts.push(`环比增 ${x.nu} 季 / 减 ${x.nd} 季`);
+  if (x.b && x.b !== IPER[0]) parts.push(`以 ${x.b} 为起点（之前无定期报告）`);
+  return parts.join("，");
+}
+function instTip(k, x) {
+  const R0 = IRK[k] || {};
+  return [`<b>${esc(R0.label || k)}</b>`, `近 12 个月（${esc(IPER[0] || "—")} → ${esc(instLast)}）：${esc(instSum(x))}`, ...instHistTxt(x),
+    `<i>${esc(R0.note || "")}</i>`, `<i>${esc(INST_CAVEAT)}</i>`].join("<br>");
+}
+function instBadge(k, x) {
+  const R0 = IRK[k] || {}, st = INST_S[x.s] || (x.il ? "在前十" : x.q && x.q.s ? `${x.q.p.slice(0, 7)} ${INST_S[x.q.s]}` : "—");
+  const pp = ["up", "down", "flat"].includes(x.s) && x.np != null ? " " + ppTxt(x.np) : "";
+  return `<span class="tag ib ${instCls(x.s)}" data-tip="${esc(instTip(k, x))}">${esc(R0.short || k)} ${esc(st)}${esc(pp)}</span>`;
+}
+function instBadges(r, max = 3) {
+  const xs = IRULES.map(q => [q.key, (r.inst || {})[q.key]]).filter(([, x]) => x && (x.s || x.il || x.q));
+  if (!xs.length) return '<span class="na">—</span>';
+  return xs.slice(0, max).map(([k, x]) => instBadge(k, x)).join("") + (xs.length > max ? `<span class="small">+${xs.length - max}</span>` : "");
+}
+const instSort = r => { const v = Object.values(r.inst || {}); if (!v.length) return null; return v.reduce((a, x) => a + (x.s === "new" || x.s === "up" ? 2 : x.il ? 1 : 0) - (x.s === "down" || x.s === "out" ? 1 : 0), 0); };
+// per-quarter history table (② expanded row, ⑤ card)
+function instBlock(inst) {
+  const xs = IRULES.map(q => [q.key, (inst || {})[q.key]]).filter(([, x]) => x);
+  const head = `<span class="tier">只展示，不参与标签、⚠ 数、④ 排序和对比池评分</span>`;
+  if (!IM.file) return `<div class="small muted">未抓取机构持仓（运行 python -m cn holders）</div>`;
+  if (!xs.length) return `<div class="small muted">${IPER[0] || "—"} ~ ${instLast} 跟踪的机构（${esc(IRULES.map(q => q.short).join("、"))}）都不在前十大流通股东里 ${head}</div>`;
+  const cell = (x, p) => { const e = (x.h || []).find(h => h[0] === p);
+    return e ? `${esc(wan(e[1]))}<div class="small">${esc(num(e[2], 2))}%${e[5] > 1 ? ` · ${e[5]} 组合` : ""}</div>` : `<span class="na">${x.b && p < x.b ? "无报告" : "—"}</span>`; };
+  return `<table class="ih"><thead><tr><th scope="col">机构</th>${IPER.map(p => `<th scope="col" class="n">${esc(p)}</th>`).join("")}${instPart ? `<th scope="col" class="n">${esc(instPart.period)}<div class="small">部分披露</div></th>` : ""}</tr></thead>
+    <tbody>${xs.map(([k, x]) => `<tr><td class="nw" data-tip="${esc(esc(IRK[k]?.note || ""))}">${esc(IRK[k]?.short || k)}<div class="small">${esc(IRK[k]?.label || "")}</div></td>${IPER.map(p => `<td class="n">${cell(x, p)}</td>`).join("")}
+      ${instPart ? `<td class="n">${x.q && x.q.e ? `${esc(wan(x.q.e[1]))}<div class="small">${esc(num(x.q.e[2], 2))}% · ${esc(INST_S[x.q.s] || "")}</div>` : x.q ? `<span class="na">— · ${esc(INST_S[x.q.s] || "")}</span>` : '<span class="na">未披露</span>'}</td>` : ""}
+      </tr><tr><td colspan="${IPER.length + 1 + (instPart ? 1 : 0)}" class="small ${x.s === "new" || x.s === "up" ? "pos" : x.s === "down" || x.s === "out" ? "neg" : ""}">近 12 个月：${esc(instSum(x))}</td></tr>`).join("")}</tbody></table>
+    <div class="small muted">持股单位万股，下方为占流通 A 股比例；“—” = 不在前十大流通股东（不等于没有持股）。${head}</div><div class="small muted">${esc(INST_CAVEAT)}</div>`;
+}
+function setInstFilter(k, s, lb) {
+  Object.assign(state, {inst: k || "", instS: s || "", lb: lb || "", hl: ""});
+  $("fInst").value = state.inst; $("fInstS").value = state.instS; $("fLb").value = state.lb;
+  renderScreen(); goSec("s2");
+}
+// ③ 偏价值 × 机构动向: counts per tracked holder, each count applies the ② filter
+function renderInstX() {
+  if (!IM.file) { $("instX").innerHTML = `<div class="small muted">未抓取机构持仓数据（python -m cn holders），没有“偏价值 × 机构动向”统计。</div>`; return; }
+  const cols = ["latest", "any", "new", "up", "downout"];
+  const val = D.screen.filter(r => r.label === "偏价值");
+  const btn = (k, s, lb, n) => n ? `<button type="button" class="linkbtn" data-ix="${esc(k)}|${esc(s)}|${esc(lb)}" aria-label="在 ② 中筛选 ${esc(lb || "全部标签")}、${esc(IRK[k].label)}、${esc(INST_FT[s])}（${n} 家）">${n}</button>` : '<span class="na">0</span>';
+  $("instX").innerHTML = `<h3 style="margin:0 0 6px;font-size:15px">偏价值 × 机构动向 <span class="tier">近 12 个月（${esc(IPER[0] || "—")} → ${esc(instLast)}），前十大流通股东；只展示</span></h3>
+    <div class="tscroll"><table class="ih"><thead><tr><th scope="col">机构</th>${cols.map(s => `<th scope="col" class="n">${esc(INST_FT[s])}</th>`).join("")}</tr></thead>
+    <tbody>${IRULES.map(q => `<tr><td class="nw" data-tip="${esc(esc(q.note))}">${esc(q.short)} <span class="small">${esc(q.label)}</span></td>${cols.map(s => {
+      const a = val.filter(r => instHit((r.inst || {})[q.key], s)).length, b = D.screen.filter(r => instHit((r.inst || {})[q.key], s)).length;
+      return `<td class="n">${btn(q.key, s, "偏价值", a)} <span class="small muted">/ 全部 ${b ? btn(q.key, s, "", b) : 0}</span></td>`; }).join("")}</tr>`).join("")}</tbody></table></div>
+    <div class="small muted">每格 = ② 中「偏价值」公司数 / ② 全部 ${D.screen.length} 家中的公司数，点数字在 ② 里套用对应筛选。偏价值共 ${val.length} 家。${esc(INST_CAVEAT)}</div>`;
+  $("instX").querySelectorAll("button[data-ix]").forEach(b => b.onclick = () => { const [k, s, lb] = b.dataset.ix.split("|"); setInstFilter(k, s, lb); });
+}
 const codeCell = code => CARDS[code] ? `<a href="#card-${esc(code)}" class="cardlink" data-card="${esc(code)}" title="打开评估卡">${esc(code)}</a>` : esc(code);
 const BOARD_CN = {SH_MAIN: "沪市主板", STAR: "科创板", SZ_MAIN: "深市主板", ChiNext: "创业板", BSE: "北交所"};
 const FACTOR_CN = {growth: "增长", accel: "加速", ocf: "现金流", val: "估值"};
@@ -914,6 +1028,7 @@ function evalCardCN(c) {
     c.valuation.first ? `估值与价格历史 ${c.valuation.first} ~ ${c.valuation.last}` : null,
     c.mainop_product[0] ? `主营构成 ${c.mainop_product[0].report_date}（RPT_F10_FN_MAINOP）` : null,
     c.float_holders[0] ? `流通股东 ${c.float_holders[0].end_date}（RPT_F10_EH_FREEHOLDERS）` : null,
+    IM.file ? `机构动向 ${IPER[0]} ~ ${instLast}（RPT_F10_EH_FREEHOLDERS 全市场按股东查询，抓取 ${IM.fetched_at}）` : null,
     c.profile ? "公司概况（RPT_F10_BASIC_ORGINFO）" : null, c.consensus ? "一致预期（RPT_WEB_RESPREDICT）" : null,
     CM.fetched_at ? `F10 数据抓取 ${CM.fetched_at}` : "未抓取 F10 数据",
     `增减持近 ${R.holder_months} 个月 · 质押 ${D.pledge_date || "—"} · 解禁 ${(D.unlock_window || []).join("~")} · 监管 ${(D.reg_window || []).join("~")}（巨潮标题检索）`].filter(Boolean);
@@ -943,7 +1058,8 @@ function evalCardCN(c) {
         <h4 style="margin-top:8px">近一年价格</h4>${priceSpark(c)}<h4 style="margin-top:8px">机构一致预期</h4>${consensusCN(c)}
         <h4 style="margin-top:8px">机构目标价</h4>${targetCN(c)}</div>
       <div class="card"><h4>主营构成</h4>${moTable(c.mainop_product, "按产品") || '<div class="small muted">没有取到主营构成</div>'}${moTable(c.mainop_region, "按地区")}
-        <h4 style="margin-top:10px">前十大流通股东</h4>${fhTable(c.float_holders)}</div>
+        <h4 style="margin-top:10px">前十大流通股东</h4>${fhTable(c.float_holders)}
+        <h4 style="margin-top:10px">机构动向（跟踪机构，近 12 个月）</h4>${instBlock(c.inst || BYCODE[c.code]?.inst)}</div>
     </div></details>
     <details class="grp" ${evWarn ? "open" : ""}><summary>事件 <span class="small">业绩预告 ${c.forecasts.length} · 增减持 ${esc(c.holders_n)} · 解禁 ${c.unlocks.length} · 监管标题 ${c.reg.length}${evWarn ? ' · <span class="warn">有提示</span>' : ""}</span></summary>
     <div class="grid g3 grp-body">
@@ -992,8 +1108,8 @@ function jumpCN(code) {
     return true;
   }
   if (!BYCODE[code]) return false;
-  Object.assign(state, {ind: "", lb: "", w: "", q: code, hl: code}); state.open.add(code);
-  $("fInd").value = ""; $("fLb").value = ""; $("fW").value = ""; $("fQ").value = code;
+  Object.assign(state, {ind: "", lb: "", w: "", q: code, hl: code, inst: "", instS: ""}); state.open.add(code);
+  $("fInd").value = ""; $("fLb").value = ""; $("fW").value = ""; $("fQ").value = code; $("fInst").value = ""; $("fInstS").value = "";
   renderScreen();
   $("scScroll").scrollTop = 0;
   $("s2").scrollIntoView({behavior: "smooth", block: "start"});
@@ -1395,6 +1511,8 @@ function bkCols() {
     // display only: price and 52-week position are not BK_DIMS and never enter bkScore
     {k: "price", t: "股价", n: 1, v: e => e.r.price, f: e => priceCell(e.r)},
     {k: "pos52", t: "52 周位置", n: 1, cls: "nw", v: e => e.r.pos52, f: e => miniRange(e.r, e.r)},
+    // display only: tracked top-10 float holders, not a BK_DIMS dimension
+    {k: "inst", t: "机构动向", cls: "nw", v: e => instSort(e.r), f: e => instBadges(e.r, 2)},
     {k: "prank", t: "④ 名次", n: 1, v: e => PRANK[e.r.code] ?? null, f: e => PRANK[e.r.code] ? `#${esc(PRANK[e.r.code])}` : '<span class="na">—</span>'},
     {k: "card", t: "评估卡", nosort: 1, cls: "nw", f: e => CARDS[e.r.code] ? `<a href="#card-${esc(e.r.code)}" data-card="${esc(e.r.code)}">打开</a>` : '<span class="na">—</span>'},
     {k: "rm", t: "移除", nosort: 1, cls: "nw", f: e => `<button type="button" class="btn ghost" data-bkrm="${esc(e.r.code)}" aria-label="把 ${esc(e.r.code)} ${esc(e.r.name)} 移出对比池">移除</button>`},
@@ -1490,10 +1608,14 @@ function init() {
   $("fW").onchange = e => { state.w = e.target.value; renderScreen(); };
   const qDeb = debounce(() => renderScreen(), 180);
   $("fQ").oninput = e => { state.q = e.target.value; state.hl = ""; qDeb(); };
-  $("fClear").onclick = () => { Object.assign(state, {ind: "", lb: "", w: "", q: "", hl: ""}); ["fInd", "fLb", "fW", "fQ"].forEach(i => $(i).value = ""); renderScreen(); };
+  $("fInst").innerHTML = `<option value="">不限</option>` + IRULES.map(q => `<option value="${esc(q.key)}">${esc(q.short)} · ${esc(q.label)}</option>`).join("");
+  $("fInst").disabled = $("fInstS").disabled = !IM.file;
+  $("fInst").onchange = e => { state.inst = e.target.value; renderScreen(); };
+  $("fInstS").onchange = e => { state.instS = e.target.value; renderScreen(); };
+  $("fClear").onclick = () => { Object.assign(state, {ind: "", lb: "", w: "", q: "", hl: "", inst: "", instS: ""}); ["fInd", "fLb", "fW", "fQ", "fInst", "fInstS"].forEach(i => $(i).value = ""); renderScreen(); };
   $("indMore").onclick = () => { state.indAll = !state.indAll; renderHeat(); };
   $("scMore").onclick = () => { state.limit += 200; renderScreen(); };
-  renderLabels(); renderMethod(); render(); renderCards(); markSec(); nBadges(); bkSync();
+  renderLabels(); renderInstX(); renderMethod(); render(); renderCards(); markSec(); nBadges(); bkSync();
   if (location.hash.startsWith("#card-")) openCard(decodeURIComponent(location.hash.slice(6)), true);
 }
 init();

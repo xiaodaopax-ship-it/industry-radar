@@ -202,6 +202,77 @@ def main():
     syn_x["reports"]["with_target"] = syn_x["reports"]["with_target"][:2]
     check("target_median: < 3 institutions => no median", cards.target_median(syn_x, 10, "2026-10-01")["median"] is None)
 
+    print("\n[k] tracked holders in the top-10 float holders (display only)")
+    from . import holders
+    HR = holders.HOLDER_RULES
+    check("holders.match_rule: HKSCC exact, 代理人 (H-share nominee) excluded",
+          holders.match_rule(HR["hkscc"], "香港中央结算有限公司") and not holders.match_rule(HR["hkscc"], "香港中央结算(代理人)有限公司"))
+    check("holders.match_rule: 社保 prefix + manager-run portfolio, 划转 excluded",
+          holders.match_rule(HR["ssf"], "全国社保基金一一八组合") and holders.match_rule(HR["ssf"], "华夏基金管理有限公司-社保基金四二二组合")
+          and not holders.match_rule(HR["ssf"], "博时基金管理有限公司-社保基金划转三零零一组合")
+          and not holders.match_rule(HR["pension"], "华泰优逸五号混合型养老金产品-中国银行股份有限公司"))
+    fp, pp_ = holders.plan_periods(dt.date(2026, 10, 23))
+    check("holders.plan_periods 2026-10-23: 5 full periods to 2026-06-30, 2026-09-30 partial",
+          fp == ["2025-06-30", "2025-09-30", "2025-12-31", "2026-03-31", "2026-06-30"] and pp_ == ["2026-09-30"], f"{fp} {pp_}")
+    P5 = fp
+    rep = set(P5)
+    E = lambda p, s, f=1.0: {"period": p, "shares": s, "float_pct": f, "n": 1}
+    d_new = holders.derive([E("2026-03-31", 100), E("2026-06-30", 120)], P5, rep, [])
+    d_out = holders.derive([E("2025-06-30", 100), E("2025-09-30", 90)], P5, rep, [])
+    d_io = holders.derive([E("2025-12-31", 100)], P5, rep, [])
+    d_up = holders.derive([E(p, s, f) for p, s, f in zip(P5, (100, 110, 105, 120, 130), (1.0, 1.1, 1.05, 1.2, 1.3))], P5, rep, [])
+    check("holders.derive: 新进前十 / 跌出前十 / 期间进出 / 增持 with quarter counts",
+          d_new["status"] == "new" and d_new["in_latest"] and d_new["first_seen"] == "2026-03-31"
+          and d_out["status"] == "out" and not d_out["in_latest"] and d_io["status"] == "inout"
+          and d_up["status"] == "up" and d_up["net_shares"] == 30 and abs(d_up["net_pp"] - 0.3) < 1e-9
+          and d_up["n_up"] == 3 and d_up["n_down"] == 1, f"{d_new['status']} {d_out['status']} {d_io['status']} {d_up['status']}")
+    # 送转 10送5 (ex-date 2025-11-10): 1000 shares at 2025-06-30 = 1500 on the latest basis; 1400 at the latest = 减持
+    ev = [{"ex_date": "2025-11-10", "bonus_it_per10": 5, "cash_per10": 1}]
+    hs = [E("2025-06-30", 1000, 2.0), E("2026-06-30", 1400, 1.9)]
+    d_b = holders.derive(hs, P5, rep, ev)
+    d_nb = holders.derive(hs, P5, rep, [])
+    d_fp = holders.derive(hs, P5, rep, ev, bonus_ok=False)
+    check("holders.derive 送转: raw +400 shares is 减持 after the 1.5x bonus adjustment; float_pct fallback also 减持",
+          d_b["status"] == "down" and d_b["net_shares"] == -100 and d_b["adj"] == 1.5 and d_nb["status"] == "up"
+          and d_fp["status"] == "down" and d_fp["basis"] == "float_pct", f"{d_b['status']} {d_b['net_shares']} {d_nb['status']} {d_fp['status']}")
+    check("holders.bonus_factor: only ex-dates in (after, upto]", holders.bonus_factor(ev, "2025-06-30", "2026-06-30") == 1.5
+          and holders.bonus_factor(ev, "2025-12-31", "2026-06-30") == 1.0)
+    d_late = holders.derive([E("2026-03-31", 50), E("2026-06-30", 60)], P5, {"2026-03-31", "2026-06-30"}, [])
+    d_part = holders.derive([E("2026-06-30", 60), E("2026-09-30", 40)], P5, rep | {"2026-09-30"}, [], partial=["2026-09-30"])
+    check("holders.derive: listed late => base = first reported period; partial period kept separate",
+          d_late["status"] == "up" and d_late["base"] == "2026-03-31" and d_part["status"] == "new"
+          and d_part["partial"]["status"] == "down", f"{d_late['status']} {d_late['base']} {d_part['partial']}")
+    hdoc, hpath = holders.load_latest()
+    if hdoc:
+        its = hdoc.get("items") or {}
+        n_hk = sum(1 for v in its.values() if any(e["period"] == hdoc["periods"][-1] for e in v.get("hkscc", [])))
+        check("holders file: 5 full periods, complete, HKSCC in top 10 at > 1500 companies at the latest period",
+              len(hdoc["periods"]) == 5 and hdoc.get("complete") and n_hk > 1500, f"{hpath[-28:]} n={n_hk}")
+        # quarter steps without 送转: our share-count sign vs Eastmoney's own HOLDNUM_CHANGE_NAME of the later period
+        sg = {"增加": 1, "减少": -1, "不变": 0}
+        tot = agree_n = 0
+        for code, v in its.items():
+            if code in (hdoc.get("bonus") or {}):
+                continue
+            for k, hist in v.items():
+                H_ = {e["period"]: e for e in hist}
+                for a, b in zip(hdoc["periods"], hdoc["periods"][1:]):
+                    if a in H_ and b in H_ and H_[b].get("n") == 1 and H_[a].get("n") == 1 and H_[b].get("status") in sg:
+                        d = H_[b]["shares"] - H_[a]["shares"]
+                        tot += 1
+                        agree_n += (d > 0) - (d < 0) == sg[H_[b]["status"]]
+        check("holders: quarter-step direction agrees with Eastmoney HOLDNUM_CHANGE_NAME >= 98%", tot > 1000 and agree_n / tot >= 0.98,
+              f"{agree_n}/{tot}")
+        rows000001, ok1 = em.dc_report("RPT_F10_EH_FREEHOLDERS", "SECURITY_CODE,END_DATE,HOLDER_NAME,HOLD_NUM",
+                                       f"(SECURITY_CODE=\"000001\")(END_DATE='{hdoc['periods'][-1]}')", "HOLDER_RANK", "1",
+                                       ttl=7, label="smoke holders 000001")
+        per = next((r for r in rows000001 if r["HOLDER_NAME"] == "香港中央结算有限公司"), None)
+        mine = next((e for e in its.get("000001", {}).get("hkscc", []) if e["period"] == hdoc["periods"][-1]), None)
+        check("holders: 000001 HKSCC market-wide query == per-code F10 query", ok1 and per and mine
+              and em.num(per["HOLD_NUM"]) == mine["shares"], f"{per and per['HOLD_NUM']} vs {mine and mine['shares']}")
+    else:
+        check("holders file present (run python -m cn holders)", False)
+
     print("\n[robustness] failure handling")
     bad = em.financials("1900-01-01")
     check("financials(bad date) returns [] without raising", bad == [])
