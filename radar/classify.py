@@ -4,8 +4,22 @@ import re
 from .paths import CFG, load
 
 
+US_ONLY = bool(CFG.get("markets", {}).get("us_only"))
+
+
+def is_us(ticker, market="US"):
+    """US-listed: market US and no exchange suffix (2330.TW, 8035.T, ADYEN.AS are not; ADRs such as TSM are)."""
+    return market == "US" and "." not in ticker
+
+
 def sectors():
-    return load("sectors.json")["sectors"]
+    secs = load("sectors.json")["sectors"]
+    if US_ONLY:  # config markets.us_only: drop non-US leaders and the overseas screens (sectors.json itself is unchanged)
+        for s in secs:
+            s["intl"] = {"regions": [], "industries": []}
+            for g in s["segments"]:
+                g["leaders"] = [t for t in g.get("leaders", []) if is_us(t)]
+    return secs
 
 
 def thresholds(sector, segment):

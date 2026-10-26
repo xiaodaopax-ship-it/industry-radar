@@ -8,7 +8,7 @@ import statistics as st
 from . import heat, research, valuation
 from . import score as S
 from .yh import first_sentence
-from .classify import memberships, no_peg, profile, sectors, view
+from .classify import US_ONLY, is_us, memberships, no_peg, profile, sectors, view
 from .paths import CFG, DATA, ROOT, SITE, TEMPLATES, load
 
 
@@ -97,7 +97,8 @@ def build(raw):
     entries = []
     # a hand-picked leader is shown in the leader layer of its sector, never also as an emerging candidate there
     lead_by = {s["id"]: {t for g in s["segments"] for t in g.get("leaders", [])} for s in secs}
-    for r in raw["candidates"]:
+    cands = [r for r in raw["candidates"] if not US_ONLY or is_us(r["ticker"], r.get("market", "US"))]
+    for r in cands:
         mem, _ = memberships(r)
         mc = (r.get("mkt") or {}).get("mcap")
         mem = [m for m in mem if (not mc or mc <= m["mcap_max"]) and r["ticker"] not in lead_by[m["sector"]]]
@@ -200,8 +201,8 @@ def build(raw):
 
     data = {"heat": hm, "sector_names": sec_names, "val": val,
             "built_at": dt.datetime.now().strftime("%Y-%m-%d %H:%M"), "fetched_at": raw["fetched_at"], "periods": raw["periods"],
-            "fx": raw.get("fx"), "funnel": raw["funnel"], "form4_since": raw["form4_since"], "sectors": secs, "entries": out,
-            "overview": overview, "excluded": raw["excluded"], "notes": notes, "factor_cn": S.FACTOR_CN,
+            "fx": raw.get("fx"), "funnel": [f for f in raw["funnel"] if not US_ONLY or f["step"].startswith("美国")], "us_only": US_ONLY, "form4_since": raw["form4_since"], "sectors": secs, "entries": out,
+            "overview": overview, "excluded": [x for x in raw["excluded"] if not US_ONLY or "." not in (x.get("ticker") or "")], "notes": notes, "factor_cn": S.FACTOR_CN,
             "cfg": {"flags": CFG["flags"], "pool": CFG["pool"], "benchmark": CFG["market_benchmark"]}}
     with open(os.path.join(TEMPLATES, "dashboard.html"), encoding="utf-8") as f:
         tpl = f.read()

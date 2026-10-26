@@ -453,7 +453,7 @@
   <!-- ③ -->
   <section id="s3">
     <h2><span class="step-tag">③</span>龙头分析 · <span id="ldSegName"></span></h2>
-    <p class="lead">每个环节手动挑选的龙头（可以跨美股、台股、日股、韩股）。看它们的增长、利润率、估值、财报与预期，以及一年走势是否跑赢行业 ETF。</p>
+    <p class="lead">每个环节手动挑选的龙头（只含美国上市公司，TSM 等在美上市的 ADR 计入）。看它们的增长、利润率、估值、财报与预期，以及一年走势是否跑赢行业 ETF。</p>
     <div class="grid g4" id="leaders"></div>
     <h3>龙头评估卡</h3>
     <div id="ldCards"></div>
@@ -496,7 +496,7 @@
     <div class="grid g2">
       <div><h3>筛选漏斗</h3><table><tbody id="funnel"></tbody></table><h3>本行业已排除的公司</h3><table><tbody id="excl"></tbody></table></div>
       <div>
-        <p class="note">美国公司：营收、毛利、营业利润、净利润、股数、现金来自 SEC XBRL frames（金融类环节另取税前利润、股东权益、信用损失拨备和净利息收入；金融类龙头的这几项来自 Yahoo 财务时间序列）；行业代码、股票代码、Form 4 来自 SEC submissions。海外公司：股票池来自 Yahoo 行业筛选器，季度财务来自 Yahoo 财务时间序列，金额按当日汇率换算成美元；日本只有年度数据。股价、市值、EPS 实际与预期、一致预期、财报日、分析师人数来自 Yahoo Finance（非官方接口）。</p>
+        <p class="note">美国公司：营收、毛利、营业利润、净利润、股数、现金来自 SEC XBRL frames（金融类环节另取税前利润、股东权益、信用损失拨备和净利息收入；金融类龙头的这几项来自 Yahoo 财务时间序列）；行业代码、股票代码、Form 4 来自 SEC submissions。本看板只保留美国上市公司（config.json markets.us_only = true；台湾、日本、韩国、欧洲上市的公司不抓取也不显示，改回 false 可恢复）。在美上市的 ADR 若只交 20-F，部分财务来自 Yahoo 财务时间序列。股价、市值、EPS 实际与预期、一致预期、财报日、分析师人数来自 Yahoo Finance（非官方接口）。</p>
         <p class="note">研究优先池：先剔除周期性环节、缺市值、稀释超过 50%、亏损且现金不足 6 个季度、营收同比超过 300% 的公司，再按 10 个因子在本行业候选中的百分位排名取平均。权重相同，没有经过回测，只用来排研究顺序。</p>
         <div class="note" id="pegNote"></div>
         <div class="note" id="dcfNote">
@@ -1276,6 +1276,7 @@ function renderEmerging() {
   $("pool").innerHTML = pool.map(poolCard).join("") || `<p class="muted">没有公司通过门槛。</p>`;
   $("fSeg").innerHTML = `<option value="">全部</option>` + S().segments.map(g => `<option value="${g.id}" ${state.fSeg === g.id ? "selected" : ""}>${esc(g.name)}</option>`).join("");
   const mkts = [...new Set(em.map(e => e.market))];
+  $("fMkt").closest("label").hidden = mkts.length <= 1;  // US-only build: a one-option market filter is noise
   $("fMkt").innerHTML = `<option value="">全部</option>` + mkts.map(m => `<option ${state.fMkt === m ? "selected" : ""}>${esc(m)}</option>`).join("");
   const list = em.filter(e => (!state.fSeg || e.segment === state.fSeg) && (!state.fMkt || e.market === state.fMkt) && (!state.fLv || e.level === state.fLv) && (!state.hideCyc || !e.cyclical) && inPxBand(e))
     .sort((a, b) => { const x = val(a, state.sort), y = val(b, state.sort); if (x == null) return 1; if (y == null) return -1; return (x > y ? 1 : x < y ? -1 : 0) * state.dir; });
@@ -1831,7 +1832,7 @@ const PGCOLS = [
   ["dcf", "反向 DCF 隐含增速 vs 基准增速<div class=\"tier\">情景参考，不参与筛选</div>", 1, r => dcfSortImplied(r.e)],
   ["warn", "⚠ 数", 1, r => r.e.warn], ["level", "结论", 0, r => r.e.level], ["next", "下次财报", 0, r => r.e.mkt?.next_date || ""]];
 function renderPeg() {
-  $("pgLead").innerHTML = esc(`把所有行业里 PEG 符合条件的美股上市公司放在一起看（台股、日股、韩股不在这里；同一家公司在多个行业出现时只列一次）。` +
+  $("pgLead").innerHTML = esc(`把所有行业里 PEG 符合条件的美股上市公司放在一起看（同一家公司在多个行业出现时只列一次）。` +
     `"通过" = 前瞻 PEG 可靠且 ≤ ${D.cfg.flags.peg.good_max}，历史 PEG ≤ ${D.cfg.flags.peg.rich_min} 或因非负面原因算不出，并且没有背离提示；` +
     `"待核实" = 前瞻 PEG 可靠且 ≤ ${D.cfg.flags.peg.good_max}，但历史增速为负、历史 PEG 偏高或有背离。股价、目标价来自 ${D.fetched_at.slice(0, 10)} 的快照，不是实时报价。`);
   $("pgHead").innerHTML = PGCOLS.map(([k, t, n]) => `<th scope="col" class="${n ? "n" : ""}"><button type="button" data-k="${k}">${t}</button></th>`).join("");

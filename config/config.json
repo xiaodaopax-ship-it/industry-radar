@@ -26,6 +26,11 @@
     "exchanges": ["Nasdaq", "NYSE", "NYSE American"]
   },
 
+  "markets": {
+    "_readme": "us_only = true 时美股看板只保留美国上市公司（含 TSM 等在美上市的 ADR）：不再抓取台湾、日本、韩国、欧洲的候选和龙头，构建时也会过滤旧快照里的非美国条目。sectors.json 里的海外龙头和 intl 配置保留不动，改回 false 即恢复。",
+    "us_only": true
+  },
+
   "intl": {
     "_readme": "海外市场通过 Yahoo 筛选器取股票池、用 Yahoo 财务时间序列取季度数据。日本只有年度数据，按年度同比计算并标注。",
     "fx": {"TWD": "TWD=X", "JPY": "JPY=X", "KRW": "KRW=X", "HKD": "HKD=X", "EUR": "EURUSD=X"},
