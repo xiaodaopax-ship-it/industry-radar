@@ -5,7 +5,7 @@ import json
 import os
 import statistics as st
 
-from . import heat, research
+from . import heat, research, valuation
 from . import score as S
 from .yh import first_sentence
 from .classify import memberships, no_peg, profile, sectors, view
@@ -63,6 +63,29 @@ def _qual(rs):
     pos, neg, unk = rt.count("positive"), rt.count("negative"), rt.count("unknown")
     label = ("资料不足" if unk >= 3 else "偏正面" if pos - neg >= 2 else "偏负面" if neg - pos >= 2 else "中性")
     return {"label": label, "pos": pos, "neg": neg, "unknown": unk}
+
+
+def _valuation(tickers):
+    """Compact per-ticker valuation inputs + run metadata for the template (D.val). None when no valuation file exists."""
+    V = valuation.latest()
+    if not V:
+        return None
+    by = {}
+    for t in sorted(tickers):
+        v = V["by"].get(t)
+        if not v:
+            continue
+        fy = v.get("fy") or []
+        last = fy[-1] if fy else {}
+        tt = v.get("ttm")
+        by[t] = {"src": v.get("src"), "ccy": v.get("ccy"), "why": v.get("why"), "note": v.get("note"),
+                 "fy": [[r["end"], r["rev"], r["ocf"], r["capex"]] for r in fy],
+                 "tags": [last.get("ocf_tag"), last.get("capex_tag"), last.get("rev_tag")] if last else None,
+                 "ttm": [tt["end"], tt["rev"], tt["ocf"], tt["capex"], tt.get("how")] if tt else None,
+                 "rev_ttm": v.get("rev_ttm"), "rev_ttm_end": v.get("rev_ttm_end"), "ttm_yoy": v.get("ttm_yoy"), "cagr3": v.get("cagr3"),
+                 "bs": v.get("bs"), "sh": v.get("shares"), "sh_dil": v.get("shares_dil"), "no_capex": v.get("no_capex_tag"),
+                 "cons": v.get("cons"), "urls": v.get("urls"), "fetched": (v.get("fetched") or "")[:10]}
+    return {"fetched_at": V["fetched_at"], "rf": V.get("rf"), "defaults": CFG.get("valuation", {}).get("defaults"), "by": by}
 
 
 def build(raw):
@@ -171,7 +194,11 @@ def build(raw):
     hm = heat.summarize(heat.latest(), sector_sics)
     sec_names = {s["id"]: s["name"] for s in secs}
 
-    data = {"heat": hm, "sector_names": sec_names,
+    # ---- cash-flow valuation inputs (optional; needs `python -m radar valuation`). Display only: the page computes the
+    # scenario / reverse DCF in the browser; nothing here touches score, factors, level, PEG tiers or the basket score.
+    val = _valuation({e["ticker"] for e in out})
+
+    data = {"heat": hm, "sector_names": sec_names, "val": val,
             "built_at": dt.datetime.now().strftime("%Y-%m-%d %H:%M"), "fetched_at": raw["fetched_at"], "periods": raw["periods"],
             "fx": raw.get("fx"), "funnel": raw["funnel"], "form4_since": raw["form4_since"], "sectors": secs, "entries": out,
             "overview": overview, "excluded": raw["excluded"], "notes": notes, "factor_cn": S.FACTOR_CN,

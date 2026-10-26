@@ -6,6 +6,7 @@ and cross-checks 600519 / 300750 between independent Eastmoney reports. Exit cod
 import collections
 import datetime as dt
 import json
+import os
 import sys
 
 from . import em
@@ -272,6 +273,69 @@ def main():
               and em.num(per["HOLD_NUM"]) == mine["shares"], f"{per and per['HOLD_NUM']} vs {mine and mine['shares']}")
     else:
         check("holders file present (run python -m cn holders)", False)
+
+    print("\n[l] cash-flow valuation reference (display only): TTM, engine mirror, reverse DCF, inputs file")
+    from . import valuation as V
+    fys, ytd, ago = V.plan_periods("2026-06-30")
+    check("valuation.plan_periods 2026-06-30: FY2021..FY2025 + YTD 2026-06-30 vs 2025-06-30",
+          fys == [f"{y}-12-31" for y in range(2021, 2026)] and ytd == "2026-06-30" and ago == "2025-06-30", f"{fys} {ytd} {ago}")
+    check("valuation.plan_periods 2025-12-31: no YTD period", V.plan_periods("2025-12-31")[1:] == (None, None))
+    check("valuation.ttm: FY + YTD - YTD a year ago; fiscal-year fallback when a YTD value is missing",
+          V.ttm(100, 60, 50) == (110, "ttm") and V.ttm(100, None, 50) == (100, "fy") and V.ttm(None, 1, 1) == (None, None))
+    # constant growth (g0 == gT) => EV equals the Gordon value FCF_1 / (r - g) exactly
+    e = V.dcf_engine(1000.0, 0.1, 0.03, 0.03, 0.08, 50.0, 10.0)
+    close("dcf_engine: g0 == gT reduces to Gordon FCF1 / (r - g) (+ net cash) per share", e["vps"], (1000 * 1.03 * 0.1 / 0.05 + 50) / 10, 1e-9)
+    e2 = V.dcf_engine(1000.0, 0.1, 0.25, 0.02, 0.07, -30.0, 4.0)
+    rev, pv = 1000.0, 0.0
+    for t in range(1, 11):
+        rev *= 1 + 0.25 + (0.02 - 0.25) * (t - 1) / 9
+        pv += rev * 0.1 / 1.07 ** t
+    close("dcf_engine: 10-year linear fade + terminal value, hand-rolled loop", e2["vps"], (pv + rev * 0.1 * 1.02 / 0.05 / 1.07 ** 10 - 30) / 4, 1e-12)
+    rv = V.dcf_reverse(1000.0, 0.1, 0.02, 0.07, -30.0, 4.0, e2["vps"])
+    check("dcf_reverse: recovers g0 = 25% from its own price", rv["status"] == "ok" and abs(rv["g"] - 0.25) < 1e-9, str(rv))
+    check("dcf_reverse: no solution flagged (price above value at +100%, below at -30%)",
+          V.dcf_reverse(1000.0, 0.1, 0.02, 0.07, 0, 4.0, 1e9)["status"] == "above" and V.dcf_reverse(1000.0, 0.1, 0.02, 0.07, 0, 4.0, 1e-9)["status"] == "below")
+    mr = V.margin_required(1000.0, 0.25, 0.02, 0.07, -30.0, 4.0, e2["vps"])
+    close("margin_required: implied FCF margin at base growth == 10%", mr, 0.1, 1e-9)
+    Pp = {"rf": 1.6, **V.DCF_DEFAULTS}
+    syn = {"r0": 1000.0, "m": [0.05, 0.06, 0.08, 0.10, 0.12], "g3": 75.0, "cash": 100.0, "debt": 40.0, "sh": 10.0}
+    o = V.dcf_case(syn, 50.0, False, None, 300.0, Pp)
+    check("dcf_case: 3-year average margin, 3y CAGR capped to +40%, gT clamped to rf, bear < base < bull",
+          o["status"] == "ok" and abs(o["m0"] - 0.1) < 1e-12 and o["g0"] == 40 and o["capped"] and o["gT"] == 1.6
+          and o["vps"]["bear"] < o["vps"]["base"] < o["vps"]["bull"], json.dumps({k: o[k] for k in ("m0", "g0", "gT", "vps")}))
+    oc = V.dcf_case(syn, 50.0, True, 12.0, 300.0, Pp)
+    check("dcf_case: cyclical uses the 5-year average; consensus growth wins over the 3y CAGR",
+          abs(oc["m0"] - 0.082) < 1e-12 and oc["gsrc"] == "cons" and oc["g0"] == 12.0, f"{oc['m0']} {oc['gsrc']}")
+    on = V.dcf_case({**syn, "m": [None, None, -0.2, -0.1, 0.05], "g3": None}, 50.0, False, None, 30.0, Pp)
+    check("dcf_case: base margin <= 0 => negfcf (no scenarios, required margin only); YTD growth fallback",
+          on["status"] == "negfcf" and "vps" not in on and on["m_req"] > 0 and on["gsrc"] == "yoy" and on["g0"] == 30.0, str(on.get("m_req")))
+    check("dcf_case: r - gT <= 0.5pt => not computed; missing balance sheet / rf => N/A",
+          V.dcf_case(syn, 50.0, False, None, 30.0, {**Pp, "erp": 0.3})["why"] == "rg"
+          and V.dcf_case({**syn, "cash": None}, 50.0, False, None, 30.0, Pp)["why"] == "bal"
+          and V.dcf_case(syn, 50.0, False, None, 30.0, {**Pp, "rf": None})["why"] == "rf")
+    cg = V.consensus_growth({"org_num": 5, "eps": [{"year": 2025, "kind": "actual", "eps": 1.0}, {"year": 2026, "kind": "estimate", "eps": 1.0},
+                                                  {"year": 2027, "kind": "estimate", "eps": 1.2}, {"year": 2028, "kind": "estimate", "eps": 1.44}]}, "2026-06-30")
+    check("consensus_growth: 2026E -> 2028E CAGR 20%; < 3 institutions => None",
+          abs(cg["g"] - 20.0) < 1e-9 and cg["y0"] == 2026 and V.consensus_growth({"org_num": 2, "eps": []}, "2026-06-30")["g"] is None, str(cg))
+    vdoc, vpath = V.load_latest()
+    if vdoc:
+        its = vdoc.get("items") or {}
+        n = len(its)
+        n_ok = sum(1 for it in its.values() if (V.compact(it, vdoc, {}) or {}).get("r0") is not None and it.get("bal"))
+        check("valuation file: complete, rf (China 10y) present + field check ok, >= 95% of codes with TTM revenue + balance sheet",
+              vdoc.get("complete") and vdoc["rf"].get("value") is not None and vdoc["rf"].get("check") == "ok" and n > 1000 and n_ok / n >= 0.95,
+              f"{os.path.basename(vpath)} rf={vdoc['rf'].get('value')} ({vdoc['rf'].get('date')}) ok={n_ok}/{n}")
+        code = "300308" if "300308" in its else next(iter(its))
+        f10, okf = em.dc_report("RPT_F10_FINANCE_GCASHFLOW", "SECUCODE,REPORT_DATE,NETCASH_OPERATE,CONSTRUCT_LONG_ASSET",
+                                f"(SECUCODE=\"{em.secucode(code)}\")(REPORT_DATE='{vdoc['fiscal_years'][-1]}')", ttl=7, label=f"smoke f10 cf {code}")
+        a = f10[0] if f10 else {}
+        it = its[code]
+        check(f"valuation: {code} FY OCF / capex (market-wide DMSK) == per-code F10 RPT_F10_FINANCE_GCASHFLOW",
+              okf and a and em.num(a.get("NETCASH_OPERATE")) == it["ocf"][vdoc["fiscal_years"][-1]]
+              and em.num(a.get("CONSTRUCT_LONG_ASSET")) == it["capex"][vdoc["fiscal_years"][-1]],
+              f"{a.get('NETCASH_OPERATE')} / {a.get('CONSTRUCT_LONG_ASSET')}")
+    else:
+        check("valuation file present (run python -m cn valuation)", False)
 
     print("\n[robustness] failure handling")
     bad = em.financials("1900-01-01")

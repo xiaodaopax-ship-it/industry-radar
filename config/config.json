@@ -57,5 +57,11 @@
   },
 
   "form4": {"lookback_days": 180, "max_filings_per_company": 8},
+
+  "valuation": {
+    "_readme": "现金流估值（情景参考，只展示，不进评分、因子、结论、PEG 分层和对比池评分）。python -m radar valuation 取数：SEC companyfacts（经营现金流、资本开支、营收、现金、债务、股数）/ Yahoo 财务时间序列（海外）、Yahoo 一致预期营收、美国国债 10 年期收益率。下面是页面参数的默认值（百分数），用户可以在页面上改，改动只保存在本浏览器。",
+    "cache_days": 6,
+    "defaults": {"erp": 5.0, "gT": 2.5, "r_amp": 1.0, "g_amp": 30, "m_amp": 20, "roe_amp": 20, "g_cap": 40, "g_floor": -10, "min_analysts": 3}
+  },
   "cache_days": {"submissions": 7, "yahoo": 1}
 }

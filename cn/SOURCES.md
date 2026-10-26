@@ -267,6 +267,23 @@ PEG（评估卡参考项，规则与阈值在 `cn/cards.py` 的 `CARD_RULES["peg
 
 `holders_<ts>.json`：`fetched_at, today, periods[5], partial_periods[{period, n_reported, deadline}], deadlines, n_reported, reported{period: [codes]}, rules, fetch_rules, complete, failed, items{code: {rule_key: [{period, shares, float_pct, change_shares, status, n, rank, update, parts?}]}}, bonus{code: [{ex_date, bonus_it_per10, cash_per10}]}, bonus_ok, unmatched_top, src, http`。缓存 ttl：完整期 7 天、部分期 0.5 天；每次查询后写检查点；中断后重跑从缓存续上。
 
+## l. 现金流估值（情景参考）输入（`python -m cn valuation`，只展示）
+
+核验时间 2026-10-26。情景估值参考，不是目标价，不是买卖建议。**不进入** ④ 综合分、价值 / 博弈标签、warn_n 和对比池 bkScore；build 在 `analyze()` 之后才把紧凑输入挂到 ② 行（`r.dcf`）和评估卡（`c.dcf_g`），DCF 本身在页面 JS 里按用户参数计算（`dcfEngine` / `dcfReverse` / `dcfCase`），`cn/valuation.py` 有同逻辑的 Python 镜像（smoke 测试）。
+
+| 接口 | 参数 | 字段 → 用途 | 结果 |
+|---|---|---|---|
+| RPT_DMSK_FN_CASHFLOW（现金流量表摘要），全市场 | `(REPORT_DATE='…')`，FY2021–FY2025 + 2025-06-30 + 2026-06-30 | NETCASH_OPERATE 经营活动现金流量净额；CONSTRUCT_LONG_ASSET 购建固定资产、无形资产和其他长期资产支付的现金（正数 = 支出）→ FCF = 两者之差 | works：每期 5,511–5,604 家；② 筛选 1236 家中 FY2021 1,196 家（其余当时未上市），其余各期 1,236 |
+| RPT_DMSK_FN_INCOME（利润表摘要），全市场 | 同上 | TOTAL_OPERATE_INCOME 营业总收入 → TTM 营收、FCF 利润率、3 年营收 CAGR | works，覆盖同上 |
+| RPT_F10_FINANCE_GBALANCE，全市场 | `(REPORT_DATE='2026-06-30')(SECURITY_TYPE_CODE="058001001")` | MONETARYFUNDS + TRADE_FINASSET_NOTFVTPL（交易性金融资产；旧准则 TRADE_FINASSET 在 2026-06-30 全市场 0 家有值，若有也加上）= 现金；SHORT_LOAN + LONG_LOAN + BOND_PAYABLE + NONCURRENT_LIAB_1YEAR = 有息负债（缺项记 0；LEASE_LIAB 不计入，但一年内到期的非流动负债含一年内到期的租赁负债） | works：1236 / 1236 |
+| RPTA_WEB_TREASURYYIELD（中美国债收益率，data.eastmoney.com/cjsj/zmgzsyl.html） | `sortColumns=SOLAR_DATE&sortTypes=-1`，10 行 | EMM00166466 = 中国 10 年期国债收益率 %（EMM00588704 2 年、EMM00166462 5 年、EMM00166469 30 年、EMM01276014 10Y−2Y 利差；EMG… 为美债） | works：2026-10-23 1.64%。每次抓取核对 10 年 − 2 年 = EMM01276014（±0.005pt），失败时 `rf.check` 标出 |
+
+总股本 / 股价：快照 quotes 的 TOTAL_SHARES 与 CLOSE_PRICE（同一交易日）；总市值与 股价 × 总股本 相差 > 2% 时 `mcf` 标出（B / H 股）。TTM = FY2025 + 2026-06-30 年初至今 − 2025-06-30 年初至今（缺半年报时退回 FY2025，标 `rb="fy"`）。
+
+核验：300308 / 603986 的 FY2023–FY2025、2025-06-30、2026-06-30 经营现金流、购建长期资产、营业总收入与逐代码 F10 报表 RPT_F10_FINANCE_GCASHFLOW / RPT_F10_FINANCE_GINCOME 以及 emweb F10 页面接口 `PC_HSF10/NewFinanceAnalysis/xjllbAjaxNew` 逐项完全一致（smoke 每次复查 300308 的 FY 现金流）。DMSK 是首次披露口径，之后年报里的追溯调整不反映。一致预期增速代理 `consensus_growth()` 与前瞻 PEG 增速算法相同：23 张卡片全部一致。
+
+`valuation_<ts>.json`：`fetched_at, snap, latest, fiscal_years[5], ytd, ytd_ago, rules, complete, rf{value, date, y2, y5, y30, spread_10_2, source, url, page, check}, sources{report date: {ok, rows, codes, screen}}, items{code: {rev{date: CNY}, ocf{…}, capex{…}, bal{monetaryfunds, trade_finasset, trade_finasset_notfvtpl, short_loan, long_loan, bond_payable, noncurrent_liab_1year, lease_liab} | null}}, http`。约 170 次请求（15 次全市场分页查询 + 国债收益率 1 次）；已结束财年缓存 30 天，最新期 1 天，中断重跑从缓存续上。
+
 ---
 
 ## 请求量参考

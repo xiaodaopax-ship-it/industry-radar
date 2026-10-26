@@ -3,6 +3,8 @@
     python -m radar fetch    fetch live data, save a snapshot, build the site
     python -m radar build    rebuild the site from the latest snapshot (no network)
     python -m radar heat     market-wide industry heat map (all SEC filers grouped by SIC), then rebuild
+    python -m radar valuation  cash-flow valuation inputs (SEC companyfacts / Yahoo, 10y Treasury), resumable,
+                             then rebuild; display only (add --refresh to ignore the per-company cache)
     python -m radar research extract filing evidence (10-K, 8-K, XBRL R&D, Yahoo profile) for
                              research-priority pools, leaders and companies with research files
 """
@@ -22,6 +24,11 @@ def main():
         from .heat import collect
         from .build import build, latest_raw
         collect()
+        build(latest_raw())
+    elif cmd == "valuation":
+        from .valuation import run
+        from .build import build, latest_raw
+        run(refresh="--refresh" in sys.argv[2:])
         build(latest_raw())
     elif cmd == "research":
         from .research import run

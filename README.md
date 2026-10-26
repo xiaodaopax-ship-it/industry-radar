@@ -45,6 +45,7 @@ python -m radar fetch    # 抓取数据并生成 site/index.html（首次约 30~
 python -m radar build    # 只用最近一次快照重新生成页面，不联网，几秒钟
 python -m radar research # 为研究优先池、龙头和有调研文件的公司摘录申报原文（10-K、8-K、XBRL），然后重新生成页面
 python -m radar heat     # 抓取全市场行业热度（SEC，首次较慢，有缓存），然后重新生成页面
+python -m radar valuation # 现金流估值输入（SEC companyfacts / Yahoo、一致预期营收、10 年期国债），按公司缓存可续跑，约 10 分钟，然后重新生成页面
 ```
 
 然后用浏览器打开 `site/index.html`。
@@ -70,8 +71,11 @@ python -m cn build   # 离线生成 site/cn/index.html
 python -m cn cards   # 只重新抓取评估卡的个股资料（同一快照已抓过且没失败的字段直接复用）
 python -m cn ranges  # ② 全部筛选公司的 52 周前复权最高 / 最低，保存 data/cn/ranges_<ts>.json（串行、缓存 1 天、可续跑，约 1236 次请求，冷启动约 40 分钟）
 python -m cn holders # 跟踪机构（北向 HKSCC、汇金、证金、社保、养老）在前十大流通股东里最近 5 个季报期的持股，保存 data/cn/holders_<ts>.json（全市场按股东查询，约 140 次请求）
+python -m cn valuation # 现金流估值输入：近 5 个财年 + 半年报的经营现金流 / 资本开支 / 营收、最新资产负债表净现金、中国 10 年期国债收益率，保存 data/cn/valuation_<ts>.json（全市场查询，约 170 次请求）
 python -m cn.smoke   # 数据层自检
 ```
+
+现金流估值（情景参考，只展示，不计分）：评估卡有"现金流估值（情景参考）"块，对比池有"Base 估值 vs 现价""隐含增速"两列（也进 CSV）。在页面里计算：TTM 营收 × 历史平均 FCF 利润率（近 3 年；周期行业近 5 年），起始增速（评估卡用一致预期 EPS 年化增速作营收增速代理，否则近 3 年营收 CAGR，再否则年初至今同比，截断到 −10% ~ +40%）10 年线性衰减到永续增速，加净现金后除以总股本；熊 / 基准 / 牛三情景、反向 DCF（现价隐含的起始增速和 FCF 利润率）、折现率 × 永续增速敏感性表。⑤ 顶部"估值参数"可改无风险利率（默认取中国 10 年期国债收益率）、ERP、永续增速（不超过无风险利率）和情景幅度，立即重算，保存在浏览器（键 `industry-radar-dcf-cn-v1`）。基准 FCF 利润率 ≤ 0 的公司（② 筛选中过半）只显示"需要的 FCF 利润率"。情景估值参考，不是目标价，不是买卖建议；不进入任何评分、标签、⚠ 数或排序。
 
 机构动向（只展示，不计分）：② 筛选新增"机构"和"近 12 个月"（新进前十或增持 / 新进前十 / 增持 / 减持或跌出前十 / 最新期在前十）筛选，可与标签筛选组合（如 偏价值 + 香港中央结算 + 新进前十或增持）；② 表格和对比池有"机构动向"列，展开明细和评估卡有逐季持股表，③ 有"偏价值 × 机构动向"计数表（点数字套用 ② 筛选）。数据来自前十大流通股东（季报，披露有滞后）：香港中央结算有限公司是陆股通（北向）名义持有人，汇总所有境外投资者、含指数被动资金，不代表单一机构判断；掉出前十不等于清仓；早期股数已按送转调整。跟随机构持仓不是经过验证的选股信号，不是买卖建议。不进入任何评分、标签、⚠ 数或排序。
 
@@ -128,6 +132,15 @@ python -m cn.smoke   # 数据层自检
 - 背离（`d.peg_div`，评估卡里一行 ⚠，表格里 ⚠ 悬停看原因）：前瞻 ≤ `good_max` 而历史 EPS 增速 ≤ 0；前瞻 ≤ `good_max` 而历史 > `div_hist_rich`（2）；历史 ≤ `good_max` 而前瞻 > `div_hist_rich`；本财年预期 EPS 比上一财年实际（Yahoo `yearAgoEps`）低 `fy0_drop_pct`（10%）以上。
 - 用在哪里：判断用前瞻（PE TTM 口径）。只有前瞻可靠且 ≤ `good_max`、历史 ≤ `rich_min` 或因非负面原因算不出（不是增速 ≤ 0）、并且没有背离时，才算“偏便宜”（清单估值项 ✓、机会里写一条，高市销率也不再单独算偏贵）；前瞻 > `rich_min` 算偏贵（不变）；前瞻 ≤ `good_max` 但有背离时估值项为“·”，不下结论，并在“要验证”里加一个问题。金融类估值排序因子：可靠且没有背离的前瞻 PEG，否则市净率。没有一致预期时：日本等年度口径沿用历史 PEG 判断（不变），美股季度口径的历史 PEG 只作参考。标准口径的排序因子仍是增速调整后的市销率，不用 PEG。
 - 局限：Yahoo 一致预期是非官方汇总，常是调整后 EPS，而市盈率和历史增速用 GAAP 净利润；上一财年实际 EPS 也来自 Yahoo；frames 按日历季度对齐，非日历财年有错位，缺一季就算不出；GAAP 净利润含一次性项目（递延所得税资产确认等）；一年的增速噪声大。
+
+**现金流估值（情景参考，不是目标价，不是买卖建议）**
+
+评估卡里的“现金流估值”、PEG 筛选的“反向 DCF 隐含增速 vs 基准增速”列和对比池的“Base 估值 vs 现价”“隐含增速”列，**只展示，不进入评分、因子、结论、PEG 分层和对比池评分**。输入由 `python -m radar valuation` 取到 `data/valuation_<时间>.json`（每家公司缓存在 `data/cache/val/`，`valuation.cache_days` 天内不重取，中断后重跑会续上；`--refresh` 全部重取），`build` 自动读最新一份；计算在页面 JS 里（`dcfEngine`、`dcfReverse`、`riEngine`），参数在页面的“估值参数”里改，保存在 localStorage（键 `industry-radar-dcf-us-v1`），默认值在 `config.json` 的 `valuation.defaults`。
+
+- 数据：SEC 申报公司用 companyfacts：经营现金流 `NetCashProvidedByUsedInOperatingActivities`（缺时 `…ContinuingOperations`）、资本开支 `PaymentsToAcquirePropertyPlantAndEquipment`（缺时 `PaymentsToAcquireProductiveAssets`、`PaymentsForCapitalImprovements`），营收按 `revenue_tags`；最近 5 个财年 + TTM（上一财年 + 今年累计 − 去年同期累计）。现金 = `CashAndCashEquivalentsAtCarryingValue` + 短期投资（`ShortTermInvestments` / `MarketableSecuritiesCurrent` / `AvailableForSaleSecuritiesDebtSecuritiesCurrent`）；债务 = `LongTermDebt`（含一年内到期），缺时 `LongTermDebtNoncurrent + LongTermDebtCurrent`、`…AndCapitalLeaseObligations` 或可转债科目，加 `ShortTermBorrowings`（没有时 `CommercialPaper`），不含经营租赁。股数 = dei `EntityCommonStockSharesOutstanding`（缺时最近一季稀释加权股数），与“市值 ÷ 股价”差超过 25% 时（多类股、ADR）用后者。20-F / 40-F 申报人和海外公司用 Yahoo 财务时间序列（约 4 个财年，总债务减租赁负债），股数用市值 ÷ 股价，报表币种与股价币种不同时按页面汇率换算营收和净现金。一致预期营收：Yahoo `earningsTrend` 的 `revenueEstimate`（0y、+1y，含分析师人数）。无风险利率：美国财政部每日收益率曲线 CSV 的 10 年期（失败时 FRED `DGS10`；都失败时页面要求手动填写）。
+- FCF 折现：FCF = 经营现金流 − 资本开支；基准利润率 = 最近 3 个财年 FCF 利润率平均（周期环节 5 年）；基准起始增速 = 一致预期营收增速（≥ 3 家分析师；FY+1 vs FY0，或 FY0 vs 上一财年）→ 3 年营收 CAGR → TTM 同比，截断在 −10% ~ 40%；10 年内线性衰减到 gT，终值 = FCF₁₀ × (1 + gT) ÷ (r − gT)，股权价值 = EV + 净现金。r = 10 年期国债 + ERP（默认 5%）；gT 默认 2.5%，不超过无风险利率且比折现率低 0.5pt 以上。情景：r ±1pt、增速 ±|g0| × 30%、利润率 ±20%。反向 DCF：二分法求现价隐含的起始增速（−30% ~ 100%），以及基准增速下隐含的 FCF 利润率；FCF 利润率 ≤ 0 时只给“需要的 FCF 利润率”。敏感性：r ±2pt × gT ±1pt。
+- 金融口径（`profile = financial`）：剩余收益法，合理市净率 = (ROE − gT) ÷ (r − gT)，ROE ±20%、r ∓1pt；反向给现价对应的 ROE。权益 REIT 不估值（需 FFO / AFFO）。
+- 局限：对折现率和永续增速非常敏感；利润率用历史平均，商业模式或资本开支周期变化时误差大；股权激励没有扣除；一年的一致预期被当作 10 年路径的起点；没有回测。
 
 **金融类评估口径**
 

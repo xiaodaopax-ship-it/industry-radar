@@ -4,7 +4,8 @@
     python -m cn cards   per-stock extras for the evaluation cards, save data/cn/cards_<ts>.json
     python -m cn ranges  52-week qfq high / low for the screen rows, save data/cn/ranges_<ts>.json (optional: N codes)
     python -m cn holders tracked holders in the top-10 float holders, last 5 report dates, save data/cn/holders_<ts>.json
-    python -m cn build   render site/cn/index.html from the latest snapshot + cards + ranges + holders files (offline)
+    python -m cn valuation  现金流估值 inputs (cash flow, revenue, net cash, China 10y yield), save data/cn/valuation_<ts>.json
+    python -m cn build   render site/cn/index.html from the latest snapshot + cards + ranges + holders + valuation files (offline)
     python -m cn.smoke   data-layer smoke test
 """
 import sys
@@ -26,6 +27,10 @@ def main():
     elif cmd == "holders":
         from .holders import fetch_holders
         if not fetch_holders():
+            sys.exit(1)
+    elif cmd == "valuation":
+        from .valuation import fetch_valuation
+        if not fetch_valuation():
             sys.exit(1)
     elif cmd == "build":
         from .build import build

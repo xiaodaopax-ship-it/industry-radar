@@ -602,6 +602,16 @@ def build(path=None):
     payload["cards"] = cardmod.card_payload(snap, res, cdoc, RULES)
     for c in payload["cards"]:
         c["inst"] = {k: hmod.compact(v) for k, v in hmod.derive_code(hdoc, c["code"]).items()}
+    # 现金流估值 inputs: attached AFTER analyze(), display only (never in any score / label / rank / bkScore);
+    # the scenario DCF itself is computed in the page so the user can change the parameters
+    from . import valuation as vmod
+    vdoc, vpath = vmod.load_latest()
+    if vdoc and vdoc.get("snap") != os.path.basename(path):
+        log(f"NOTE: {os.path.basename(vpath)} was fetched for {vdoc.get('snap')}, not {os.path.basename(path)}")
+    vmod.attach(res["screen"], vdoc, snap)
+    for c in payload["cards"]:
+        c["dcf_g"] = vmod.consensus_growth(c.get("consensus"), snap["periods"]["latest"])
+    payload["dcf_meta"] = vmod.meta(vdoc, vpath, res["screen"], payload["cards"])
     have = set((cdoc or {}).get("cards", {}))
     payload["cards_meta"] = {"file": os.path.basename(cpath) if cpath else None, "fetched_at": (cdoc or {}).get("fetched_at"),
                              "snap": (cdoc or {}).get("snap"), "rules": cardmod.CARD_RULES,
@@ -640,4 +650,16 @@ def build(path=None):
                 f"| value-label: in_latest={b['in_latest']} new={b['new']} up={b['up']} new_or_up={b['new'] + b['up']}")
     else:
         log("holders: no data/cn/holders_*.json (run `python -m cn holders`); 机构动向 column empty")
+    vm = payload["dcf_meta"]
+    if vm.get("file"):
+        card_codes_ = {c["code"] for c in ct}
+        crow = [r for r in res["screen"] if r["code"] in card_codes_]
+        bm = lambda r: vmod.base_margin(r["dcf"]["m"], r["cyclical"])[0] if r.get("dcf") else None
+        neg = lambda rows: sum(1 for r in rows if bm(r) is not None and bm(r) <= 0)
+        m3 = lambda rows: sum(1 for r in rows if r.get("dcf") and sum(1 for m in r["dcf"]["m"][-3:] if m is not None) == 3)
+        log(f"valuation: {vm['file']} rf={vm['rf']['value']} ({vm['rf']['date']}); screen ttm_rev={vm['n_r0']}/{vm['n_screen']} "
+            f"fcf_3y={m3(res['screen'])} balance={vm['n_bal']} base_margin<=0={neg(res['screen'])}; cards fcf_3y={m3(crow)}/{len(ct)} "
+            f"base_margin<=0={neg(crow)} consensus_growth={vm['n_cons']}")
+    else:
+        log("valuation: no data/cn/valuation_*.json (run `python -m cn valuation`); 现金流估值 shows N/A")
     return out
