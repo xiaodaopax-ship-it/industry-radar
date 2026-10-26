@@ -161,6 +161,14 @@
   .rule ul { margin:4px 0; padding-left:18px; } .rule li { margin:3px 0; }
   /* 现金流估值（情景参考）: parameter panel + card block */
   .dcfp { margin:0 0 12px; } .dcfp h3 { margin:0 0 4px; font-size:14px; }
+  /* 价格轴 (display only): 52-week range, current price, scenario value per share, target median on one axis */
+  .pax { margin:0 0 12px; max-width:720px; } .pax svg { display:block; width:100%; height:auto; } .pax .pax-n { display:none; }
+  @media (max-width:640px) { .pax .pax-w { display:none; } .pax .pax-n { display:block; } }
+  .pax text { font-size:12px; } .pax .t-p { fill:var(--accent); font-weight:600; } .pax .t-tg { fill:#f0a030; } .pax .t-r { fill:var(--muted); }
+  .pax .t-bear { fill:var(--neg); } .pax .t-base { fill:var(--text); font-weight:700; } .pax .t-bull { fill:var(--pos); }
+  .pax .pax-ax { stroke:var(--line); } .pax .pax-52 { stroke:#4b5667; } .pax .pax-band { fill:var(--accent); fill-opacity:.11; } .pax .pax-ln { stroke:var(--line2); }
+  .pax .pax-p { fill:#37c6e0; stroke:var(--panel); stroke-width:1.5; } .pax .m-bear { fill:var(--neg); } .pax .m-bull { fill:var(--pos); }
+  .pax .m-base { fill:var(--text); stroke:var(--accent); stroke-width:1.5; } .pax .pax-cap { margin-top:2px; }
   .dcf-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:8px 14px; margin:8px 0; }
   .dcf-f label { display:block; font-size:12.5px; color:var(--text); }
   .dcf-f input { width:92px; margin-right:4px; } .dcf-f input[aria-invalid=true] { border-color:var(--neg); }
@@ -1525,9 +1533,81 @@ function dcfSensTable(o) {
   return `<table class="dcf-sens"><thead>${head}</thead><tbody>${body}</tbody></table>
     <div class="small">基准情景每股价值（元），g0 ${dF(o.g0)}%、m0 ${dcfPct(o.m0 * 100)} 不变；框 = 当前参数；“—” = r − gT ≤ 0.5pt 不计算；* = 永续增速高于无风险利率，只作敏感性展示。</div>`;
 }
+// ---------- 价格轴（display only, never scored）: 52-week range, current price, scenario value per share and the analyst target
+// median on one horizontal axis. A scenario point > PAX_CLIP x price (and beyond every other point) or <= 0 is pinned to the axis
+// edge with an arrow so the rest stays readable. S = {price, lo, hi, tgt, tgtLbl, tgtCap, sc: [{k, v}], L: {bear, base, bull}, method, note}
+const PAX_CLIP = 2.5, PAX_K = ["bear", "base", "bull"];
+const paxTw = (s, fs) => [...s].reduce((a, ch) => a + (ch.codePointAt(0) > 0x2e7f ? fs : fs * 0.6), 0);
+function paxSvg(Z, W, fs, cls, aria) {
+  const {p, has52, lo, hi, tgt, sc, L, tgtLbl} = Z, f = v => num(v, 2);
+  const vals = [p, has52 ? lo : null, has52 ? hi : null, tgt].filter(v => v != null).concat(sc.filter(s => !s.clip).map(s => s.v));
+  let a = Math.min(...vals), b = Math.max(...vals); const pad = (b - a) * 0.05 || Math.abs(a) * 0.05 || 1; a -= pad; b += pad;
+  const M = 14, nl = sc.filter(s => s.clip === "lo").length, nh = sc.filter(s => s.clip === "hi").length;
+  const x0 = M + (nl ? 26 + 10 * (nl - 1) : 0), x1 = W - M - (nh ? 26 + 10 * (nh - 1) : 0), X = v => x0 + (x1 - x0) * (v - a) / (b - a);
+  // clipped points: stacked 10px apart at the edge, the most extreme one outermost
+  sc.filter(s => s.clip === "hi").sort((u, w) => u.v - w.v).forEach((s, i) => { s.px = W - M - (nh - 1 - i) * 10; });
+  sc.filter(s => s.clip === "lo").sort((u, w) => u.v - w.v).forEach((s, i) => { s.px = M + i * 10; });
+  sc.forEach(s => { if (!s.clip) s.px = X(s.v); });
+  // labels: side 0 = above the axis (price, target, 52-week ends), side 1 = below (scenarios); a label that would overlap one
+  // already placed on the same side moves one row further out
+  const lab = [];
+  if (p != null) lab.push({x: X(p), side: 0, t: `现价 ${f(p)}`, c: "t-p"});
+  if (tgt != null) lab.push({x: X(tgt), side: 0, t: `${tgtLbl} ${f(tgt)}`, c: "t-tg"});
+  if (has52) lab.push({x: X(lo), side: 0, t: f(lo), c: "t-r"}, {x: X(hi), side: 0, t: f(hi), c: "t-r"});
+  ["base", "bear", "bull"].forEach(k => { const s = sc.find(z => z.k === k); if (!s) return;
+    lab.push({x: s.px, side: 1, t: s.clip === "hi" ? `${L[k]} ${f(s.v)} →` : s.clip === "lo" ? `← ${L[k]} ≤0` : `${L[k]} ${f(s.v)}`, c: "t-" + k}); });
+  const rows = [[], []];
+  lab.forEach(l => { const w = paxTw(l.t, fs); l.cx = Math.max(w / 2 + 2, Math.min(W - w / 2 - 2, l.x));
+    const u = l.cx - w / 2 - 5, v = l.cx + w / 2 + 5, R = rows[l.side]; let r = 0;
+    while (R[r] && R[r].some(([s, e]) => u < e && v > s)) r++;
+    (R[r] = R[r] || []).push([u, v]); l.r = r; });
+  const rh = fs + 4, tr = Math.max(1, rows[0].length), br = rows[1].length, ay = 6 + tr * rh + 10, H = ay + 10 + br * rh + (br ? 6 : 4);
+  const ty = l => l.side ? ay + 10 + fs + l.r * rh : ay - 12 - l.r * rh, r1 = v => v.toFixed(1);
+  let g = `<line class="pax-ax" x1="${M}" x2="${W - M}" y1="${ay}" y2="${ay}" stroke-width="1"/>`;
+  if (sc.length >= 2) { const xa = Math.min(...sc.map(s => s.px)), xb = Math.max(...sc.map(s => s.px));
+    g += `<rect class="pax-band" x="${r1(xa)}" y="${ay - 9}" width="${r1(Math.max(1, xb - xa))}" height="18" rx="3"/>`; }
+  if (has52) g += `<line class="pax-52" x1="${r1(X(lo))}" x2="${r1(X(hi))}" y1="${ay}" y2="${ay}" stroke-width="6" stroke-linecap="round"/>`;
+  if (tgt != null) g += `<line x1="${r1(X(tgt))}" x2="${r1(X(tgt))}" y1="${ay - 11}" y2="${ay + 11}" stroke="#f0a030" stroke-width="2"/>`;
+  ["bear", "bull", "base"].forEach(k => { const s = sc.find(z => z.k === k); if (!s) return; const x = s.px, y = ay;
+    if (s.clip === "hi") g += `<polygon class="m-${k}" points="${r1(x - 9)},${y - 6} ${r1(x)},${y} ${r1(x - 9)},${y + 6}"/>`;
+    else if (s.clip === "lo") g += `<polygon class="m-${k}" points="${r1(x + 9)},${y - 6} ${r1(x)},${y} ${r1(x + 9)},${y + 6}"/>`;
+    else { const d = k === "base" ? 7 : 5; g += `<polygon class="m-${k}" points="${r1(x)},${y - d} ${r1(x + d)},${y} ${r1(x)},${y + d} ${r1(x - d)},${y}"/>`; } });
+  if (p != null) g += `<circle class="pax-p" cx="${r1(X(p))}" cy="${ay}" r="5.5"/>`;
+  lab.forEach(l => { const y = ty(l);
+    if (l.r > 0) g += `<line class="pax-ln" x1="${r1(l.x)}" x2="${r1(l.cx)}" y1="${l.side ? ay + 8 : ay - 8}" y2="${l.side ? y - fs + 1 : y + 3}" stroke-width="1"/>`;
+    g += `<text class="${l.c}" x="${r1(l.cx)}" y="${y}" text-anchor="middle">${esc(l.t)}</text>`; });
+  return `<svg class="${cls}" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(aria)}">${g}</svg>`;
+}
+function paxHtml(S) {
+  const f = v => num(v, 2), p = S.price != null && S.price > 0 ? S.price : null, has52 = S.lo != null && S.hi != null && S.hi > S.lo;
+  const tgt = S.tgt != null && S.tgt > 0 ? S.tgt : null, L = S.L;
+  const sc = PAX_K.map(k => (S.sc || []).find(s => s.k === k)).filter(s => s && s.v != null && isFinite(s.v)).map(s => ({k: s.k, v: s.v}));
+  const top = Math.max(-Infinity, p ?? -Infinity, has52 ? S.hi : -Infinity, tgt ?? -Infinity, ...sc.filter(s => s.v > 0 && !(p && s.v > PAX_CLIP * p)).map(s => s.v));
+  sc.forEach(s => { s.clip = s.v <= 0 ? "lo" : p && s.v > PAX_CLIP * p && s.v > top ? "hi" : ""; });
+  const note = S.note ? `<div class="small">${esc(S.note)}</div>` : "";
+  if (p == null && !has52 && !sc.some(s => !s.clip)) return `<div class="pax"><div class="small muted">价格轴：缺股价和 52 周数据，不画</div>${note}</div>`;
+  const aria = [p != null ? `现价 ${f(p)}` : "", sc.map(s => `${L[s.k]} ${f(s.v)}`).join("，"), has52 ? `52 周 ${f(S.lo)}–${f(S.hi)}` : "无 52 周数据",
+    tgt != null ? `${S.tgtLbl} ${f(tgt)}` : ""].filter(Boolean).join("；");
+  const Z = {p, has52, lo: S.lo, hi: S.hi, tgt, L, tgtLbl: S.tgtLbl};
+  const cap = [has52 ? "灰条 = 52 周区间" : "", p != null ? "蓝点 = 现价" : "",
+    sc.length ? `◆ = ${PAX_K.map(k => L[k]).join(" / ")} 情景每股价值（${S.method ? S.method + "，" : ""}模型按假设折现得到，不是目标价、不是预测）` : "",
+    tgt != null ? `橙线 = ${S.tgtCap}` : ""].filter(Boolean).join("；") + "。" + (sc.length && p != null ? "点在现价右边 = 该情景下估值高于现价。" : "");
+  const cl = sc.filter(s => s.clip);
+  const clip = cl.length ? `箭头 = 超出轴范围、钉在轴端的情景点（高于现价 ${PAX_CLIP} 倍或 ≤ 0）：${cl.map(s => `${L[s.k]} ${f(s.v)}`).join("，")}。` : "";
+  return `<div class="pax">${paxSvg({...Z, sc: sc.map(s => ({...s}))}, 720, 12, "pax-w", aria)}${paxSvg({...Z, sc: sc.map(s => ({...s}))}, 400, 12, "pax-n", aria)}
+    <div class="small pax-cap">${esc(cap)}${clip ? " " + esc(clip) : ""}${has52 ? "" : " 无 52 周数据。"}</div>${note}</div>`;
+}
+function dcfAxis(c, o) {
+  const x = rngOk(c.range) ? c.range : rngOk(BYCODE[c.code]) ? BYCODE[c.code] : null, t = c.target || {};
+  const S = {price: o.price ?? (c.range && c.range.price), lo: x ? x.rng.lo52 : null, hi: x ? x.rng.hi52 : null, tgt: t.median ?? null,
+    tgtLbl: "机构目标价中位数", tgtCap: `机构目标价中位数（${t.n ?? "—"} 家，卖方观点）`, L: {bear: "熊", base: "基准", bull: "牛"}};
+  if (o.status === "ok") S.sc = PAX_K.map(k => ({k, v: o.sc[k].vps}));
+  else S.note = o.status === "negfcf" ? "基准 FCF 利润率 ≤ 0，无情景估值点；见下方“需要的 FCF 利润率”" : `不计算：${DCF_WHY[o.why] || o.why || "无数据"}；无情景估值点`;
+  return paxHtml(S);
+}
 function dcfCardInner(c) {
   const r = BYCODE[c.code], o = dcfOf(c.code), d = o.d, fy = VM.fy || [];
-  const head = `<p class="dcf-disc">${esc(DCF_DISC)} · <a href="#dcfPanel">修改估值参数</a></p>`;
+  const head = `<p class="dcf-disc">${esc(DCF_DISC)} · <a href="#dcfPanel">修改估值参数</a></p>` + dcfAxis(c, o);   // axis re-renders with [data-dcfc]
   if (!d) return head + `<div class="small muted">${esc(DCF_WHY[o.why] || "无数据")}</div>`;
   const nWin = o.cyc ? 5 : 3, last = fy[fy.length - 1];
   const mcells = (d.m || []).map((v, i) => `<span class="${i >= d.m.length - nWin ? "" : "muted"}">FY${esc(fy[i])} ${v == null ? "—" : num(v * 100, 1) + "%"}</span>`).join(" · ");
