@@ -7,6 +7,7 @@ import collections
 import datetime as dt
 import json
 import os
+import shutil
 import sys
 
 from . import em
@@ -36,6 +37,9 @@ def close(name, a, b, tol):
 
 
 def main():
+    # check details may contain characters the console code page lacks (e.g. U+2212 on GBK): never crash on printing
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="backslashreplace")
     today = dt.date.today()
     print(f"cn smoke test, today={today}")
 
@@ -306,8 +310,8 @@ def main():
     oc = V.dcf_case(syn, 50.0, True, 12.0, 300.0, Pp)
     check("dcf_case: cyclical uses the 5-year average; consensus growth wins over the 3y CAGR",
           abs(oc["m0"] - 0.082) < 1e-12 and oc["gsrc"] == "cons" and oc["g0"] == 12.0, f"{oc['m0']} {oc['gsrc']}")
-    on = V.dcf_case({**syn, "m": [None, None, -0.2, -0.1, 0.05], "g3": None}, 50.0, False, None, 30.0, Pp)
-    check("dcf_case: base margin <= 0 => negfcf (no scenarios, required margin only); YTD growth fallback",
+    on = V.dcf_case({**syn, "m": [None, None, -0.2, -0.1, 0.05], "g3": None}, 50.0, False, None, 30.0, {**Pp, "basis": "avg3"})
+    check("dcf_case (basis avg3): base margin <= 0 => negfcf (no scenarios, required margin only); YTD growth fallback",
           on["status"] == "negfcf" and "vps" not in on and on["m_req"] > 0 and on["gsrc"] == "yoy" and on["g0"] == 30.0, str(on.get("m_req")))
     check("dcf_case: r - gT <= 0.5pt => not computed; missing balance sheet / rf => N/A",
           V.dcf_case(syn, 50.0, False, None, 30.0, {**Pp, "erp": 0.3})["why"] == "rg"
@@ -337,6 +341,123 @@ def main():
     else:
         check("valuation file present (run python -m cn valuation)", False)
 
+    print("\n[m] FCF margin basis (FCF 利润率口径): auto / avg3 / fy / ttm / ramp, one-off guard, ramp math, fallback")
+    CB = V.choose_basis
+    mr_ = [0.02, 0.03, 0.04, 0.06, 0.08]          # rising FY-2 < FY-1 < FY0, avg3 = 0.06
+    mn_ = [-0.3, -0.5, -0.4, -0.2, -0.05]         # avg3 = -0.2167 <= 0, FY0 > FY-1 (improving)
+    b = CB(mr_, 0.15, False, "auto")
+    check("choose_basis auto: TTM exists, not guarded, TTM > avg3, FY-2 < FY-1 < FY0 => ttm",
+          b["used"] == "ttm" and b["m0"] == 0.15 and b["m_end"] == 0.15 and b["why"] == "auto_ttm" and abs(b["avg"] - 0.06) < 1e-12 and b["path"] is None, str(b))
+    check("choose_basis auto: TTM <= avg3 / FY not rising / no TTM => avg3 (ttm_block low / trend / missing, ramp_block avg_pos)",
+          [CB(mr_, t, False, "auto")["ttm_block"] for t in (0.05, None)] == ["low", "missing"]
+          and CB([0.02, 0.03, 0.09, 0.06, 0.08], 0.15, False, "auto")["ttm_block"] == "trend"
+          and CB([0.02, 0.03, None, 0.06, 0.08], 0.15, False, "auto")["ttm_block"] == "trend"
+          and all(CB(mr_, t, False, "auto")["used"] == "avg3" and CB(mr_, t, False, "auto")["ramp_block"] == "avg_pos" for t in (0.05, None)))
+    b = CB(mn_, None, False, "auto")
+    check("choose_basis auto: avg3 <= 0 and FY0 > FY-1 => ramp from FY0 (no TTM); avg3 <= 0 but not improving => avg3 (negfcf)",
+          b["used"] == "ramp" and b["why"] == "auto_ramp" and b["start"] == -0.05 and b["start_src"] == "fy" and b["m_end"] == 0.15
+          and CB([-0.3, -0.5, -0.1, -0.2, -0.25], None, False, "auto")["used"] == "avg3"
+          and CB([-0.3, -0.5, -0.1, -0.2, -0.25], None, False, "auto")["ramp_block"] == "not_improving", str(b))
+    b = CB([-0.3, -0.5, -0.1, -0.2, -0.05], 0.02, False, "auto")
+    check("choose_basis auto: ramp starts from TTM when TTM is usable (TTM 2% > avg3 but FY-2 < FY-1 < FY0 fails => ramp from TTM)",
+          b["used"] == "ramp" and b["start"] == 0.02 and b["start_src"] == "ttm" and b["ttm_block"] == "trend", str(b))
+    check("choose_basis auto: cyclical => multi-year average, never TTM or ramp (even when both rules would fire)",
+          all(CB(m_, t, True, "auto")["used"] == "avg3" and CB(m_, t, True, "auto")["why"] == "auto_cyc" for m_, t in ((mr_, 0.15), (mn_, None), (mn_, 0.5)))
+          and abs(CB(mr_, 0.15, True, "auto")["m0"] - 0.046) < 1e-12)
+    check("choose_basis fy / ttm / ramp / avg3: chosen basis used; missing => avg3 fallback (fb_fy / fb_ttm / fb_ramp)",
+          CB(mr_, 0.15, False, "fy")["m0"] == 0.08 and CB(mr_, 0.15, True, "ttm")["m0"] == 0.15 and CB(mr_, 0.15, False, "avg3")["why"] == "user"
+          and CB(mr_, None, False, "ramp", N=4, T=0.2)["used"] == "ramp" and CB(mr_, None, False, "ramp", N=4, T=0.2)["path"][3] == 0.2
+          and CB([0.02, 0.03, 0.04, 0.06, None], 0.15, False, "fy")["why"] == "fb_fy"
+          and abs(CB([0.02, 0.03, 0.04, 0.06, None], 0.15, False, "fy")["m0"] - 0.05) < 1e-12
+          and CB(mr_, None, False, "ttm")["why"] == "fb_ttm" and abs(CB(mr_, None, False, "ttm")["m0"] - 0.06) < 1e-12
+          and CB([0.02, 0.03, 0.04, 0.06, None], None, False, "ramp")["why"] == "fb_ramp"
+          and CB([0.02, 0.03, 0.04, 0.06, None], 0.1, False, "ramp", guard=[{"k": "a"}])["why"] == "fb_ramp")
+    check("choose_basis avg3 == base_margin (previous behaviour), cyclical and non-cyclical; margin_basis alias",
+          all(CB(m_, 0.3, cy, "avg3")["m0"] == V.base_margin(m_, cy)[0] for m_ in (mr_, mn_, syn["m"], [None, 0.1, None, -0.2, 0.05]) for cy in (False, True))
+          and V.margin_basis(mr_, 0.15, False, "auto")["used"] == "ttm")
+    # one-off guard (a) TTM revenue > 1.5 x FY revenue, (b) YTD revenue > FY revenue, (c) consensus EPS next year < 0.7 x this year
+    dg = {"r0": 100.0, "rb": "ttm", "ry": 90.0, "rh": 50.0}
+    ga = V.one_off_guard({**dg, "r0": 140.0})
+    gb = V.one_off_guard({**dg, "rh": 95.0})
+    cons_ = lambda e0, e1, org=5: {"org_num": org, "eps": [{"year": 2026, "kind": "estimate", "eps": e0}, {"year": 2027, "kind": "estimate", "eps": e1}]}
+    dr_ = V.eps_drop(cons_(7.68, 1.25), "2026-06-30")
+    check("one_off_guard: none / (a) TTM rev 140 > 1.5 x 90 only on a TTM basis / (b) YTD 95 > FY 90 / (c) EPS 7.68 -> 1.25",
+          V.one_off_guard(dg) == [] and [g["k"] for g in V.one_off_guard({**dg, "r0": 136.0})] == ["a"] and [g["k"] for g in ga] == ["a"]
+          and V.one_off_guard({**dg, "r0": 140.0, "rb": "fy"}) == [] and [g["k"] for g in gb] == ["b"]
+          and [g["k"] for g in V.one_off_guard(dg, dr_)] == ["c"] and V.one_off_guard(dg, None) == [], f"{ga} {gb} {dr_}")
+    check("eps_drop: hit when next year < 0.7 x current-year estimate; None with < 3 institutions or an estimate <= 0; 0.75 ratio => no hit",
+          dr_["hit"] and dr_["y0"] == 2026 and dr_["y1"] == 2027 and V.eps_drop(cons_(7.68, 1.25, 2), "2026-06-30") is None
+          and V.eps_drop(cons_(1.0, -0.1), "2026-06-30") is None and V.eps_drop(cons_(1.0, 0.75), "2026-06-30")["hit"] is False
+          and V.eps_drop(cons_(1.0, 0.69), "2026-06-30")["hit"] is True, str(dr_))
+    b = CB(mr_, 0.15, False, "auto", ga)
+    check("guard blocks TTM under auto (ttm_block guard) and as the ramp start (start = FY0); under basis ttm it is still used and flagged",
+          b["used"] == "avg3" and b["ttm_block"] == "guard" and CB(mn_, 0.5, False, "auto", ga)["start_src"] == "fy"
+          and CB(mn_, 0.5, False, "auto", ga)["start"] == -0.05 and CB(mr_, 0.15, False, "ttm", ga)["used"] == "ttm"
+          and CB(mr_, 0.15, False, "ttm", ga)["guard"] == ga, str(b))
+    # ramp math
+    pth = V.margin_path(-0.05, 0.15, 5)
+    check("margin_path: m_t = start + (T - start) x min(t / N, 1): -5% -> 15% in 5 years = -1, 3, 7, 11, 15, 15 ... 15%",
+          all(abs(a_ - b_) < 1e-12 for a_, b_ in zip(pth, [-0.01, 0.03, 0.07, 0.11, 0.15] + [0.15] * 5)) and len(pth) == 10
+          and abs(V.margin_path(0.0, 0.1, 10)[4] - 0.05) < 1e-12 and V.margin_path(0.2, 0.1, 1) == [0.1] * 10, str(pth))
+    rev, pv = 1000.0, 0.0
+    for t in range(1, 11):
+        rev *= 1 + 0.2 + (0.02 - 0.2) * (t - 1) / 9
+        pv += rev * pth[t - 1] / 1.08 ** t
+    ep = V.dcf_engine(1000.0, pth, 0.2, 0.02, 0.08, 50.0, 10.0)
+    close("dcf_engine with a ramp path: hand-rolled loop, terminal uses m_10", ep["vps"], (pv + rev * 0.15 * 1.02 / 0.06 / 1.08 ** 10 + 50) / 10, 1e-12)
+    rq = V.ramp_required(1000.0, -0.05, 5, 0.2, 0.02, 0.08, 50.0, 10.0, ep["vps"])
+    rvp = V.dcf_reverse(1000.0, pth, 0.02, 0.08, 50.0, 10.0, ep["vps"])
+    check("ramp_required recovers T = 15% from its own price; reverse DCF with the path fixed recovers g0 = 20%",
+          abs(rq - 0.15) < 1e-9 and rvp["status"] == "ok" and abs(rvp["g"] - 0.2) < 1e-9, f"{rq} {rvp}")
+    sr = {**syn, "m": mn_, "mt": None, "g3": 20.0}
+    orp = V.dcf_case(sr, 50.0, False, None, 30.0, Pp)
+    gT_ = min(Pp["gT"], Pp["rf"]) / 100
+    rb_ = (Pp["rf"] + Pp["erp"]) / 100
+    exp = {k: V.dcf_engine(1000.0, V.margin_path(-0.05, 0.15 * f, 5), g / 100, gT_, r_ / 100, 60.0, 10.0)["vps"]
+           for k, f, g, r_ in (("bear", 0.8, 14.0, rb_ * 100 + 1), ("base", 1.0, 20.0, rb_ * 100), ("bull", 1.2, 26.0, rb_ * 100 - 1))}
+    check("dcf_case auto => ramp (default N 5, T 15%): ok (was negfcf under avg3); bear / bull = T x (1 -/+ 20%), r / g0 scenarios unchanged",
+          orp["status"] == "ok" and orp["mb"]["used"] == "ramp" and V.dcf_case(sr, 50.0, False, None, 30.0, {**Pp, "basis": "avg3"})["status"] == "negfcf"
+          and all(abs(orp["vps"][k] - exp[k]) < 1e-9 for k in exp) and abs(orp["path"][4] - 0.15) < 1e-12
+          and abs(orp["m_req"] - V.ramp_required(1000.0, -0.05, 5, 0.2, gT_, rb_, 60.0, 10.0, 50.0)) < 1e-12, json.dumps(orp.get("vps")))
+    on_ = V.dcf_case(sr, 50.0, False, None, 30.0, {**Pp, "rampT": -2.0})
+    o3 = V.dcf_case(sr, 50.0, False, None, 30.0, {**Pp, "basis": "ramp", "rampN": 3, "rampT": 10.0})
+    check("dcf_case ramp: T <= 0 => negfcf with the required steady-state T; basis / N / T from P (per-company override)",
+          on_["status"] == "negfcf" and "vps" not in on_ and abs(on_["m_req"] - orp["m_req"]) < 1e-12
+          and o3["status"] == "ok" and abs(o3["path"][2] - 0.10) < 1e-12 and abs(o3["path"][0] - (-0.05 + 0.15 / 3)) < 1e-12)
+    synn = {**syn, "m": [-0.3, -0.2, -0.1, -0.05, -0.02], "mt": 0.08}
+    oa, ot = V.dcf_case(synn, 50.0, False, None, 30.0, {**Pp, "basis": "avg3"}), V.dcf_case(synn, 50.0, False, None, 30.0, Pp)
+    check("dcf_case: negative-FCF classification uses the chosen basis (avg3 negfcf, auto -> TTM ok); defaults auto / N 5 / T 15%",
+          oa["status"] == "negfcf" and ot["status"] == "ok" and ot["m0"] == 0.08 and ot["mb"]["why"] == "auto_ttm"
+          and V.DCF_DEFAULTS["basis"] == "auto" and V.DCF_DEFAULTS["rampN"] == 5 and V.DCF_DEFAULTS["rampT"] == 15.0
+          and V.dcf_case({**synn, "r0": 1000.0, "rb": "ttm", "ry": 500.0}, 50.0, False, None, 30.0, Pp)["mb"]["used"] == "ramp")
+    doc_ = {"fiscal_years": [f"{y}-12-31" for y in range(2021, 2026)], "ytd": "2026-06-30", "ytd_ago": "2025-06-30"}
+    it_ = {"rev": {"2025-12-31": 100.0, "2026-06-30": 60.0, "2025-06-30": 50.0}, "ocf": {"2025-12-31": 20.0, "2026-06-30": 9.0, "2025-06-30": 5.0},
+           "capex": {"2025-12-31": 5.0, "2026-06-30": 3.0, "2025-06-30": 2.0}}
+    c1 = V.compact(it_, doc_, {})
+    c2 = V.compact({**it_, "capex": {"2025-12-31": 5.0}}, doc_, {})
+    check("compact: TTM margin mt = (OCF - capex) / revenue on the same TTM basis (dropped when the bases differ); ry / rh guard inputs",
+          c1["mt"] == round((24 - 6) / 110, 6) and c2["mt"] is None and c1["ry"] == 100 and c1["rh"] == 60, f"{c1['mt']} {c2['mt']} {c1.get('ry')} {c1.get('rh')}")
+    vdoc_, _ = V.load_latest()
+    from . import cards as CM
+    cp_ = CM.latest_cards()
+    if vdoc_ and cp_ and "688331" in (vdoc_.get("items") or {}):
+        with open(cp_, encoding="utf-8") as f:
+            cdoc_ = json.load(f)
+        d_ = V.compact(vdoc_["items"]["688331"], vdoc_, {})
+        dr = V.eps_drop(((cdoc_.get("cards") or {}).get("688331") or {}).get("consensus"), vdoc_["latest"])
+        g_ = V.one_off_guard(d_, dr)
+        b = CB(d_["m"], d_["mt"], False, "auto", g_)
+        check("real data 688331 荣昌生物: auto => ramp (avg3 <= 0, FY2025 improving), guard (b) H1 revenue > FY2025 and (c) EPS drop, TTM not used, start = FY2025",
+              b["used"] == "ramp" and b["why"] == "auto_ramp" and b["ttm_block"] == "guard" and {"b", "c"} <= {x["k"] for x in g_}
+              and b["start_src"] == "fy" and b["start"] == d_["m"][-1] and b["avg"] <= 0 and d_["m"][-1] > d_["m"][-2],
+              f"guard={[x['k'] for x in g_]} avg3={b['avg']:.4f} fy={d_['m'][-2]:.4f}->{d_['m'][-1]:.4f} ttm={d_['mt']} rh={d_['rh']} ry={d_['ry']} eps={dr}")
+    else:
+        check("real data 688331 present in the valuation + cards files", False)
+
+    print("\n[n] valuation ledger: default parameters (auto basis, ramp, guard), change, attribution, conclusion, idempotent append")
+    from . import ledger as LDG
+    ledger_checks(LDG, V, syn)
+
     print("\n[robustness] failure handling")
     bad = em.financials("1900-01-01")
     check("financials(bad date) returns [] without raising", bad == [])
@@ -348,6 +469,141 @@ def main():
     for name, _, detail in fails:
         print(f"  FAILED: {name} {detail}")
     return 0 if not fails else 1
+
+
+def ledger_checks(LDG, V, syn):
+    """估值台账 checks: records come from V.dcf_case with DCF_DEFAULTS (auto basis, ramp N 5 / T 15%, one-off guard);
+    the attribution (sequential substitution through the mirror, margin path incl. ramp) must sum to the total."""
+    import tempfile
+    P0 = {"rf": 1.64, **V.DCF_DEFAULTS}
+    ctx_ = {"date": "2026-10-21", "snap_file": "snap_T1.json", "val_file": "val_T1.json", "cards_file": None, "cards": {"000001"},
+            "cons": {"000001": {"g": 12.0, "org": 5}}, "drops": {}, "P": P0}
+    row_ = {"code": "000001", "name": "T", "industry": "X", "cyclical": False, "rev_yoy": 30.0, "price": 50.0, "label": "中性", "warn_n": 1,
+            "dcf": {**syn, "mt": None}}
+    mk = LDG.make_record
+
+    def sums(ch, prev, cur):
+        """|sum of contributions - total| and |sum of % contributions - base %| (ok -> ok)."""
+        s = sum(a[1] for a in ch["attr"])
+        return abs(s - (cur["base"] - prev["base"])), abs(sum(a[2] for a in ch["attr"]) - (cur["base"] / prev["base"] - 1) * 100)
+
+    # (1) defaults: the record is dcf_case(DCF_DEFAULTS) - same numbers, auto basis
+    cur_ = mk(ctx_, row_, "2026-10-21 17:00")
+    o_ = V.dcf_case(row_["dcf"], 50.0, False, 12.0, 30.0, P0)
+    check("ledger.make_record = dcf_case(DCF_DEFAULTS): base / bear / bull / implied g, basis auto -> avg3, rampN / rampT recorded",
+          cur_["base"] == o_["vps"]["base"] and abs(cur_["bull"] - o_["vps"]["bull"]) < 1e-6 and cur_["basis"] == "avg3"
+          and cur_["basis_why"] == "auto_avg" and cur_["rampN"] == 5 and cur_["rampT"] == 15.0 and cur_["gsrc"] == "cons"
+          and cur_["implied_g_status"] == o_["rev"] and cur_["implied_g"] == (None if o_["rev_g"] is None else round(o_["rev_g"], 6))
+          and cur_["implied_m"] == o_["m_req"], f"base={cur_['base']:.4f} basis={cur_['basis']} implied_g={cur_['implied_g_status']}")
+    prev_ = mk(ctx_, row_, "2026-10-14 17:00", price=46.0, d={**syn, "mt": None, "r0": 900.0, "cash": 80.0},
+               cons={"g": 10.0, "org": 4}, P={**P0, "rf": 1.80})
+    ch = LDG.compute_chg(prev_, cur_)
+    e1, e2 = sums(ch, prev_, cur_)
+    check("ledger.compute_chg ok->ok: attribution order R0, margin path, g0, net cash & shares, params; sums to the total (1e-9)",
+          ch["attr_of"] == "base" and [a[0] for a in ch["attr"]] == ["r0", "m0", "g0", "ncsh", "par"] and e1 < 1e-9 and e2 < 1e-9
+          and abs(ch["base_pct"] - (cur_["base"] / prev_["base"] - 1) * 100) < 1e-9 and bool(ch["conclusion"]), f"err={e1:.1e} {e2:.1e}")
+    # (2) ramp: auto -> ramp (avg3 <= 0, FY0 improving); start and r0 change, parameters change incl. ramp T
+    mn = [-0.3, -0.5, -0.4, -0.2, -0.05]
+    rr = {**row_, "dcf": {**syn, "m": mn, "mt": None, "g3": 20.0}}
+    cr = mk(ctx_, rr, "c")
+    pr = mk(ctx_, rr, "p", d={**rr["dcf"], "m": mn[:-1] + [-0.08], "r0": 950.0}, P={**P0, "rampT": 12.0, "erp": 5.5})
+    chr_ = LDG.compute_chg(pr, cr)
+    e1, e2 = sums(chr_, pr, cr)
+    vr = V.dcf_engine(1000.0, V.margin_path(-0.05, 0.15, 5), 0.12, 0.0164, 0.0664, 60.0, 10.0)["vps"]
+    check("ledger ramp record: basis ramp, start = FY0, path to T 15% in 5 years (base = dcf_engine with the path); ramp->ramp attribution sums (1e-9)",
+          cr["basis"] == "ramp" and pr["basis"] == "ramp" and cr["m_start"] == -0.05 and cr["ramp_T"] == 0.15 and cr["ramp_N"] == 5
+          and abs(cr["base"] - vr) < 1e-9 and cr["implied_m_kind"] == "T" and e1 < 1e-9 and e2 < 1e-9
+          and all(abs(a[1]) > 1e-9 for a in chr_["attr"] if a[0] in ("r0", "m0", "par")), f"err={e1:.1e} attr={[a[0] for a in chr_['attr']]}")
+    # (3) basis switch avg3 -> ttm (TTM 15% > avg3, FY rising) and ramp -> ttm: carried by the margin-path step, named in the text
+    ct_ = mk(ctx_, {**row_, "dcf": {**syn, "mt": 0.15}}, "c")
+    chs = LDG.compute_chg(cur_, ct_)
+    e1, _ = sums(chs, cur_, ct_)
+    crt = mk(ctx_, {**rr, "dcf": {**rr["dcf"], "mt": 0.08}}, "c")
+    chs2 = LDG.compute_chg(cr, crt)
+    e3, _ = sums(chs2, cr, crt)
+    only_m = all(abs(a[1]) < 1e-12 for a in chs["attr"] if a[0] != "m0")
+    check("ledger basis switch avg3->ttm and ramp->ttm: chg.basis set, whole change in the margin-path step, sums (1e-9), switch named",
+          ct_["basis"] == "ttm" and chs["basis"] == ["avg3", "ttm"] and only_m and e1 < 1e-9 and crt["basis"] == "ttm"
+          and chs2["basis"] == ["ramp", "ttm"] and e3 < 1e-9 and "TTM" in chs["conclusion"] and "TTM" in chs2["conclusion"],
+          f"err={e1:.1e} {e3:.1e}")
+    # (4) tags
+    chp = LDG.compute_chg(mk(ctx_, row_, "x", P={**P0, "erp": 6.0}), cur_)
+    chq = LDG.compute_chg(mk(ctx_, row_, "x", price=40.0), cur_)
+    chT = LDG.compute_chg(mk(ctx_, rr, "x", P={**P0, "rampT": 20.0}), cr)
+    check("ledger tags: ERP-only => parameter-driven; ramp T only => parameter-driven; price-only => price-driven (base change 0 < 2%)",
+          chp["tag"] == "参数驱动" and chT["tag"] == "参数驱动" and chq["tag"] == "价格驱动" and chq["base_pct"] == 0
+          and abs(chq["price_pct"] - 25) < 1e-9, f"{chp['base_pct']:.2f} {chT['base_pct']:.2f}")
+    # (5) negfcf -> negfcf (required margin), negfcf -> ok (status change, not attributed)
+    rn = {**row_, "dcf": {**syn, "m": [None, None, -0.1, -0.05, -0.08], "mt": None}}   # avg3 < 0, FY0 not improving => no ramp
+    pn, cn_ = mk(ctx_, rn, "x", price=150.0), mk(ctx_, rn, "y")
+    chn = LDG.compute_chg(pn, cn_)
+    rok = mk(ctx_, {**rn, "dcf": {**rn["dcf"], "m": [None, None, 0.02, 0.03, 0.05]}}, "z")
+    chs3 = LDG.compute_chg(cn_, rok)
+    check("ledger negfcf: required-margin attribution (price first) sums; negfcf->ok = status change, no attribution, base stated",
+          pn["status"] == "negfcf" and chn["attr_of"] == "m_req" and chn["attr"][0][0] == "price"
+          and abs(sum(a[1] for a in chn["attr"]) - (cn_["implied_m"] - pn["implied_m"])) < 1e-12 and chn["tag"] == "价格驱动"
+          and rok["status"] == "ok" and chs3["attr"] is None and chs3["tag"] == "状态变化" and chs3["base_pct"] is None
+          and f"{rok['base']:.2f}" in chs3["conclusion"], f"{pn['status']}->{rok['status']}")
+    # (6) one-off guard (c) for cards: an EPS drop blocks TTM under auto
+    drop = {"y0": 2026, "y1": 2027, "e0": 2.0, "e1": 1.0, "org": 5, "hit": True}
+    cg_ = mk({**ctx_, "drops": {"000001": drop}}, {**row_, "dcf": {**syn, "mt": 0.15}}, "g")
+    check("ledger guard (c): card with an EPS drop -> guard ['c'], TTM blocked (basis avg3, block 'guard'); same row without drop -> ttm",
+          cg_["guard"] == ["c"] and cg_["basis"] == "avg3" and cg_["basis_block"] == "guard" and ct_["basis"] == "ttm", str(cg_["guard"]))
+    # (7) synthetic attribution-sum sweep: 200 random pairs incl. basis switches (avg3 / ttm / ramp), all factors moving
+    import random
+    rnd = random.Random(7)
+    worst, n_sw, n_ok = 0.0, 0, 0
+    for _ in range(200):
+        def one():
+            m = [rnd.uniform(-0.3, 0.3) for _ in range(5)]
+            d = {"r0": rnd.uniform(500, 2000), "m": m, "mt": rnd.choice([None, rnd.uniform(-0.1, 0.4)]), "g3": rnd.uniform(-20, 60),
+                 "cash": rnd.uniform(0, 300), "debt": rnd.uniform(0, 200), "sh": rnd.uniform(5, 20)}
+            P = {**P0, "rf": rnd.uniform(1.2, 2.5), "erp": rnd.uniform(4, 7), "rampN": rnd.randint(2, 8), "rampT": rnd.uniform(8, 25)}
+            return mk(ctx_, {**row_, "dcf": d}, "r", d=d, price=rnd.uniform(10, 100), P=P)
+        a, b = one(), one()
+        if a["status"] != "ok" or b["status"] != "ok":
+            continue
+        n_ok += 1
+        n_sw += a["basis"] != b["basis"]
+        c_ = LDG.compute_chg(a, b)
+        worst = max(worst, abs(sum(x[1] for x in c_["attr"]) - (b["base"] - a["base"])) / max(abs(b["base"] - a["base"]), abs(a["base"]), 1e-9))
+    check("ledger attribution sweep: random ok->ok pairs (incl. basis switches) sum to the total within 1e-9 relative",
+          n_ok >= 50 and n_sw >= 10 and worst < 1e-9, f"pairs={n_ok} switches={n_sw} worst={worst:.1e}")
+    # (8) append: idempotent, append-only, first-record text
+    td = tempfile.mkdtemp(prefix="cnledger_")
+    tp = os.path.join(td, "t.jsonl")
+    try:
+        ctx_t = {**ctx_, "rows": [row_, {**rn, "code": "000002"}]}
+        a1 = LDG.run(tp, ctx_t, "2026-10-21 17:00")
+        lines1 = open(tp, encoding="utf-8").read()
+        a2 = LDG.run(tp, ctx_t, "2026-10-21 18:00")
+        a3 = LDG.run(tp, {**ctx_t, "snap_file": "snap_T2.json"}, "2026-10-28 17:00")
+        lines3 = open(tp, encoding="utf-8").read()
+        recs = LDG.load(tp)
+        check("ledger.run: idempotent per (code, snap, val) (2nd run appends 0), append-only, first record => chg None + first-record text",
+              a1[0] == 2 and a2[0] == 0 and a2[1] == 2 and a3[0] == 2 and lines3.startswith(lines1) and len(recs) == 4
+              and recs[0]["chg"] is None and recs[0]["conclusion"] == LDG.first_txt(recs[0]) and recs[2]["chg"] is not None,
+              f"{a1[:2]} {a2[:2]} {a3[:2]}")
+    finally:
+        shutil.rmtree(td, ignore_errors=True)
+    # (9) the real ledger file: unique keys, new logic (basis + ramp params on every record), base == mirror(record)
+    real = LDG.load()
+    if real:
+        ks = [(x["code"], x["snap_file"], x["val_file"]) for x in real]
+        oks = [x for x in real if x["status"] == "ok"]
+        dev = max((abs(LDG._vps(x) - x["base"]) / abs(x["base"]) for x in oks if x["base"]), default=0.0)
+        bas = collections.Counter(x["basis"] for x in real)
+        check("ledger file: (code, snap, val) unique, >= 1000 records, new logic (basis, rampN / rampT, guard on every record), "
+              "base == dcf_engine(record inputs, margin path)",
+              len(set(ks)) == len(ks) and len(real) >= 1000 and all(x.get("date") and x.get("status") and "rampN" in x and "guard" in x for x in real)
+              and bas.get("ramp", 0) > 0 and bas.get("ttm", 0) > 0 and dev < 1e-12,
+              f"records={len(real)} runs={len(LDG._runs(real))} basis={dict(bas)} max_rel_dev={dev:.1e}")
+        r688 = next((x for x in reversed(real) if x["code"] == "688331"), None)
+        check("ledger file 688331: ramp (start = FY0) with guard a / b / c, status ok",
+              r688 is not None and r688["basis"] == "ramp" and r688["start_src"] == "fy" and {"b", "c"} <= set(r688["guard"])
+              and r688["status"] == "ok", str(r688 and (r688["basis"], r688["guard"])))
+    else:
+        check("ledger file present (run python -m cn ledger)", False)
 
 
 if __name__ == "__main__":

@@ -282,6 +282,8 @@ PEG（评估卡参考项，规则与阈值在 `cn/cards.py` 的 `CARD_RULES["peg
 
 核验：300308 / 603986 的 FY2023–FY2025、2025-06-30、2026-06-30 经营现金流、购建长期资产、营业总收入与逐代码 F10 报表 RPT_F10_FINANCE_GCASHFLOW / RPT_F10_FINANCE_GINCOME 以及 emweb F10 页面接口 `PC_HSF10/NewFinanceAnalysis/xjllbAjaxNew` 逐项完全一致（smoke 每次复查 300308 的 FY 现金流）。DMSK 是首次披露口径，之后年报里的追溯调整不反映。一致预期增速代理 `consensus_growth()` 与前瞻 PEG 增速算法相同：23 张卡片全部一致。
 
+FCF 利润率口径（页面参数，默认"自动"；不需要额外接口，全部来自上面三张表和 RPT_WEB_RESPREDICT）：`r.dcf` 另带 `mt`（TTM FCF 利润率 = (TTM 经营现金流 − TTM 购建长期资产) ÷ TTM 营收，三者都是 TTM 口径时才有）、`ry`（FY2025 营业总收入）、`rh`（2026-06-30 年初至今营业总收入）；评估卡另带 `c.dcf_drop = eps_drop()`（RPT_WEB_RESPREDICT 的当年预期 EPS 与次年预期 EPS、机构数）。疑似一次性收入：(a) TTM 营收 > 1.5 × `ry`，(b) `rh` > `ry`，(c) 次年预期 EPS < 当年 × 0.7（≥ 3 家、两年都 > 0，仅评估卡）。2026-10-22 快照、默认参数下：② 1236 家中自动口径 TTM 172、爬坡 226、近 3 年平均 655、周期多年平均 183，疑似一次性收入 82（(a) 18、(a)+(b) 61、(b) 1、(a)+(b)+(c) 2）；评估卡 40 家中 TTM 5、爬坡 12、近 3 年平均 23，疑似一次性收入 15。688331 荣昌生物：2026-06-30 营收 58.5 亿 > FY2025 32.5 亿（b），TTM 80.1 亿 > 1.5 × 32.5 亿（a），一致预期 EPS 2026E 7.68 → 2027E 1.25（c，11 家）。页面 JS（`dcfBasis` / `dcfGuard` / `dcfPath` / `dcfRampReq` / `dcfCase`）与 Python 镜像（`choose_basis` / `one_off_guard` / `margin_path` / `ramp_required` / `dcf_case`）在 1236 家 × 7 种口径设定下结果一致（最大相对差 < 1e-14）。
+
 `valuation_<ts>.json`：`fetched_at, snap, latest, fiscal_years[5], ytd, ytd_ago, rules, complete, rf{value, date, y2, y5, y30, spread_10_2, source, url, page, check}, sources{report date: {ok, rows, codes, screen}}, items{code: {rev{date: CNY}, ocf{…}, capex{…}, bal{monetaryfunds, trade_finasset, trade_finasset_notfvtpl, short_loan, long_loan, bond_payable, noncurrent_liab_1year, lease_liab} | null}}, http`。约 170 次请求（15 次全市场分页查询 + 国债收益率 1 次）；已结束财年缓存 30 天，最新期 1 天，中断重跑从缓存续上。
 
 ---

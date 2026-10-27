@@ -6,6 +6,7 @@
 Research tooling, not investment advice. All thresholds live in RULES below and are shown on the page.
 stdout is English only; Chinese text lives in the snapshot / rendered HTML.
 """
+import collections
 import datetime as dt
 import glob
 import json
@@ -611,7 +612,18 @@ def build(path=None):
     vmod.attach(res["screen"], vdoc, snap)
     for c in payload["cards"]:
         c["dcf_g"] = vmod.consensus_growth(c.get("consensus"), snap["periods"]["latest"])
+        # one-off guard (c): consensus EPS next year vs current-year estimate (display only)
+        c["dcf_drop"] = vmod.eps_drop(c.get("consensus"), snap["periods"]["latest"])
     payload["dcf_meta"] = vmod.meta(vdoc, vpath, res["screen"], payload["cards"])
+    # 估值台账 (default-parameter valuation history, display only): written by `python -m cn ledger`, embedded compactly.
+    # Optional: the page works without it (a later step owns cn/ledger.py)
+    try:
+        from . import ledger as lmod
+        payload["ledger"] = lmod.page_payload([c["code"] for c in payload["cards"]], [r["code"] for r in res["screen"]],
+                                              os.path.basename(path), os.environ.get("CN_LEDGER_FILE") or lmod.LEDGER_FILE)
+    except Exception as e:  # noqa: BLE001 - optional block, never break the build
+        log(f"WARNING: ledger skipped ({type(e).__name__}: {e})")
+        payload["ledger"] = {}
     have = set((cdoc or {}).get("cards", {}))
     payload["cards_meta"] = {"file": os.path.basename(cpath) if cpath else None, "fetched_at": (cdoc or {}).get("fetched_at"),
                              "snap": (cdoc or {}).get("snap"), "rules": cardmod.CARD_RULES,
@@ -623,8 +635,9 @@ def build(path=None):
         log("ERROR: template placeholder /*__DATA__*/null not found")
         sys.exit(1)
     data = json.dumps(payload, ensure_ascii=False).replace("</", "<\\/").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
-    os.makedirs(SITE_DIR, exist_ok=True)
-    out = os.path.join(SITE_DIR, "index.html")
+    # CN_BUILD_OUT / CN_LEDGER_FILE: test-only overrides (render a page from a temporary ledger without touching site/)
+    out = os.environ.get("CN_BUILD_OUT") or os.path.join(SITE_DIR, "index.html")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:
         f.write(tpl.replace("/*__DATA__*/null", data, 1))
     c = res["counts"]
@@ -660,6 +673,32 @@ def build(path=None):
         log(f"valuation: {vm['file']} rf={vm['rf']['value']} ({vm['rf']['date']}); screen ttm_rev={vm['n_r0']}/{vm['n_screen']} "
             f"fcf_3y={m3(res['screen'])} balance={vm['n_bal']} base_margin<=0={neg(res['screen'])}; cards fcf_3y={m3(crow)}/{len(ct)} "
             f"base_margin<=0={neg(crow)} consensus_growth={vm['n_cons']}")
+        drops = {c["code"]: c.get("dcf_drop") for c in ct}
+
+        def mbs(r, b):
+            d = r["dcf"]
+            return vmod.choose_basis(d["m"], d.get("mt"), r["cyclical"], b, vmod.one_off_guard(d, drops.get(r["code"])))
+
+        def tally(rows):
+            t = collections.Counter()
+            for r in rows:
+                if not r.get("dcf"):
+                    continue
+                a, b = mbs(r, "auto"), mbs(r, "avg3")
+                t["cyclical" if a["why"] == "auto_cyc" else a["used"]] += 1
+                t["guarded"] += bool(a["guard"])
+                t["neg_to_pos"] += b["m_end"] is not None and b["m_end"] <= 0 and a["m_end"] is not None and a["m_end"] > 0
+            return t
+        ts, tc = tally(res["screen"]), tally(crow)
+        fmt = lambda t: " ".join(f"{k}={t[k]}" for k in ("ttm", "ramp", "avg3", "fy", "cyclical", "guarded", "neg_to_pos"))
+        log(f"margin basis (default auto): screen {fmt(ts)} / {len(res['screen'])}; cards {fmt(tc)} / {len(ct)}")
     else:
         log("valuation: no data/cn/valuation_*.json (run `python -m cn valuation`); 现金流估值 shows N/A")
+    lm = payload["ledger"] or {}
+    if lm.get("file"):
+        log(f"ledger: {lm['file']} records={lm['n_records']} runs={len(lm['runs'])} latest={lm['latest']['date']} "
+            f"({lm['latest']['snap']}) matches_snapshot={lm['matches_snap']} cards_embedded={len(lm['cards'])} rows_embedded={len(lm['all'])} "
+            f"bytes={len(json.dumps(lm, ensure_ascii=False).encode('utf-8'))}")
+    else:
+        log("ledger: no data/cn/ledger/cn_ledger.jsonl (run `python -m cn ledger`); 估值台账 empty")
     return out

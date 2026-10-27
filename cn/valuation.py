@@ -44,8 +44,19 @@ VAL_RULES = {
     "consensus_min_org": 3,    # consensus EPS CAGR used as growth proxy only with >= 3 institutions
 }
 # page defaults (percent); the page lets the user change them. Mirrored by DCF_DEFAULTS in templates/cn_dashboard.html
-DCF_DEFAULTS = {"erp": 5.0, "gT": 2.5, "dr": 1.0, "ag": 30.0, "am": 20.0, "glo": -10.0, "ghi": 40.0}
+# rampN = 爬坡年数 N (years), rampT = 稳态 FCF 利润率 T (%): user settings for the ramp basis, not derived from data
+DCF_DEFAULTS = {"erp": 5.0, "gT": 2.5, "dr": 1.0, "ag": 30.0, "am": 20.0, "glo": -10.0, "ghi": 40.0, "basis": "auto",
+                "rampN": 5, "rampT": 15.0}
 DCF_YEARS = 10
+# FCF 利润率口径 (margin basis): auto | avg3 (historical average: 3 fiscal years, cyclical 5) | fy (latest fiscal year) | ttm
+#   | ramp (利润率爬坡: m_t = m_start + (T - m_start) x min(t / N, 1), t = 1..10, terminal uses m_10)
+MARGIN_BASES = ("auto", "avg3", "fy", "ttm", "ramp")
+MARGIN_GAP_WARN = 0.10     # |TTM - historical average| > 10pt => display tag (does not change the calculation)
+RAMP_N_RANGE = (1, 10)     # integer years; N <= 10 so the path reaches T inside the explicit 10 years
+# 疑似一次性收入 (one-off guard): blocks TTM under auto (and as the ramp start), flagged under the ttm basis.
+#   (a) TTM revenue > ttm_rev_x x latest FY revenue  (b) latest YTD revenue > latest full FY revenue
+#   (c) cards only: consensus EPS next year < current-year estimate x eps_drop (>= eps_min_org institutions, both > 0)
+GUARD_RULES = {"ttm_rev_x": 1.5, "eps_drop": 0.7, "eps_min_org": 3}
 REV_COLS = "SECURITY_CODE,NOTICE_DATE,REPORT_DATE,TOTAL_OPERATE_INCOME"
 BAL_COLS = ("SECURITY_CODE,NOTICE_DATE,UPDATE_DATE,REPORT_DATE,MONETARYFUNDS,TRADE_FINASSET,TRADE_FINASSET_NOTFVTPL,"
             "SHORT_LOAN,LONG_LOAN,BOND_PAYABLE,NONCURRENT_LIAB_1YEAR,LEASE_LIAB")
@@ -195,7 +206,8 @@ def _r(x, d=0):
 def compact(it, doc, quote):
     """Compact DCF inputs of one company: r0 TTM revenue, rb basis ('ttm' | 'fy'), o / x TTM OCF / capex,
     m FCF margins per fiscal year (fraction, oldest first, None if missing or revenue <= 0), g3 revenue CAGR % from
-    FY(y-3) to FY(y), cash / debt / sh, mcf = True only when total mcap vs price x shares differs by > 2%."""
+    FY(y-3) to FY(y), cash / debt / sh, mcf = True only when total mcap vs price x shares differs by > 2%,
+    mt TTM FCF margin (o - x) / r0 when all three are on the same basis, ry latest FY revenue, rh latest YTD revenue."""
     if not it:
         return None
     fys, ytd, ago = doc["fiscal_years"], doc.get("ytd"), doc.get("ytd_ago")
@@ -221,8 +233,12 @@ def compact(it, doc, quote):
     mcf = bool(sh and px and mc and abs(mc / (sh * px) - 1) * 100 > VAL_RULES["mcap_check_pct"])
     # TTM OCF / capex are shown on the card only (not used in the valuation); dropped when their bases differ
     same = ob == xb
+    # TTM FCF margin (o - x) / r0: only when OCF, capex and revenue are all on the same basis (all 'ttm' or all 'fy')
+    mt = round((o - x) / r0, 6) if same and ob == rb and o is not None and x is not None and r0 and r0 > 0 else None
+    # ry = latest FY revenue, rh = latest YTD revenue (one-off guard inputs (a) / (b); display only)
     out = {"r0": _r(r0), "rb": rb, "o": _r(o) if same else None, "x": _r(x) if same else None,
-           "m": m, "g3": g3, "cash": _r(cash), "debt": _r(debt), "sh": _r(sh)}
+           "m": m, "mt": mt, "g3": g3, "cash": _r(cash), "debt": _r(debt), "sh": _r(sh),
+           "ry": _r(rev.get(fys[-1])), "rh": _r(rev.get(ytd)) if ytd else None}
     if mcf:
         out["mcf"] = True
     return out
@@ -250,6 +266,22 @@ def consensus_growth(cons, latest, min_org=None):
     if any(e <= 0 for e in path):
         return {"g": None, "why": "一致预期 EPS 有 ≤ 0 的年度", "org": org}
     return {"g": round(((path[-1] / path[0]) ** (1 / n) - 1) * 100, 4), "y0": y0, "yn": y0 + n, "org": org}
+
+
+def eps_drop(cons, latest, min_org=None):
+    """One-off guard input (c), cards only: consensus EPS of the current-year estimate y0 (first estimate year >= the latest
+    report year) and of y0 + 1. Returns {y0, y1, e0, e1, org, hit} with hit = e1 < e0 x 0.7, or None when not
+    applicable (< 3 institutions, a year missing, or an estimate <= 0)."""
+    min_org = GUARD_RULES["eps_min_org"] if min_org is None else min_org
+    if not cons or (cons.get("org_num") or 0) < min_org:
+        return None
+    est = {e["year"]: e["eps"] for e in cons.get("eps", []) if e.get("kind") == "estimate" and e.get("eps") is not None}
+    y0 = min((y for y in est if y >= int(latest[:4])), default=None)
+    if y0 is None or (y0 + 1) not in est or est[y0] <= 0 or est[y0 + 1] <= 0:
+        return None
+    e0, e1 = est[y0], est[y0 + 1]
+    return {"y0": y0, "y1": y0 + 1, "e0": round(e0, 4), "e1": round(e1, 4), "org": cons.get("org_num"),
+            "hit": e1 < e0 * GUARD_RULES["eps_drop"]}
 
 
 def attach(rows, doc, snap):
@@ -286,14 +318,103 @@ def base_margin(m, cyclical):
     return sum(xs) / len(xs), len(xs), ("cyc" if cyclical else "") + ("" if len(xs) == len(win) else "short")
 
 
+def one_off_guard(d, drop=None):
+    """疑似一次性收入 triggers (list, empty = not guarded). d = compact inputs, drop = eps_drop() of a card or None.
+    (a) TTM revenue (basis 'ttm') > 1.5 x latest FY revenue; (b) latest YTD revenue > latest full FY revenue;
+    (c) cards only: consensus EPS next year < current-year estimate x 0.7."""
+    out = []
+    if not d:
+        return out
+    r0, ry, rh = d.get("r0"), d.get("ry"), d.get("rh")
+    if d.get("rb") == "ttm" and r0 is not None and ry and ry > 0 and r0 > GUARD_RULES["ttm_rev_x"] * ry:
+        out.append({"k": "a", "ttm": r0, "fy": ry})
+    if rh is not None and ry and ry > 0 and rh > ry:
+        out.append({"k": "b", "ytd": rh, "fy": ry})
+    if drop and drop.get("hit"):
+        out.append({"k": "c", "y0": drop["y0"], "y1": drop["y1"], "e0": drop["e0"], "e1": drop["e1"], "org": drop.get("org")})
+    return out
+
+
+def margin_path(m_start, T, N, n=DCF_YEARS):
+    """利润率爬坡: m_t = m_start + (T - m_start) x min(t / N, 1) for t = 1..n (fractions)."""
+    return [m_start + (T - m_start) * min(t / N, 1.0) for t in range(1, n + 1)]
+
+
+def choose_basis(m, mt, cyclical, basis="auto", guard=None, N=None, T=None, n=DCF_YEARS):
+    """FCF 利润率口径. Mirror of the page's dcfBasis(). m = fiscal-year margins oldest first (fractions), mt = TTM margin
+    or None, guard = one_off_guard() list, N = ramp years, T = steady-state margin (fraction).
+    Returns {used ('avg3' | 'fy' | 'ttm' | 'ramp'), why, m0, m_end, path, start, start_src, N, T, avg, n, flag, ttm, fy,
+    fy1, guard, ttm_ok, ttm_block, ramp_block}. m0 = constant margin (ramp: the start), m_end = margin the negative-FCF
+    test uses (ramp: T), path = 10-year margin list under ramp else None. why:
+      user                  the chosen basis is available and used
+      fb_fy / fb_ttm / fb_ramp the chosen basis is missing -> historical average
+      auto_cyc   cyclical industry: multi-year average, never TTM / ramp
+      auto_ttm   TTM exists, not guarded, TTM > avg3 and FY-2 < FY-1 < FY0
+      auto_ramp  avg3 <= 0 (or missing) and FY0 > FY-1
+      auto_avg   otherwise (ttm_block: missing | guard | low | trend; ramp_block: avg_pos | not_improving)
+    'avg3' = the historical average of base_margin() (3 fiscal years; cyclical 5)."""
+    N = DCF_DEFAULTS["rampN"] if N is None else N
+    T = DCF_DEFAULTS["rampT"] / 100 if T is None else T
+    avg, nn, flag = base_margin(m, cyclical)
+    fy0 = m[-1] if m else None
+    fy1 = m[-2] if m and len(m) >= 2 else None
+    g = list(guard or [])
+    ttm_ok = mt is not None and not g
+    out = {"avg": avg, "n": nn, "flag": flag, "ttm": mt, "fy": fy0, "fy1": fy1, "guard": g, "ttm_ok": ttm_ok, "N": N, "T": T,
+           "path": None, "start": None, "start_src": None, "ttm_block": None, "ramp_block": None}
+
+    def use(b, why):
+        if b == "ramp":
+            s, src = (mt, "ttm") if ttm_ok else (fy0, "fy")
+            out.update({"start": s, "start_src": src, "path": margin_path(s, T, N, n), "m0": s, "m_end": T})
+        else:
+            v = {"avg3": avg, "fy": fy0, "ttm": mt}[b]
+            out.update({"m0": v, "m_end": v})
+        out.update({"used": b, "why": why})
+        return out
+    has_start = ttm_ok or fy0 is not None
+    if basis == "fy":
+        return use("fy", "user") if fy0 is not None else use("avg3", "fb_fy")
+    if basis == "ttm":
+        return use("ttm", "user") if mt is not None else use("avg3", "fb_ttm")
+    if basis == "ramp":
+        return use("ramp", "user") if has_start else use("avg3", "fb_ramp")
+    if basis == "avg3":
+        return use("avg3", "user")
+    if cyclical:
+        return use("avg3", "auto_cyc")
+    t = m[-3:]
+    if mt is None:
+        out["ttm_block"] = "missing"
+    elif g:
+        out["ttm_block"] = "guard"
+    elif avg is None or not mt > avg:
+        out["ttm_block"] = "low"
+    elif len(t) < 3 or any(v is None for v in t) or not (t[0] < t[1] < t[2]):
+        out["ttm_block"] = "trend"
+    else:
+        return use("ttm", "auto_ttm")
+    if (avg is None or avg <= 0) and fy0 is not None and fy1 is not None and fy0 > fy1:
+        return use("ramp", "auto_ramp")
+    out["ramp_block"] = "avg_pos" if avg is not None and avg > 0 else "not_improving"
+    return use("avg3", "auto_avg")
+
+
+def margin_basis(m, mt, cyclical, basis="auto", guard=None, N=None, T=None):
+    """Backward-compatible name of choose_basis() (used by cn/ledger.py)."""
+    return choose_basis(m, mt, cyclical, basis, guard, N, T)
+
+
 def dcf_engine(r0, m, g0, gT, r, nc, sh, n=DCF_YEARS):
-    """Fractions. Revenue grows g_t, fading linearly from g0 (year 1) to gT (year n); FCF_t = revenue_t x m;
-    TV = FCF_n x (1 + gT) / (r - gT); EV = sum FCF_t / (1 + r)^t + TV / (1 + r)^n; equity = EV + net cash."""
+    """Fractions. Revenue grows g_t, fading linearly from g0 (year 1) to gT (year n); FCF_t = revenue_t x m_t where m is
+    a constant or a list of n margins (ramp path); TV = FCF_n x (1 + gT) / (r - gT) (so the terminal uses m_n);
+    EV = sum FCF_t / (1 + r)^t + TV / (1 + r)^n; equity = EV + net cash."""
+    mp = m if isinstance(m, (list, tuple)) else None
     rev, pv, fcf = r0, 0.0, 0.0
     for t in range(1, n + 1):
         g = g0 + (gT - g0) * (t - 1) / (n - 1)
         rev *= 1 + g
-        fcf = rev * m
+        fcf = rev * (mp[t - 1] if mp else m)
         pv += fcf / (1 + r) ** t
     tv = fcf * (1 + gT) / (r - gT)
     pv_tv = tv / (1 + r) ** n
@@ -303,7 +424,7 @@ def dcf_engine(r0, m, g0, gT, r, nc, sh, n=DCF_YEARS):
 
 
 def dcf_reverse(r0, m, gT, r, nc, sh, price, lo=-0.30, hi=1.00, iters=200):
-    """Starting growth g0 such that value per share == price (bisection). m must be > 0."""
+    """Starting growth g0 such that value per share == price (bisection), margin constant or path fixed."""
     f = lambda g: dcf_engine(r0, m, g, gT, r, nc, sh)["vps"] - price
     if f(lo) > 0:
         return {"status": "below", "g": None}
@@ -320,14 +441,29 @@ def dcf_reverse(r0, m, gT, r, nc, sh, price, lo=-0.30, hi=1.00, iters=200):
 
 
 def margin_required(r0, g0, gT, r, nc, sh, price):
+    """Constant FCF margin that makes value per share == price (value is linear in m)."""
     unit = dcf_engine(r0, 1.0, g0, gT, r, 0.0, sh)["ev"]
     return (price * sh - nc) / unit
 
 
-def dcf_case(d, price, cyclical, cons_g, rev_yoy, P):
-    """Mirror of the page's dcfCase(). d = compact inputs, P = percent params {rf, erp, gT, dr, ag, am, glo, ghi}.
+def ramp_required(r0, m_start, N, g0, gT, r, nc, sh, price, n=DCF_YEARS):
+    """需要的稳态 FCF 利润率: T such that the ramp path m_start -> T (N years) gives value per share == price.
+    m_t = m_start x (1 - w_t) + T x w_t with w_t = min(t / N, 1), so value is linear in T."""
+    w = [min(t / N, 1.0) for t in range(1, n + 1)]
+    a = dcf_engine(r0, [m_start * (1 - x) for x in w], g0, gT, r, 0.0, sh, n)["ev"]
+    b = dcf_engine(r0, w, g0, gT, r, 0.0, sh, n)["ev"]
+    return (price * sh - nc - a) / b
+
+
+def dcf_case(d, price, cyclical, cons_g, rev_yoy, P, drop=None):
+    """Mirror of the page's dcfCase(). d = compact inputs, P = percent params {rf, erp, gT, dr, ag, am, glo, ghi, basis,
+    rampN, rampT} (a per-company override is applied by the caller: P = {**P, basis, rampN, rampT}), drop = eps_drop()
+    of a card (one-off guard (c); None for non-cards).
     Growth source: consensus EPS CAGR (cards, >= 3 institutions) > 3-year revenue CAGR > latest YTD revenue YoY.
-    Returns {status, why?, m0, g0, gsrc, capped, gT, r: {bear, base, bull}, vps: {...}, rev_g, m_req}."""
+    Margin: choose_basis(); negfcf when the effective path ends <= 0 (avg3 / fy / ttm: m0 <= 0; ramp: T <= 0).
+    Ramp scenarios: bear T x (1 - am), bull T x (1 + am) (start and N unchanged); reverse DCF solves g0 with the path
+    fixed; m_req = required constant margin, or under ramp the required steady-state T.
+    Returns {status, why?, m0, mb, path, g0, gsrc, capped, gT, r: {bear, base, bull}, vps: {...}, rev, rev_g, m_req}."""
     if not d:
         return {"status": "na", "why": "nodata"}
     if P.get("rf") is None:
@@ -338,9 +474,12 @@ def dcf_case(d, price, cyclical, cons_g, rev_yoy, P):
         return {"status": "na", "why": "bal"}
     if not d.get("sh") or not price:
         return {"status": "na", "why": "sh"}
-    m0, nm, mflag = base_margin(d["m"], cyclical)
+    N = P.get("rampN", DCF_DEFAULTS["rampN"])
+    T = P.get("rampT", DCF_DEFAULTS["rampT"]) / 100
+    mb = choose_basis(d["m"], d.get("mt"), cyclical, P.get("basis") or "auto", one_off_guard(d, drop), N, T)
+    m0 = mb["m0"]
     if m0 is None:
-        return {"status": "na", "why": "m"}
+        return {"status": "na", "why": "m", "mb": mb}
     if cons_g is not None:
         g, src = cons_g, "cons"
     elif d.get("g3") is not None:
@@ -348,29 +487,36 @@ def dcf_case(d, price, cyclical, cons_g, rev_yoy, P):
     else:
         g, src = rev_yoy, "yoy"
     if g is None:
-        return {"status": "na", "why": "g"}
+        return {"status": "na", "why": "g", "mb": mb}
     gc = min(max(g, P["glo"]), P["ghi"])
     gT = min(P["gT"], P["rf"])
     rb = P["rf"] + P["erp"]
     nc = d["cash"] - d["debt"]
-    out = {"m0": m0, "g0": gc, "graw": g, "gsrc": src, "capped": gc != g, "gT": gT, "nc": nc}
+    ramp = mb["used"] == "ramp"
+    out = {"m0": m0, "mb": mb, "path": mb["path"], "g0": gc, "graw": g, "gsrc": src, "capped": gc != g, "gT": gT, "nc": nc}
     R = {"bear": rb + P["dr"], "base": rb, "bull": rb - P["dr"]}
     out["r"] = R
     if rb - gT <= 0.5:
         out.update({"status": "na", "why": "rg"})
         return out
-    if m0 <= 0:
+    mreq = (lambda: ramp_required(d["r0"], mb["start"], N, gc / 100, gT / 100, rb / 100, nc, d["sh"], price)) if ramp else \
+        (lambda: margin_required(d["r0"], gc / 100, gT / 100, rb / 100, nc, d["sh"], price))
+    if mb["m_end"] <= 0:
         out["status"] = "negfcf"
-        out["m_req"] = margin_required(d["r0"], gc / 100, gT / 100, rb / 100, nc, d["sh"], price)
+        out["m_req"] = mreq()
         return out
     G = {"bear": gc - abs(gc) * P["ag"] / 100, "base": gc, "bull": gc + abs(gc) * P["ag"] / 100}
-    M = {"bear": m0 * (1 - P["am"] / 100), "base": m0, "bull": m0 * (1 + P["am"] / 100)}
+    if ramp:
+        M = {k: margin_path(mb["start"], T * f, N) for k, f in (("bear", 1 - P["am"] / 100), ("base", 1.0), ("bull", 1 + P["am"] / 100))}
+        M["base"] = mb["path"]
+    else:
+        M = {"bear": m0 * (1 - P["am"] / 100), "base": m0, "bull": m0 * (1 + P["am"] / 100)}
     out["vps"] = {}
     for k in ("bear", "base", "bull"):
         out["vps"][k] = None if R[k] - gT <= 0.5 else dcf_engine(d["r0"], M[k], G[k] / 100, gT / 100, R[k] / 100, nc, d["sh"])["vps"]
     out["status"] = "ok"
-    rv = dcf_reverse(d["r0"], m0, gT / 100, rb / 100, nc, d["sh"], price)
+    rv = dcf_reverse(d["r0"], M["base"], gT / 100, rb / 100, nc, d["sh"], price)
     out["rev"] = rv["status"]
     out["rev_g"] = None if rv["g"] is None else rv["g"] * 100
-    out["m_req"] = margin_required(d["r0"], gc / 100, gT / 100, rb / 100, nc, d["sh"], price)
+    out["m_req"] = mreq()
     return out

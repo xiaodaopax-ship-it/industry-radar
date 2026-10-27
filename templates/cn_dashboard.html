@@ -179,6 +179,17 @@
   .dcf-sc .v { font-size:18px; font-weight:650; font-variant-numeric:tabular-nums; } .dcf-sc .base { border-color:var(--line2); }
   .dcf-sens td.off { color:var(--muted); opacity:.55; } .dcf-sens td.cur { outline:1px solid var(--accent); }
   details.ec .card table.dcf-in td { padding:3px 6px; }
+  .dcf-co { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; margin:6px 0 8px; padding:6px 8px; border:1px dashed var(--line2); border-radius:var(--r2); }
+  .dcf-co input { width:72px; } .dcf-co .chg { color:var(--warn); } .dcf-co input[aria-invalid=true] { border-color:var(--neg); }
+  .lg-card { margin-top:10px; border-top:1px dashed var(--line); padding-top:8px; }
+  .lg-ch { display:block; max-width:640px; height:auto; } .lg-ch .lg-ax { stroke:var(--line); } .lg-ch .lg-tx { fill:var(--muted); font-size:11px; }
+  .lg-ch .lg-band { fill:var(--accent); fill-opacity:.12; } .lg-ch .lg-bandv { stroke:var(--accent); stroke-opacity:.35; stroke-width:6; stroke-linecap:round; }
+  .lg-ch .lg-lb { stroke:var(--text); stroke-width:1.5; } .lg-ch .lg-lp { stroke:#37c6e0; stroke-width:1.5; stroke-dasharray:4 3; }
+  .lg-ch .lg-mb { fill:var(--text); stroke:var(--accent); stroke-width:1; } .lg-ch .lg-mp { fill:#37c6e0; stroke:var(--panel); stroke-width:1.5; }
+  .lg-bars { display:inline-flex; flex-direction:column; align-items:flex-start; gap:0; } .lg-bars svg { display:block; }
+  .lg-bars .lg-ax { stroke:var(--line2); } .lg-bars .lg-up { fill:var(--pos); } .lg-bars .lg-dn { fill:var(--neg); } .lg-bars .lg-bl { fill:var(--muted); font-size:10px; }
+  .lg-k { display:flex; gap:16px; font-size:14px; margin:4px 0; } .lg-k b { font-size:20px; } .lg-first { font-size:14px; }
+  table.lg-t td { vertical-align:top; }
   .tip { position:fixed; pointer-events:none; background:rgba(8,11,15,.96); border:1px solid var(--line2); border-radius:6px; padding:6px 9px; font-size:12px; display:none; z-index:60; max-width:320px; box-shadow:0 6px 18px rgba(0,0,0,.4); }
   footer { color:var(--muted); font-size:12px; }
   .addn { font:inherit; font-size:11.5px; line-height:20px; padding:0 8px; border-radius:999px; border:1px dashed var(--line2); background:transparent; color:var(--muted); cursor:pointer; white-space:nowrap; }
@@ -347,6 +358,7 @@
       <li><a class="sl" href="#s3" data-sec="s3">③ 价值·博弈</a></li>
       <li><a class="sl" href="#s4" data-sec="s4">④ 研究优先级</a><div class="substeps"><a class="sl" href="#s4cy">周期行业单列</a></div></li>
       <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li>
+      <li><a class="sl" href="#sLg" data-sec="sLg">估值台账 · 本期变化</a></li>
       <li><a class="sl" href="#s6" data-sec="s6">⑤ 个股评估卡</a></li>
       <li><a class="sl" href="#s5" data-sec="s5">数据与方法</a></li>
     </ul></div>
@@ -365,7 +377,7 @@
 
   <div class="sticky">
     <nav class="steps" aria-label="页面分节">
-      <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#s3">③ 价值 / 博弈标签</a><a href="#s4">④ 研究优先级</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
+      <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#s3">③ 价值 / 博弈标签</a><a href="#s4">④ 研究优先级</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
     </nav>
   </div>
 
@@ -434,9 +446,16 @@
       <div class="bk-ws" role="group" aria-label="评分维度权重"><span class="gt">维度权重</span><span id="bkWs"></span>
         <button type="button" class="btn ghost" id="bkWReset">恢复默认权重</button></div>
       <div class="tscroll"><table><thead><tr id="bkHead"></tr></thead><tbody id="bkBody"></tbody></table></div>
-      <p class="note" id="bkDisc">池内相对排序：只反映所选这几家在下列口径上的相对位置，换一批公司分数就会变。不是买卖建议，不预测股价；PEG 只展示、不计分。“Base 估值 vs 现价”“隐含增速”两列是现金流估值（情景估值参考，不是目标价，不是买卖建议），只展示、不计分。</p>
+      <p class="note" id="bkDisc">池内相对排序：只反映所选这几家在下列口径上的相对位置，换一批公司分数就会变。不是买卖建议，不预测股价；PEG 只展示、不计分。“Base 估值 vs 现价”“隐含增速”两列是现金流估值（情景估值参考，不是目标价，不是买卖建议），只展示、不计分。“台账：本期变化”列来自估值台账（默认参数），只展示、不计分。</p>
       <details class="grp"><summary>评分规则 <span class="small">维度 · 方向 · 百分位 · 加权 · 分组</span></summary><div class="grp-body rule" id="bkRules" style="margin:0"></div></details>
     </div>
+  </section>
+
+  <section id="sLg" aria-labelledby="lgTitle">
+    <h2 id="lgTitle"><span class="step-tag">Δ</span>估值台账 · 本期变化</h2>
+    <p class="lead">每次数据更新后，用<b>默认估值参数</b>对 ② 全部筛选公司算一次现金流估值并追加到本地台账（data/cn/ledger/cn_ledger.jsonl，只追加、不改写），再和同一公司的上一条记录比较：股价、基准估值、基准相对现价、隐含增速、一致预期，并把基准估值的变化按固定顺序拆到 营收基数 → FCF 利润率 → 起始增速 → 净现金与股本 → 参数。结论句按规则生成，只描述数字变化。</p>
+    <p class="dcf-disc">台账记录的是模型在默认参数下的输出，用来对比数据变化带来的估值变化；不是目标价，不是买卖建议；方法未回测。只展示，不进入 ④ 排序、价值 / 博弈标签、⚠ 数和对比池评分。</p>
+    <div id="lgMain"></div>
   </section>
 
   <section id="s6">
@@ -500,6 +519,7 @@
         <p class="note" id="instNote"></p>
         <p class="note" id="pegNote"></p>
         <p class="note" id="dcfNote"></p>
+        <p class="note" id="lgNote"></p>
         <p class="note">本页只整理公开披露的数字，不对任何政策、监管决定或宏观事项做评价。</p>
       </div>
     </div>
@@ -801,20 +821,35 @@ function renderMethod() {
     `一致预期任一年较上一年下降 > ${CR.peg_fwd_drop_pct}%（可能含一次性收益）；历史口径上年同期扣非归母净利润 < 本期的 ${Math.round(100 * CR.peg_hist_base_ratio)}% 或 < ${(CR.peg_hist_base_min || 0) / 1e4} 万元。` +
     `状态：PEG ≤ ${CR.peg_ok_max} ✓，> ${CR.peg_warn_min} ⚠，其余 ·。` +
     `局限：东方财富未公开一致预期的统计窗口和机构名单，EPS 是各机构预测的简单均值，可能包含过时预测；PE(TTM) 是滚动 12 个月口径，与预测年度不完全对齐；历史口径是年初至今累计同比，不是全年增速，季节性和一次性项目都会影响；PEG 假设增速可持续，对高增长、低基数和周期性公司都不稳定。`);
-  const fy = VM.fy || [], nNeg = D.screen.filter(r => { const m = r.dcf ? dcfMargin(r.dcf.m, r.cyclical).m0 : null; return m != null && m <= 0; }).length;
+  // counts under the default parameters (auto basis; guard (c) only for cards)
+  const fy = VM.fy || [], bOf = r => r.dcf ? dcfBasis(r.dcf.m, r.dcf.mt, r.cyclical, DCF_DEF.basis, dcfGuard(r.dcf, CARDS[r.code] && CARDS[r.code].dcf_drop)) : null;
+  const bAll = D.screen.map(bOf).filter(Boolean), nNeg = bAll.filter(b => b.mEnd != null && b.mEnd <= 0).length,
+    nTtm = bAll.filter(b => b.used === "ttm").length, nRamp = bAll.filter(b => b.used === "ramp").length, nGuard = bAll.filter(b => b.guard.length).length;
   $("dcfNote").innerHTML = `<b>现金流估值（情景参考）</b>：${esc(DCF_DISC)}。<b>只在评估卡和对比池显示，不参与 ④ 排序、价值 / 博弈标签、⚠ 数和对比池评分</b>；页面按“估值参数”实时计算，参数存在本浏览器。` + esc(
     `输入：TTM 营收 = FY${fy[fy.length - 1] || "—"} 营业总收入 + ${VM.ytd || "—"} 年初至今 − ${VM.ytd_ago || "—"} 年初至今（RPT_DMSK_FN_INCOME TOTAL_OPERATE_INCOME）。` +
     `FCF = 经营活动现金流量净额 − 购建固定资产、无形资产和其他长期资产支付的现金（RPT_DMSK_FN_CASHFLOW NETCASH_OPERATE − CONSTRUCT_LONG_ASSET；不加回处置收回的现金，租赁付款不扣）；年度 FCF 利润率 = FCF ÷ 营业总收入（FY${fy[0] || "—"}~FY${fy[fy.length - 1] || "—"}）。` +
-    `基准 FCF 利润率 m0 = 近 3 个财年平均（缺年份时用剩下的年份并标注）；周期行业用近 5 年平均（标“周期：用多年平均利润率”）。` +
+    `FCF 利润率按参数“FCF 利润率口径”（默认 自动；每张评估卡可单独设定口径和爬坡参数，存在本浏览器）：近 3 年平均（原做法）= 近 3 个财年平均（缺年份时用剩下的年份并标注；周期行业用近 5 年平均，标“周期：用多年平均利润率”）；最近财年 = FY${fy[fy.length - 1] || "—"}；` +
+    `TTM = (TTM 经营现金流 − TTM 购建长期资产现金) ÷ TTM 营收（三者同一口径时才有；A 股 TTM 由半年报推算，经营现金流季节性强，回款、预收和资本开支节奏都会让 TTM 偏离全年）；` +
+    `利润率爬坡 = 第 t 年利润率 m_t = 起点 + (稳态 T − 起点) × min(t ÷ N, 1)，t = 1…${DCF_N}，终值用第 ${DCF_N} 年；起点 = TTM（可用且无疑似一次性收入时），否则最近财年；N（默认 ${DCF_DEF.rampN} 年）和 T（默认 ${DCF_DEF.rampT}%）是用户设定，不是数据得出。` +
+    `疑似一次性收入（任一即触发）：(a) TTM 营收 > ${DCF_GUARD.x} × FY${fy[fy.length - 1] || "—"} 营收；(b) ${VM.ytd || "—"} 年初至今营收 > FY${fy[fy.length - 1] || "—"} 全年营收；(c) 仅评估卡：一致预期明年 EPS < 今年预期 × ${DCF_GUARD.drop}（≥ 3 家机构、两年预期均 > 0）。触发时自动口径和爬坡起点不用 TTM，卡片写“疑似一次性收入，未外推”；手动选 TTM 时仍用 TTM 并提示。` +
+    `自动：周期行业 → 多年平均（从不用 TTM / 爬坡）；否则有 TTM、未触发一次性收入、TTM 高于近 3 年平均且 FY${fy[fy.length - 3] || "—"} < FY${fy[fy.length - 2] || "—"} < FY${fy[fy.length - 1] || "—"} → TTM；否则近 3 年平均 ≤ 0 且 FY${fy[fy.length - 1] || "—"} 利润率高于 FY${fy[fy.length - 2] || "—"} → 爬坡；其余 → 近 3 年平均（本次默认参数下 ② ${D.screen.length} 家中 TTM ${nTtm}、爬坡 ${nRamp}、疑似一次性收入 ${nGuard}）。` +
+    `所选口径缺数据时改用近 3 年平均并在卡片注明；卡片总是同时列出近 3 年平均和 TTM，两者相差 > ${DCF_GAP * 100}pt 时标“${DCF_GAP_TXT}”。FCF ≤ 0 的判断（爬坡看稳态 T，其余看所用利润率）、反向 DCF、敏感性表、价格轴、对比池两列和 CSV 都用同一条利润率路径。` +
     `净现金 = 货币资金 + 交易性金融资产 − (短期借款 + 长期借款 + 应付债券 + 一年内到期的非流动负债)，${VM.latest || "—"} 资产负债表（RPT_F10_FINANCE_GBALANCE MONETARYFUNDS + TRADE_FINASSET_NOTFVTPL − SHORT_LOAN − LONG_LOAN − BOND_PAYABLE − NONCURRENT_LIAB_1YEAR，缺项记 0）；` +
     `租赁负债不计入（但一年内到期的非流动负债里含一年内到期的租赁负债）；不扣少数股东权益，不加长期股权投资等非经营资产。总股本 = 行情快照 TOTAL_SHARES，与股价同一交易日；有 B / H 股的公司按 A 股股价乘全部股本，总市值与 股价 × 总股本 相差 > 2% 时卡片注明。` +
     `起始增速 g0：评估卡且一致预期覆盖 ≥ 3 家机构 → 一致预期 EPS 从当年预期到两年后预期的年化增速（与前瞻 PEG 同一算法，作为营收增速代理；A 股没有一致预期营收增速）；否则近 3 年营收年化增速（FY${fy[fy.length - 4] || "—"}→FY${fy[fy.length - 1] || "—"}）；都没有时用年初至今营收同比。截断到 [下限, 上限]（默认 ${DCF_DEF.glo}% ~ +${DCF_DEF.ghi}%）并标“已截断”。` +
-    `模型：${DCF_N} 年，营收增速从 g0（第 1 年）线性衰减到 gT（第 ${DCF_N} 年），FCF 利润率保持情景值不变；终值 TV = FCF${DCF_N} × (1 + gT) ÷ (r − gT)；EV = Σ FCFt ÷ (1 + r)^t + TV ÷ (1 + r)^${DCF_N}；股权价值 = EV + 净现金；每股价值 = 股权价值 ÷ 总股本。` +
-    `情景：基准 r = 无风险利率 + ERP（默认 ${DCF_DEF.erp}%）；牛 r − ${DCF_DEF.dr}pt、熊 r + ${DCF_DEF.dr}pt；增速 牛 g0 + |g0| × ${DCF_DEF.ag}%、熊 g0 − |g0| × ${DCF_DEF.ag}%；利润率 牛 m0 × (1 + ${DCF_DEF.am}%)、熊 m0 × (1 − ${DCF_DEF.am}%)；幅度都可调。` +
+    `模型：${DCF_N} 年，营收增速从 g0（第 1 年）线性衰减到 gT（第 ${DCF_N} 年），FCF 利润率保持情景值不变（爬坡口径按路径逐年变化）；终值 TV = FCF${DCF_N} × (1 + gT) ÷ (r − gT)；EV = Σ FCFt ÷ (1 + r)^t + TV ÷ (1 + r)^${DCF_N}；股权价值 = EV + 净现金；每股价值 = 股权价值 ÷ 总股本。` +
+    `情景：基准 r = 无风险利率 + ERP（默认 ${DCF_DEF.erp}%）；牛 r − ${DCF_DEF.dr}pt、熊 r + ${DCF_DEF.dr}pt；增速 牛 g0 + |g0| × ${DCF_DEF.ag}%、熊 g0 − |g0| × ${DCF_DEF.ag}%；利润率 牛 m0 × (1 + ${DCF_DEF.am}%)、熊 m0 × (1 − ${DCF_DEF.am}%)（爬坡口径：起点和 N 不变，稳态 T × (1 ± ${DCF_DEF.am}%)）；幅度都可调。` +
     `永续增速默认 ${DCF_DEF.gT}%，但不超过无风险利率（本次 ${RF0 != null ? RF0 + "%，" + (RF0 < DCF_DEF.gT ? "所以默认调为 " + RF0 + "%" : "不需要调整") : "未取到"}），且 r − gT 需 > 0.5pt，否则该情景不计算。` +
-    `反向 DCF：基准 r、gT、m0 不变，用二分法在 −30% ~ +100% 内求起始增速 g0，使每股价值 = 现价；另给出在基准增速下现价隐含的 FCF 利润率（每股价值对利润率是线性的，直接求解）。基准 FCF 利润率 ≤ 0 时不做三情景，只给“需要的 FCF 利润率（在基准增速下）”。敏感性表：基准情景下折现率 ±1pt × 永续增速 ±1pt（步长 0.5pt）。` +
+    `反向 DCF：基准 r、gT、m0 不变，用二分法在 −30% ~ +100% 内求起始增速 g0，使每股价值 = 现价；另给出在基准增速下现价隐含的 FCF 利润率（每股价值对利润率是线性的，直接求解）；爬坡口径下利润率路径固定求 g0，隐含利润率改为“需要的稳态 FCF 利润率”（起点和 N 不变，对 T 线性求解）。基准 FCF 利润率（爬坡：稳态 T）≤ 0 时不做三情景，只给“需要的 FCF 利润率（在基准增速下）”。敏感性表：基准情景下折现率 ±1pt × 永续增速 ±1pt（步长 0.5pt）。` +
     `无风险利率：${RF.source || "东方财富数据中心 RPTA_WEB_TREASURYYIELD EMM00166466"}，${RF0 != null ? `本次 ${RF0}%（${RF.date}）` : "本次未取到"}，页面 ${RF.page || "data.eastmoney.com/cjsj/zmgzsyl.html"}；每次抓取核对 10 年 − 2 年 = 公布的 10Y−2Y 利差（${RF.check || "—"}）。` +
-    `局限：DCF 对折现率和永续增速非常敏感；FCF 利润率用历史平均，A 股经营现金流季节性强，TTM 由半年报推算；扩产期公司历史 FCF 为负很常见（本次 ② 筛选中 ${nNeg} / ${D.screen.length} 家基准 FCF 利润率 ≤ 0）；基准 FCF 利润率 > ${DCF_M_HI * 100}% 时标“不可靠”（多为预收款或营运资金一次性变化），计算不变；业务变化、并购、会计口径变化时误差大；一致预期 EPS 增速不等于营收增速；没有回测。`);
+    `局限：DCF 对折现率和永续增速非常敏感；FCF 利润率用历史平均、TTM 或用户设定的爬坡路径（爬坡的稳态利润率不是数据得出），疑似一次性收入只按三条规则粗筛，A 股经营现金流季节性强，TTM 由半年报推算；扩产期公司历史 FCF 为负很常见（本次默认参数下 ② 筛选中 ${nNeg} / ${D.screen.length} 家 FCF 利润率 ≤ 0）；基准 FCF 利润率 > ${DCF_M_HI * 100}% 时标“不可靠”（多为预收款或营运资金一次性变化），计算不变；业务变化、并购、会计口径变化时误差大；一致预期 EPS 增速不等于营收增速；没有回测。`);
+  $("lgNote").innerHTML = `<b>估值台账</b>：${esc(LG_DISC)}。` + esc(
+    `命令 python -m cn ledger（不联网）：对 ② 全部筛选公司用默认参数（rf = 本次 10 年期国债收益率，ERP ${DCF_DEF.erp}%，gT ${DCF_DEF.gT}%（不超过 rf），利润率口径 自动）按 cn/valuation.py 的 Python 镜像计算，每家公司追加一条记录到 data/cn/ledger/cn_ledger.jsonl（只在本地，只追加，不改写、不删除）；` +
+    `同一 (代码, 快照文件, 估值输入文件) 只记一次，所以重复运行不会追加。记录内容：行情日期、股价、状态、利润率口径与原因、R0、m0、历史平均与 TTM 利润率、g0 与来源、净现金、总股本、rf / ERP / gT、熊 / 基准 / 牛每股价值、隐含增速、需要的 FCF 利润率、一致预期增速与机构数、52 周高低、基准相对现价、标签、⚠ 数、北向持股状态。` +
+    `变化 = 与同一公司上一条记录比较；基准估值变化用顺序替换法归因：从上一条的输入出发，依次把 (1) 营收基数 R0、(2) FCF 利润率 m0（含口径切换）、(3) 起始增速 g0、(4) 净现金与股本、(5) 参数 rf / ERP / gT 换成本期值，每一步的估值差就是该因素的贡献，五项之和严格等于总变化；顺序不同，各项贡献会不同（交互项归到后面的因素）。` +
+    `两期都是 FCF ≤ 0 时改为对“需要的 FCF 利润率”归因，顺序 股价 → R0 → g0 → 净现金与股本 → 参数。结论句：写出贡献最大的因素，第二大因素占全部贡献绝对值之和 > 1/3 时一并写出；基准变化绝对值 < ${LG_FLAT}% 标“价格驱动”（股价也 < ${LG_FLAT}% 时标“变化很小”），最大因素是参数时标“参数驱动”，其余标“基本面驱动”；状态变化（三情景 / FCF ≤ 0 / 不计算之间）单独说明。` +
+    `页面嵌入：⑤ 评估卡每家最近 ${(LG.rules || {}).page_keep || 26} 条记录，② 全部公司只嵌入最新一条的结论和 4 个关键变化数。本次台账 ${LG.file ? `${LG.n_records} 条记录，${(LG.runs || []).length} 次更新，首次 ${LG_FIRST}` : "未生成"}。` +
+    `局限：台账只反映模型和输入数据的变化，不检验模型是否正确；默认参数和口径规则若在代码中修改，前后记录不可直接比较；一致预期只对评估卡公司使用，公司进出评估卡名单会改变增速来源。`);
   $("foot").innerHTML = esc(`构建于 ${D.built_at}，数据抓取于 ${D.fetched_at}。研究工具，不构成投资建议。`);
 }
 
@@ -1197,7 +1232,7 @@ function jumpCN(code) {
 }
 
 // ---------- left sidebar: section links with scroll-spy, industries (by number of screened companies)
-const SECTS = [["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["s3", "③ 价值·博弈"], ["s4", "④ 研究优先级"], ["sBk", "对比池"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
+const SECTS = [["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["s3", "③ 价值·博弈"], ["s4", "④ 研究优先级"], ["sBk", "对比池"], ["sLg", "估值台账"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
 let curSec = "s1";
 function markSec() {
   document.querySelectorAll("#side a[data-sec], .steps a").forEach(a => { const on = (a.dataset.sec || a.getAttribute("href").slice(1)) === curSec;
@@ -1436,10 +1471,11 @@ nLoad(); nFormSet(null, null);
 // ---------- 现金流估值（情景参考）: reverse DCF + bear / base / bull scenario DCF, computed in the page so the parameters can be changed.
 // Display only: never enters ④ priority, labels, warn_n or bkScore. Inputs: D.screen[].dcf (cn/valuation.py compact()) and the
 // consensus growth proxy D.cards[].dcf_g. Pure-Python mirror: cn/valuation.py dcf_engine / dcf_reverse / dcf_case (cn.smoke).
-//   localStorage["industry-radar-dcf-cn-v1"] = {version: 1, saved_at, p: {key: number}}   (only values changed from the defaults)
+//   localStorage["industry-radar-dcf-cn-v1"] = {version: 1, saved_at, p: {key: number, basis}, co: {code: {basis?, N?, T?}}}
+//   p = global values changed from the defaults; co = per-company overrides (FCF 利润率口径, 爬坡年数 N, 稳态利润率 T %)
 const VM = D.dcf_meta || {}, DKEY = "industry-radar-dcf-cn-v1", DCF_N = VM.years || 10;
 const DCF_DISC = "情景估值参考，不是目标价，不是买卖建议";
-const DCF_DEF = Object.assign({erp: 5, gT: 2.5, dr: 1, ag: 30, am: 20, glo: -10, ghi: 40}, VM.defaults || {});
+const DCF_DEF = Object.assign({erp: 5, gT: 2.5, dr: 1, ag: 30, am: 20, glo: -10, ghi: 40, basis: "auto", rampN: 5, rampT: 15}, VM.defaults || {});
 const RF = VM.rf || {}, RF0 = typeof RF.value === "number" ? RF.value : null;
 const DCF_FIELDS = [
   {k: "rf", t: "无风险利率", u: "%", min: 0, max: 15, step: 0.01, src: () => RF0 != null ? `中国 10 年期国债收益率 ${RF0}%（${RF.date}，东方财富数据中心 RPTA_WEB_TREASURYYIELD）` : "未取到，请手动填写"},
@@ -1450,6 +1486,9 @@ const DCF_FIELDS = [
   {k: "am", t: "FCF 利润率情景幅度 ±", u: "%，相对", min: 0, max: 100, step: 1, src: () => "牛 m0 × (1 + 幅度)，熊 m0 × (1 − 幅度)"},
   {k: "glo", t: "起始增速下限", u: "%", min: -50, max: 0, step: 1, src: () => "低于下限的起始增速截断并标“已截断”"},
   {k: "ghi", t: "起始增速上限", u: "%", min: 0, max: 100, step: 1, src: () => "高于上限的截断（不少 A 股公司年初至今同比上百 %）"},
+  // ramp parameters (利润率口径 = 爬坡): user settings, not derived from data; shown after the 口径 select
+  {k: "rampN", t: "爬坡年数 N", u: "年", min: 1, max: 10, step: 1, int: 1, ramp: 1, src: () => `口径“爬坡”：利润率从起点线性走到稳态值，第 N 年达到（默认 ${DCF_DEF.rampN} 年，1–10 的整数）`},
+  {k: "rampT", t: "稳态 FCF 利润率 T", u: "%", min: -20, max: 60, step: 0.5, ramp: 1, src: () => `爬坡终点，之后保持并用于终值（默认 ${DCF_DEF.rampT}%）；用户设定，不是数据得出`},
 ];
 const DCF_WHY = {nodata: "未取到现金流估值数据（运行 python -m cn valuation）", rf: "未取到无风险利率，请在“估值参数”里手动填写",
   r0: "缺 TTM 营收或营收 ≤ 0", bal: `缺 ${VM.latest || "最新报告期"} 资产负债表（货币资金 / 有息负债）`, sh: "缺总股本或股价",
@@ -1465,7 +1504,8 @@ const DCF_SENS = new Set();
 // TV = FCF_N x (1 + gT) / (r - gT); EV = sum FCF_t / (1 + r)^t + TV / (1 + r)^N; equity = EV + net cash; value / share = equity / shares
 function dcfEngine(o) {
   const N = o.n || DCF_N; let rev = o.r0, pv = 0, fcf = 0;
-  for (let t = 1; t <= N; t++) { const g = o.g0 + (o.gT - o.g0) * (t - 1) / (N - 1); rev *= 1 + g; fcf = rev * o.m; pv += fcf / Math.pow(1 + o.r, t); }
+  // o.mp = optional margin path (ramp, N entries; the terminal value uses the last one), else the constant o.m
+  for (let t = 1; t <= N; t++) { const g = o.g0 + (o.gT - o.g0) * (t - 1) / (N - 1); rev *= 1 + g; fcf = rev * (o.mp ? o.mp[t - 1] : o.m); pv += fcf / Math.pow(1 + o.r, t); }
   const tv = fcf * (1 + o.gT) / (o.r - o.gT), pvTv = tv / Math.pow(1 + o.r, N), ev = pv + pvTv, eq = ev + o.nc;
   return {ev, eq, vps: eq / o.sh, pvTv, tvShare: ev ? pvTv / ev : null};
 }
@@ -1478,42 +1518,122 @@ function dcfReverse(o, price, lo = -0.30, hi = 1.00) {
   return {status: "ok", g: (a + b) / 2};
 }
 // FCF margin that makes value / share == price at the given growth path (value is linear in m)
-const dcfMReq = (o, price) => (price * o.sh - o.nc) / dcfEngine({...o, m: 1, nc: 0}).ev;
+const dcfMReq = (o, price) => (price * o.sh - o.nc) / dcfEngine({...o, m: 1, mp: null, nc: 0}).ev;
+// ramp: required steady-state margin T (m_t = start x (1 - w_t) + T x w_t, w_t = min(t / N, 1), value is linear in T)
+function dcfRampReq(o, ms, N, price) {
+  const w = dcfPath(0, 1, N), a = dcfEngine({...o, mp: w.map(x => ms * (1 - x)), nc: 0}).ev, b = dcfEngine({...o, mp: w, nc: 0}).ev;
+  return (price * o.sh - o.nc - a) / b;
+}
 function dcfMargin(m, cyc) {
   const win = (m || []).slice(cyc ? -5 : -3), xs = win.filter(v => v != null);
   if (!xs.length) return {m0: null, n: 0, win: win.length, flag: "missing"};
   return {m0: xs.reduce((a, b) => a + b, 0) / xs.length, n: xs.length, win: win.length, flag: (cyc ? "cyc" : "") + (xs.length === win.length ? "" : "short")};
 }
-// one company: r = D.screen row, c = card or undefined, P = percent params. status ok | negfcf | na (why)
+// 利润率爬坡 path, t = 1..DCF_N: m_t = start + (T - start) x min(t / N, 1)
+const dcfPath = (ms, T, N) => Array.from({length: DCF_N}, (_, i) => ms + (T - ms) * Math.min((i + 1) / N, 1));
+// 疑似一次性收入 (mirror of cn/valuation.py one_off_guard): (a) TTM revenue > 1.5 x latest FY revenue; (b) latest YTD revenue >
+// latest full FY revenue; (c) cards only: consensus EPS next year < current-year estimate x 0.7 (>= 3 institutions, both > 0; c.dcf_drop)
+const DCF_GUARD = {x: 1.5, drop: 0.7};
+function dcfGuard(d, drop) {
+  const out = []; if (!d) return out;
+  if (d.rb === "ttm" && d.r0 != null && d.ry > 0 && d.r0 > DCF_GUARD.x * d.ry) out.push({k: "a", ttm: d.r0, fy: d.ry});
+  if (d.rh != null && d.ry > 0 && d.rh > d.ry) out.push({k: "b", ytd: d.rh, fy: d.ry});
+  if (drop && drop.hit) out.push({k: "c", y0: drop.y0, y1: drop.y1, e0: drop.e0, e1: drop.e1, org: drop.org});
+  return out;
+}
+// FCF 利润率口径 (mirror of cn/valuation.py choose_basis): auto | avg3 (historical average, cyclical 5 years) | fy (latest FY) | ttm | ramp.
+// auto: cyclical -> multi-year average (never TTM / ramp); TTM exists, not guarded, TTM > avg3 and FY-2 < FY-1 < FY0 -> ttm;
+// avg3 <= 0 (or missing) and FY0 > FY-1 -> ramp; else avg3. Ramp start = TTM when usable (not guarded) else latest FY.
+// A missing chosen basis falls back to the historical average (why fb_*). mEnd = margin of the negative-FCF test (ramp: T).
+const DCF_BASES = ["auto", "avg3", "fy", "ttm", "ramp"], DCF_BASIS_T = {auto: "自动", avg3: "近 3 年平均", fy: "最近财年", ttm: "TTM", ramp: "利润率爬坡"};
+const DCF_GAP = 0.10, DCF_GAP_TXT = "TTM 与历史差距大，注意一次性因素（预收、回款、资本开支推迟）";
+function dcfBasis(m, mt, cyc, basis, guard, N, T) {
+  N = N ?? DCF_DEF.rampN; T = T ?? DCF_DEF.rampT / 100;
+  const h = dcfMargin(m, cyc), mm = m || [], fy0 = mm.length ? mm[mm.length - 1] : null, fy1 = mm.length >= 2 ? mm[mm.length - 2] : null;
+  const ttm = mt == null ? null : mt, g = guard || [], ttmOk = ttm != null && !g.length;
+  const out = {avg: h.m0, n: h.n, win: h.win, flag: h.flag, ttm, fy: fy0, fy1, t3: mm.slice(-3), guard: g, ttmOk, N, T, path: null, start: null, startSrc: null, ttmBlock: null, rampBlock: null};
+  const use = (b, why) => {
+    if (b === "ramp") { const s = ttmOk ? ttm : fy0; Object.assign(out, {start: s, startSrc: ttmOk ? "ttm" : "fy", path: dcfPath(s, T, N), m0: s, mEnd: T}); }
+    else { const v = {avg3: h.m0, fy: fy0, ttm}[b]; Object.assign(out, {m0: v, mEnd: v}); }
+    return Object.assign(out, {used: b, why});
+  };
+  if (basis === "fy") return fy0 != null ? use("fy", "user") : use("avg3", "fb_fy");
+  if (basis === "ttm") return ttm != null ? use("ttm", "user") : use("avg3", "fb_ttm");
+  if (basis === "ramp") return ttmOk || fy0 != null ? use("ramp", "user") : use("avg3", "fb_ramp");
+  if (basis === "avg3") return use("avg3", "user");
+  if (cyc) return use("avg3", "auto_cyc");
+  const t = mm.slice(-3);
+  if (ttm == null) out.ttmBlock = "missing";
+  else if (g.length) out.ttmBlock = "guard";
+  else if (h.m0 == null || !(ttm > h.m0)) out.ttmBlock = "low";
+  else if (t.length < 3 || t.some(v => v == null) || !(t[0] < t[1] && t[1] < t[2])) out.ttmBlock = "trend";
+  else return use("ttm", "auto_ttm");
+  if ((h.m0 == null || h.m0 <= 0) && fy0 != null && fy1 != null && fy0 > fy1) return use("ramp", "auto_ramp");
+  out.rampBlock = h.m0 != null && h.m0 > 0 ? "avg_pos" : "not_improving";
+  return use("avg3", "auto_avg");
+}
+const dcfUsedT = (used, cyc) => used === "ttm" ? "TTM" : used === "ramp" ? "爬坡" : used === "fy" ? `FY${(VM.fy || []).slice(-1)[0] || "—"}` : cyc ? "近 5 年平均（周期）" : "近 3 年平均";
+const dcfPS = v => v == null || !isFinite(v) ? "—" : dcfPct(v * 100).replace(/^-/, "−");   // fraction -> "−4.5%"
+const dcfYtdT = () => { const y = VM.ytd || ""; return ({"03": "Q1", "06": "H1", "09": "Q1–Q3"}[y.slice(5, 7)] || y.slice(5)) + "-" + y.slice(0, 4); };
+// 疑似一次性收入 text: one item per trigger
+function dcfGuardTxt(g) {
+  const last = (VM.fy || []).slice(-1)[0] || "—";
+  return g.map(x => x.k === "a" ? `TTM 营收 ${yi(x.ttm)} 亿 > ${DCF_GUARD.x} × FY${last} ${yi(x.fy)} 亿`
+    : x.k === "b" ? `${dcfYtdT()} 营收 ${yi(x.ytd)} 亿 > FY${last} 全年 ${yi(x.fy)} 亿`
+    : `一致预期 EPS ${x.y0}E ${num(x.e0, 2)} → ${x.y1}E ${num(x.e1, 2)}（< ${Math.round(DCF_GUARD.drop * 100)}%，${num(x.org, 0)} 家机构）`).join("；");
+}
+// reason text: "自动 → 爬坡：…"
+function dcfWhyTxt(mm, cyc, sel) {
+  const fy = VM.fy || [], L = k => `FY${fy[fy.length - k] || "—"}`, avgT = cyc ? "近 5 年平均" : "近 3 年平均", m = mm.why, P = [];
+  const tb = {missing: "缺 TTM 利润率（经营现金流、资本开支与营收不在同一口径）", guard: `TTM ${dcfPS(mm.ttm)} 因疑似一次性收入未用`,
+    low: `TTM ${dcfPS(mm.ttm)} 不高于${avgT}`, trend: `TTM ${dcfPS(mm.ttm)} 未用（近三个财年利润率不是逐年上升）`};
+  if (m === "user") P.push("按所选口径");
+  else if (m === "fb_fy") P.push(`所选“最近财年”缺 ${L(1)} 数据，改用${avgT}`);
+  else if (m === "fb_ttm") P.push(`所选“TTM”缺数据（经营现金流、资本开支与营收不在同一口径），改用${avgT}`);
+  else if (m === "fb_ramp") P.push(`所选“利润率爬坡”缺起点（TTM 与 ${L(1)} 利润率都没有），改用${avgT}`);
+  else if (m === "auto_cyc") P.push("周期行业不用 TTM / 爬坡，用近 5 年平均");
+  else if (m === "auto_ttm") P.push(`TTM ${dcfPS(mm.ttm)} > ${avgT} ${dcfPS(mm.avg)}，且 ${L(3)} < ${L(2)} < ${L(1)}（${mm.t3.map(dcfPS).join("→")}）`);
+  else if (m === "auto_ramp") P.push(`${avgT} ${dcfPS(mm.avg)} ≤ 0，${L(1)} 改善（${dcfPS(mm.fy1)}→${dcfPS(mm.fy)}）`, tb[mm.ttmBlock]);
+  else if (m === "auto_avg") P.push(tb[mm.ttmBlock], mm.rampBlock === "avg_pos" ? `${avgT} ${dcfPS(mm.avg)} > 0，不爬坡` : `${L(1)} 未改善（${dcfPS(mm.fy1)}→${dcfPS(mm.fy)}），不爬坡`);
+  if (mm.used === "ramp") P.push(`起点 ${dcfPS(mm.start)}（${mm.startSrc === "ttm" ? "TTM" : L(1)}），第 ${mm.N} 年达到 ${dF(mm.T * 100)}%（用户设定，不是数据得出）`);
+  return `${DCF_BASIS_T[sel] || "自动"} → ${dcfUsedT(mm.used, cyc)}：${P.filter(Boolean).join("；")}`;
+}
+// one company: r = D.screen row, c = card or undefined, P = percent params (global DP + per-company override). status ok | negfcf | na (why)
 function dcfCase(r, c, P) {
   const d = r && r.dcf, price = r && r.price, cyc = !!(r && r.cyclical), cg = c && c.dcf_g && c.dcf_g.g != null ? c.dcf_g : null;
-  const o = {status: "na", d, price, cyc, cg};
+  const o = {status: "na", d, price, cyc, cg, P};
   if (!d) return {...o, why: "nodata"};
   if (P.rf == null) return {...o, why: "rf"};
   if (d.r0 == null || d.r0 <= 0) return {...o, why: "r0"};
   if (d.cash == null) return {...o, why: "bal"};
   if (!d.sh || !price) return {...o, why: "sh"};
-  const mm = dcfMargin(d.m, cyc); o.mm = mm;
+  const N = P.rampN ?? DCF_DEF.rampN, T = (P.rampT ?? DCF_DEF.rampT) / 100;
+  const mm = dcfBasis(d.m, d.mt, cyc, P.basis || "auto", dcfGuard(d, c && c.dcf_drop), N, T); o.mm = mm; o.mb = mm;
   if (mm.m0 == null) return {...o, why: "m"};
   let g, src;
   if (cg) { g = cg.g; src = "cons"; } else if (d.g3 != null) { g = d.g3; src = "g3"; } else { g = r.rev_yoy; src = "yoy"; }
   if (g == null) return {...o, why: "g"};
-  const gc = Math.min(Math.max(g, P.glo), P.ghi), gT = Math.min(P.gT, P.rf), rb = P.rf + P.erp, nc = d.cash - d.debt;
-  Object.assign(o, {m0: mm.m0, g0: gc, graw: g, gsrc: src, capped: gc !== g, gT, gTclamp: gT < P.gT, nc, r: {bear: rb + P.dr, base: rb, bull: rb - P.dr}});
+  const gc = Math.min(Math.max(g, P.glo), P.ghi), gT = Math.min(P.gT, P.rf), rb = P.rf + P.erp, nc = d.cash - d.debt, ramp = mm.used === "ramp";
+  Object.assign(o, {m0: mm.m0, mEnd: mm.mEnd, ramp, path: mm.path, g0: gc, graw: g, gsrc: src, capped: gc !== g, gT, gTclamp: gT < P.gT, nc, r: {bear: rb + P.dr, base: rb, bull: rb - P.dr}});
   if (rb - gT <= 0.5) return {...o, why: "rg"};
-  const base = {r0: d.r0, m: mm.m0, g0: gc / 100, gT: gT / 100, r: rb / 100, nc, sh: d.sh};
-  o.base = base; o.mReq = dcfMReq(base, price);
-  if (mm.m0 <= 0) { o.status = "negfcf"; return o; }
+  const base = {r0: d.r0, m: ramp ? null : mm.m0, mp: ramp ? mm.path : null, g0: gc / 100, gT: gT / 100, r: rb / 100, nc, sh: d.sh};
+  o.base = base; o.mReq = ramp ? dcfRampReq(base, mm.start, N, price) : dcfMReq(base, price);
+  if (mm.mEnd <= 0) { o.status = "negfcf"; return o; }
   const G = {bear: gc - Math.abs(gc) * P.ag / 100, base: gc, bull: gc + Math.abs(gc) * P.ag / 100};
-  const M = {bear: mm.m0 * (1 - P.am / 100), base: mm.m0, bull: mm.m0 * (1 + P.am / 100)};
+  const F = {bear: 1 - P.am / 100, base: 1, bull: 1 + P.am / 100};
   o.sc = {};
-  ["bear", "base", "bull"].forEach(k => { const rr = o.r[k], res = rr - gT <= 0.5 ? null : dcfEngine({...base, m: M[k], g0: G[k] / 100, r: rr / 100});
-    o.sc[k] = {r: rr, g: G[k], m: M[k], res, vps: res ? res.vps : null, vs: res ? (res.vps / price - 1) * 100 : null}; });
+  ["bear", "base", "bull"].forEach(k => { const rr = o.r[k], m = ramp ? T * F[k] : mm.m0 * F[k], mp = ramp ? (k === "base" ? mm.path : dcfPath(mm.start, m, N)) : null;
+    const res = rr - gT <= 0.5 ? null : dcfEngine({...base, m: ramp ? null : m, mp, g0: G[k] / 100, r: rr / 100});
+    o.sc[k] = {r: rr, g: G[k], m, mp, res, vps: res ? res.vps : null, vs: res ? (res.vps / price - 1) * 100 : null}; });
   const rv = dcfReverse(base, price); o.rev = rv.status; o.revG = rv.g == null ? null : rv.g * 100;
   o.status = "ok";
   return o;
 }
-const dcfOf = code => DCF_CACHE[code] || (DCF_CACHE[code] = dcfCase(BYCODE[code], CARDS[code], DP));
+// per-company override (FCF 利润率口径 / 爬坡 N / T for one code), stored in localStorage under co
+let DCF_CO = {};
+const dcfPOf = code => { const x = DCF_CO[code]; if (!x) return DP;
+  return {...DP, ...(x.basis ? {basis: x.basis} : {}), ...(x.N != null ? {rampN: x.N} : {}), ...(x.T != null ? {rampT: x.T} : {})}; };
+const dcfOf = code => DCF_CACHE[code] || (DCF_CACHE[code] = dcfCase(BYCODE[code], CARDS[code], dcfPOf(code)));
 const dcfVs = vs => vs == null ? "—" : vs >= 0 ? `高于现价 ${num(vs, 0)}%` : `低于现价 ${num(-vs, 0)}%`;
 const dcfPct = (v, d = 1) => v == null || !isFinite(v) ? "—" : `${num(v, d)}%`;
 function dcfGsrc(o) {
@@ -1523,6 +1643,9 @@ function dcfGsrc(o) {
   return `年初至今营收同比（${D.periods.latest}；缺 3 年营收时使用）`;
 }
 const DCF_SHORT = {cons: "一致预期 EPS 增速代理", g3: "3 年营收 CAGR", yoy: "年初至今营收同比"};
+// margin used, short: "12.3%" or "爬坡 −4.5% → 15%（5 年）"
+const dcfMTxt = o => o.ramp ? `爬坡 ${dcfPS(o.mm.start)} → ${dF(o.mm.T * 100)}%（${o.mm.N} 年）` : dcfPct(o.m0 * 100);
+const dcfPathTxt = mm => mm.path ? mm.path.slice(0, mm.N).map((v, i) => `第 ${i + 1} 年 ${dcfPS(v)}`).join(" · ") + (mm.N < DCF_N ? `，之后保持 ${dF(mm.T * 100)}%` : "") + "（终值按第 10 年）" : "";
 function dcfSensTable(o) {
   const st = [-1, -0.5, 0, 0.5, 1], rs = st.map(x => o.r.base + x), gs = st.map(x => o.gT + x);
   const head = `<tr><th scope="col">r \\ gT</th>${gs.map((g, j) => `<th scope="col" class="n">${dF(g)}%${g > DP.rf + 1e-9 ? "*" : ""}</th>`).join("")}</tr>`;
@@ -1531,7 +1654,7 @@ function dcfSensTable(o) {
     const v = dcfEngine({...o.base, r: r / 100, gT: g / 100}).vps;
     return `<td class="n${i === 2 && j === 2 ? " cur" : ""}${g > DP.rf + 1e-9 ? " off" : ""}">${num(v, 2)}</td>`; }).join("")}</tr>`).join("");
   return `<table class="dcf-sens"><thead>${head}</thead><tbody>${body}</tbody></table>
-    <div class="small">基准情景每股价值（元），g0 ${dF(o.g0)}%、m0 ${dcfPct(o.m0 * 100)} 不变；框 = 当前参数；“—” = r − gT ≤ 0.5pt 不计算；* = 永续增速高于无风险利率，只作敏感性展示。</div>`;
+    <div class="small">基准情景每股价值（元），g0 ${dF(o.g0)}%、FCF 利润率 ${dcfMTxt(o)} 不变；框 = 当前参数；“—” = r − gT ≤ 0.5pt 不计算；* = 永续增速高于无风险利率，只作敏感性展示。</div>`;
 }
 // ---------- 价格轴（display only, never scored）: 52-week range, current price, scenario value per share and the analyst target
 // median on one horizontal axis. A scenario point > PAX_CLIP x price (and beyond every other point) or <= 0 is pinned to the axis
@@ -1602,24 +1725,36 @@ function dcfAxis(c, o) {
   const S = {price: o.price ?? (c.range && c.range.price), lo: x ? x.rng.lo52 : null, hi: x ? x.rng.hi52 : null, tgt: t.median ?? null,
     tgtLbl: "机构目标价中位数", tgtCap: `机构目标价中位数（${t.n ?? "—"} 家，卖方观点）`, L: {bear: "熊", base: "基准", bull: "牛"}};
   if (o.status === "ok") S.sc = PAX_K.map(k => ({k, v: o.sc[k].vps}));
-  else S.note = o.status === "negfcf" ? "基准 FCF 利润率 ≤ 0，无情景估值点；见下方“需要的 FCF 利润率”" : `不计算：${DCF_WHY[o.why] || o.why || "无数据"}；无情景估值点`;
+  else S.note = o.status === "negfcf" ? (o.ramp ? "稳态 FCF 利润率 T ≤ 0，无情景估值点；见下方“需要的稳态 FCF 利润率”" : "基准 FCF 利润率 ≤ 0，无情景估值点；见下方“需要的 FCF 利润率”") : `不计算：${DCF_WHY[o.why] || o.why || "无数据"}；无情景估值点`;
   return paxHtml(S);
 }
 function dcfCardInner(c) {
   const r = BYCODE[c.code], o = dcfOf(c.code), d = o.d, fy = VM.fy || [];
   const head = `<p class="dcf-disc">${esc(DCF_DISC)} · <a href="#dcfPanel">修改估值参数</a></p>` + dcfAxis(c, o);   // axis re-renders with [data-dcfc]
-  if (!d) return head + `<div class="small muted">${esc(DCF_WHY[o.why] || "无数据")}</div>`;
+  if (!d) return head + `<div class="small muted">${esc(DCF_WHY[o.why] || "无数据")}</div>` + lgCardBlock(c.code);
   const nWin = o.cyc ? 5 : 3, last = fy[fy.length - 1];
   const mcells = (d.m || []).map((v, i) => `<span class="${i >= d.m.length - nWin ? "" : "muted"}">FY${esc(fy[i])} ${v == null ? "—" : num(v * 100, 1) + "%"}</span>`).join(" · ");
-  const mm = o.mm, mflag = mm ? [o.cyc ? "周期：用多年平均利润率" : "", mm.flag.includes("short") ? `只有 ${mm.n} 年有数据（应为 ${mm.win} 年）` : "",
-    mm.m0 != null && mm.m0 > DCF_M_HI ? DCF_M_HI_TXT : ""].filter(Boolean).join("；") : "";
-  const ttmO = d.o != null && d.x != null && d.r0 ? (d.o - d.x) / d.r0 * 100 : null;
+  const mm = o.mm, mUse = mm ? (mm.used === "ramp" ? mm.T : mm.m0) : null, coSet = !!DCF_CO[c.code], sel = (o.P || DP).basis || "auto";
+  const mflag = mm ? [o.cyc ? "周期：用多年平均利润率" : "", mm.flag.includes("short") ? `只有 ${mm.n} 年有数据（应为 ${mm.win} 年）` : "",
+    mUse != null && mUse > DCF_M_HI ? DCF_M_HI_TXT : ""].filter(Boolean).join("；") : "";
+  const ttmO = d.mt != null ? d.mt * 100 : null;
+  const avgT = o.cyc ? "近 5 年平均" : "近 3 年平均", gapBig = mm && mm.avg != null && mm.ttm != null && Math.abs(mm.ttm - mm.avg) > DCF_GAP;
+  const m0Val = mm && mm.m0 != null ? `${mm.used === "ramp" ? `${dcfPS(mm.start)} → ${dF(mm.T * 100)}%` : dcfPct(mm.m0 * 100)} <span class="tag">${esc(dcfUsedT(mm.used, o.cyc))}</span>${coSet ? ' <span class="tag">本公司单独设定</span>' : ""}${gapBig ? ` <span class="tag t-warn" style="white-space:normal" title="${esc(DCF_GAP_TXT)}">⚠ TTM 差距大</span>` : ""}` : "—";
+  const m0Sub = mm ? [dcfWhyTxt(mm, o.cyc, sel) + (coSet ? "（本公司单独设定）" : ""), gapBig ? "⚠ " + DCF_GAP_TXT : "",
+    `${avgT} ${dcfPS(mm.avg)} · TTM ${mm.ttm == null ? "—（经营现金流、资本开支与营收不在同一口径或缺数据）" : dcfPS(mm.ttm)}（A 股 TTM 由半年报推算，经营现金流季节性强）`,
+    mm.path ? "利润率路径：" + dcfPathTxt(mm) : "", mflag].filter(Boolean).join("；") : "";
+  // 疑似一次性收入: TTM not extrapolated (auto / ramp start), or still used because the user chose TTM
+  const gTxt = mm && mm.guard.length ? dcfGuardTxt(mm.guard) : "";
+  const guardHtml = !gTxt ? "" : mm.used === "ttm" ? `<div class="small warn" style="margin:4px 0">疑似一次性收入：${esc(gTxt)}；按所选“TTM”口径仍外推，结果可能偏高。</div>`
+    : mm.ttm != null && (mm.ttmBlock === "guard" || mm.used === "ramp" || sel === "ttm" || sel === "auto")
+      ? `<div class="small warn" style="margin:4px 0">疑似一次性收入，未外推：${esc(gTxt)}。</div>`
+      : `<div class="small warn" style="margin:4px 0">疑似一次性收入：${esc(gTxt)}（当前口径不用 TTM）。</div>`;
   const consWhy = !o.cg && c.dcf_g && c.dcf_g.why ? `；一致预期不可用：${c.dcf_g.why}` : "";
   const rows = [
     ["TTM 营收", `${yi(d.r0)} 亿元`, d.rb === "ttm" ? `FY${last} + ${VM.ytd} 累计 − ${VM.ytd_ago} 累计` : `缺半年报，用 FY${last}`],
-    ["TTM 经营现金流 / 购建长期资产", `${yi(d.o)} / ${yi(d.x)} 亿元`, `TTM FCF 利润率 ${dcfPct(ttmO)}（只展示，不用于估值）`],
-    ["年度 FCF 利润率", mcells, `FCF = 经营现金流净额 − 购建长期资产现金；灰色年份不参与平均`],
-    ["基准 FCF 利润率 m0", mm && mm.m0 != null ? dcfPct(mm.m0 * 100) : "—", `近 ${nWin} 个财年平均${mflag ? "；" + mflag : ""}`],
+    ["TTM 经营现金流 / 购建长期资产", `${yi(d.o)} / ${yi(d.x)} 亿元`, `TTM FCF 利润率 ${dcfPct(ttmO)}（由半年报推算；A 股经营现金流季节性强）`],
+    ["年度 FCF 利润率", mcells, `FCF = 经营现金流净额 − 购建长期资产现金；灰色年份不参与历史平均`],
+    [mm && mm.used === "ramp" ? "FCF 利润率（爬坡：起点 → 稳态）" : "基准 FCF 利润率 m0", m0Val, m0Sub],
     ["净现金", `${yi(d.cash - d.debt)} 亿元`, `现金 ${yi(d.cash)} − 有息负债 ${yi(d.debt)}（${VM.latest}）`],
     ["总股本 · 股价", `${num(d.sh / 1e8, 2)} 亿股 · ${num(o.price, 2)} 元`, `行情 ${r.px_date || D.quote_date || "—"}${d.mcf ? "；总市值与 股价 × 总股本 相差 > 2%（可能有 B / H 股）" : ""}`],
     ["起始增速 g0", o.g0 != null ? `${dcfPct(o.g0)}${o.capped ? ' <span class="tag t-warn">已截断</span>' : ""}` : "—",
@@ -1628,68 +1763,125 @@ function dcfCardInner(c) {
   ];
   // two columns: label (+ explanation underneath) | value; the per-year margin list wraps instead of widening the table
   const inTbl = `<table class="dcf-in"><tbody>${rows.map(([k, v, s], i) => `<tr><td>${esc(k)}${s ? `<div class="small muted">${esc(s)}</div>` : ""}</td>
-    <td class="${i === 2 ? "small" : "n"}" style="${i === 2 ? "white-space:normal;max-width:260px" : ""}">${v}</td></tr>`).join("")}</tbody></table>`;
+    <td class="${i === 2 ? "small" : "n"}" style="${i === 2 || i === 3 ? "white-space:normal;max-width:260px" : ""}">${v}</td></tr>`).join("")}</tbody></table>`;
   let out;
   if (o.status === "na") out = `<div class="small warn">不计算：${esc(DCF_WHY[o.why] || o.why)}</div>`;
-  else if (o.status === "negfcf") out = `<div class="small"><b>基准 FCF 利润率 ${dcfPct(o.m0 * 100)} ≤ 0：不做三情景估值。</b></div>
+  else if (o.status === "negfcf" && o.ramp) out = `<div class="small"><b>稳态 FCF 利润率 T ${dcfPct(o.mm.T * 100)} ≤ 0：不做三情景估值。</b></div>
+    <div style="margin:6px 0">需要的稳态 FCF 利润率（起点 ${dcfPS(o.mm.start)}、第 ${o.mm.N} 年达到，在基准增速下）：<b>${dcfPS(o.mReq)}</b></div>
+    <div class="small">含义：利润率从起点线性爬到这个稳态值并保持、起始增速 ${dcfPct(o.g0)} 线性衰减到 gT ${dcfPct(o.gT, 2)}、折现率 ${dcfPct(o.r.base, 2)} 时，折现后才等于现价。</div>`;
+  else if (o.status === "negfcf") out = `<div class="small"><b>基准 FCF 利润率 ${dcfPct(o.m0 * 100)}（${esc(dcfUsedT(o.mm.used, o.cyc))}）≤ 0：不做三情景估值。</b></div>
     <div style="margin:6px 0">需要的 FCF 利润率（在基准增速下）：<b>${o.mReq <= 0 ? "≤ 0（净现金已不低于市值）" : dcfPct(o.mReq * 100)}</b></div>
     <div class="small">含义：起始增速 ${dcfPct(o.g0)} 线性衰减到 gT ${dcfPct(o.gT, 2)}、折现率 ${dcfPct(o.r.base, 2)} 时，未来 10 年每年 FCF 要占营收这么多（之后按 gT 永续），折现后才等于现价。扩产期公司经营现金流常常覆盖不了资本开支，历史 FCF 为负不代表以后也为负；但这个利润率与历史差得越远，现价隐含的假设越激进。</div>`;
   else {
     const L = {bear: "熊", base: "基准", bull: "牛"};
-    const box = k => { const s = o.sc[k]; return `<div class="${k}"><div class="small">${L[k]} · r ${dF(s.r)}% · g0 ${dF(s.g)}% · m ${dcfPct(s.m * 100)}</div>
+    const box = k => { const s = o.sc[k]; return `<div class="${k}"><div class="small">${L[k]} · r ${dF(s.r)}% · g0 ${dF(s.g)}% · ${o.ramp ? "T" : "m"} ${dcfPct(s.m * 100)}</div>
       <div class="v">${s.vps == null ? "—" : num(s.vps, 2) + " 元"}</div><div class="small">${s.vps == null ? "r − gT ≤ 0.5pt，不计算" : s.vps <= 0 ? "股权价值 ≤ 0" : dcfVs(s.vs)}</div></div>`; };
     const rv = o.rev === "ok" ? `现价 ${num(o.price, 2)} 元隐含前 10 年起始增速 <b>${dcfPct(o.revG)}</b>（线性衰减到 gT ${dcfPct(o.gT, 2)}），对比增速来源 ${dcfPct(o.g0)}（${esc(DCF_SHORT[o.gsrc])}）`
       : o.rev === "below" ? `现价隐含的起始增速低于 −30%（起始增速 −30% 时的估值仍高于现价）` : `现价隐含的起始增速高于 +100%（在 −30% ~ +100% 内无解）`;
     out = `<div class="dcf-sc">${box("bear")}${box("base")}${box("bull")}</div>
       <div class="small">反向 DCF：${rv}。</div>
-      <div class="small">在基准增速下，现价隐含 FCF 利润率 ${o.mReq <= 0 ? "≤ 0（净现金已不低于市值）" : dcfPct(o.mReq * 100)}（基准 m0 ${dcfPct(o.m0 * 100)}）。基准情景终值现值占 EV ${o.sc.base.res && o.sc.base.res.tvShare != null ? num(o.sc.base.res.tvShare * 100, 0) + "%" : "—"}。</div>
+      <div class="small">${o.ramp ? `在基准增速下，现价需要的稳态 FCF 利润率 ${dcfPS(o.mReq)}（起点 ${dcfPS(o.mm.start)}、第 ${o.mm.N} 年达到；设定 T ${dF(o.mm.T * 100)}%）`
+        : `在基准增速下，现价隐含 FCF 利润率 ${o.mReq <= 0 ? "≤ 0（净现金已不低于市值）" : dcfPct(o.mReq * 100)}（基准 m0 ${dcfPct(o.m0 * 100)}）`}。基准情景终值现值占 EV ${o.sc.base.res && o.sc.base.res.tvShare != null ? num(o.sc.base.res.tvShare * 100, 0) + "%" : "—"}。</div>
       <details class="grp" data-dcfs="${esc(c.code)}" ${DCF_SENS.has(c.code) ? "open" : ""} style="margin-top:6px"><summary>敏感性 <span class="small">折现率 × 永续增速，基准情景每股价值</span></summary><div class="grp-body">${dcfSensTable(o)}</div></details>`;
   }
-  return head + `<div class="grid g2"><div class="card"><h4>输入</h4>${inTbl}</div><div class="card"><h4>结果</h4>${out}
-    <ul class="small" style="margin-top:8px"><li>DCF 对折现率和永续增速非常敏感（见敏感性表）</li><li>FCF 利润率用历史平均；A 股经营现金流季节性强，TTM 由半年报推算</li><li>业务变化（扩产、并购、产品切换）时误差大；没有回测</li><li>${esc(DCF_DISC)}</li></ul></div></div>`;
+  return head + dcfCoHtml(c.code) + guardHtml + `<div class="grid g2"><div class="card"><h4>输入</h4>${inTbl}</div><div class="card"><h4>结果</h4>${out}
+    <ul class="small" style="margin-top:8px"><li>DCF 对折现率和永续增速非常敏感（见敏感性表）</li><li>FCF 利润率口径：${esc(dcfUsedT(o.mm ? o.mm.used : "avg3", o.cyc))}${coSet ? "（本公司单独设定）" : ""}（全局参数“FCF 利润率口径”或上方本公司设定可改）；A 股经营现金流季节性强，TTM 由半年报推算${o.ramp ? "；爬坡的稳态利润率和年数是用户设定，不是数据得出" : ""}</li><li>业务变化（扩产、并购、产品切换）时误差大；没有回测</li><li>${esc(DCF_DISC)}</li></ul></div></div>` + lgCardBlock(c.code);
+}
+// per-company setting block (FCF 利润率口径 / 爬坡 N / T for this code only); empty = follow the global parameters
+function dcfCoHtml(code) {
+  const x = DCF_CO[code] || {}, set = !!DCF_CO[code], e = esc(code);
+  return `<div class="dcf-co" role="group" aria-label="${e} 本公司估值设定"><span class="small"><b>本公司设定</b>${set ? '<span class="chg">（本公司单独设定）</span>' : "（跟随全局参数）"}</span>
+    <label class="small" for="dcfco_b_${e}">FCF 利润率口径</label><select id="dcfco_b_${e}" data-dcfco="${e}" data-k="basis"><option value="">跟随全局（${esc(DCF_BASIS_T[DP.basis] || "自动")}）</option>${DCF_BASES.map(b => `<option value="${b}"${x.basis === b ? " selected" : ""}>${esc(DCF_BASIS_T[b])}</option>`).join("")}</select>
+    <label class="small" for="dcfco_n_${e}">爬坡年数 N</label><input type="number" id="dcfco_n_${e}" data-dcfco="${e}" data-k="N" min="1" max="10" step="1" inputmode="numeric" value="${x.N ?? ""}" placeholder="${esc(DP.rampN)}">
+    <label class="small" for="dcfco_t_${e}">稳态利润率 T（%）</label><input type="number" id="dcfco_t_${e}" data-dcfco="${e}" data-k="T" min="-20" max="60" step="0.5" inputmode="decimal" value="${x.T ?? ""}" placeholder="${esc(DP.rampT)}">
+    <button type="button" class="btn ghost" data-dcfco-clr="${e}"${set ? "" : " disabled"}>清除单独设定</button><span class="small warn" id="dcfco_m_${e}" role="status" aria-live="polite"></span></div>`;
+}
+function dcfCoRefresh(code, focusId, msg) {
+  delete DCF_CACHE[code];
+  const el = document.querySelector(`[data-dcfc="${CSS.escape(code)}"]`), c = CARDS[code];
+  if (el && c) el.innerHTML = dcfCardInner(c);
+  if (focusId && $(focusId)) $(focusId).focus();
+  if (msg && $("dcfco_m_" + code)) $("dcfco_m_" + code).textContent = msg;
+  dcfCoCount(); renderBk();
+}
+function dcfCoInput(el) {
+  const code = el.dataset.dcfco, k = el.dataset.k, raw = String(el.value).trim(), x = {...(DCF_CO[code] || {})};
+  if (k === "basis") { if (raw === "") delete x.basis; else if (DCF_BASES.includes(raw)) x.basis = raw; }
+  else {
+    const f = DCF_FIELDS.find(z => z.k === (k === "N" ? "rampN" : "rampT")), v = raw === "" ? null : +raw;
+    if (v != null && (!isFinite(v) || v < f.min || v > f.max || (f.int && !Number.isInteger(v)))) {
+      el.setAttribute("aria-invalid", "true"); $("dcfco_m_" + code).textContent = `${f.t}需在 ${f.min} ~ ${f.max} 之间${f.int ? "（整数）" : ""}，未生效`; return; }
+    if (v == null) delete x[k]; else x[k] = v;
+  }
+  if (Object.keys(x).length) DCF_CO[code] = x; else delete DCF_CO[code];
+  dcfSave(); dcfCoRefresh(code, el.id);
+}
+function dcfCoCount() {
+  const n = Object.keys(DCF_CO).length, el = $("dcfCoN"); if (!el) return;
+  el.textContent = n ? `${n} 家公司有单独设定：${Object.keys(DCF_CO).slice(0, 8).join("、")}${n > 8 ? " 等" : ""}` : "没有单独设定";
+  $("dcfCoClr").disabled = !n;
 }
 // 对比池 cells (display only)
 function dcfPoolCell(code) {
   const o = dcfOf(code);
   if (o.status === "ok") { const s = o.sc.base;
-    const t = `<b>Base 每股 ${esc(num(s.vps, 2))} 元</b> vs 现价 ${esc(num(o.price, 2))} 元<br>r ${esc(dF(s.r))}% · g0 ${esc(dF(o.g0))}%（${esc(DCF_SHORT[o.gsrc])}${o.capped ? "，已截断" : ""}）· m0 ${esc(dcfPct(o.m0 * 100))} · gT ${esc(dF(o.gT))}%<br>熊 ${esc(num(o.sc.bear.vps, 2))} / 牛 ${esc(num(o.sc.bull.vps, 2))} 元${o.m0 > DCF_M_HI ? `<br>${esc(DCF_M_HI_TXT)}` : ""}${o.cyc ? "<br>周期：用多年平均利润率" : ""}<br>${esc(DCF_DISC)}`;
-    return `<span data-tip="${esc(t)}">${s.vps <= 0 ? "股权价值 ≤ 0" : dcfVs(s.vs)}${o.m0 > DCF_M_HI ? ' <span class="tag t-warn">不可靠</span>' : ""}</span>`; }
-  if (o.status === "negfcf") return `<span class="small warn" data-tip="${esc(`基准 FCF 利润率 ${esc(dcfPct(o.m0 * 100))} ≤ 0，不做三情景<br>需要的 FCF 利润率（在基准增速下）${esc(o.mReq <= 0 ? "≤ 0" : dcfPct(o.mReq * 100))}<br>${esc(DCF_DISC)}`)}">FCF≤0</span>`;
+    const t = `<b>Base 每股 ${esc(num(s.vps, 2))} 元</b> vs 现价 ${esc(num(o.price, 2))} 元<br>r ${esc(dF(s.r))}% · g0 ${esc(dF(o.g0))}%（${esc(DCF_SHORT[o.gsrc])}${o.capped ? "，已截断" : ""}）· FCF 利润率 ${esc(dcfMTxt(o))}（${esc(dcfUsedT(o.mm.used, o.cyc))}${DCF_CO[code] ? "，本公司单独设定" : ""}）· gT ${esc(dF(o.gT))}%<br>熊 ${esc(num(o.sc.bear.vps, 2))} / 牛 ${esc(num(o.sc.bull.vps, 2))} 元${o.mEnd > DCF_M_HI ? `<br>${esc(DCF_M_HI_TXT)}` : ""}${o.cyc ? "<br>周期：用多年平均利润率" : ""}${o.mm.guard.length ? `<br>疑似一次性收入：${esc(dcfGuardTxt(o.mm.guard))}` : ""}<br>${esc(DCF_DISC)}`;
+    return `<span data-tip="${esc(t)}">${s.vps <= 0 ? "股权价值 ≤ 0" : dcfVs(s.vs)}${o.mEnd > DCF_M_HI ? ' <span class="tag t-warn">不可靠</span>' : ""}${o.ramp ? ' <span class="tag">爬坡</span>' : ""}</span>`; }
+  if (o.status === "negfcf") return `<span class="small warn" data-tip="${esc(o.ramp ? `稳态 FCF 利润率 T ${esc(dcfPct(o.mm.T * 100))} ≤ 0（爬坡），不做三情景<br>需要的稳态 FCF 利润率 ${esc(dcfPS(o.mReq))}<br>${esc(DCF_DISC)}`
+    : `基准 FCF 利润率 ${esc(dcfPct(o.m0 * 100))}（${esc(dcfUsedT(o.mm.used, o.cyc))}）≤ 0，不做三情景<br>需要的 FCF 利润率（在基准增速下）${esc(o.mReq <= 0 ? "≤ 0" : dcfPct(o.mReq * 100))}<br>${esc(DCF_DISC)}`)}">FCF≤0</span>`;
   return `<span class="na" data-tip="${esc(esc(DCF_WHY[o.why] || o.why))}">N/A</span>`;
 }
 function dcfPoolG(code) {
   const o = dcfOf(code);
-  if (o.status === "ok") { const t = `现价隐含前 10 年起始增速（线性衰减到 gT ${esc(dF(o.gT))}%）<br>增速来源：${esc(DCF_SHORT[o.gsrc])} ${esc(dcfPct(o.g0))}<br>${esc(DCF_DISC)}`;
+  if (o.status === "ok") { const t = `现价隐含前 10 年起始增速（线性衰减到 gT ${esc(dF(o.gT))}%${o.ramp ? `；利润率路径 ${esc(dcfMTxt(o))} 固定` : ""}）<br>增速来源：${esc(DCF_SHORT[o.gsrc])} ${esc(dcfPct(o.g0))}<br>${esc(DCF_DISC)}`;
     return `<span data-tip="${esc(t)}">${o.rev === "ok" ? dcfPct(o.revG) : o.rev === "below" ? "&lt; −30%" : "&gt; 100%"}</span>`; }
-  if (o.status === "negfcf") return `<span class="na" data-tip="${esc(esc(`FCF 利润率 ≤ 0，增速无法反推；需要的 FCF 利润率 ${o.mReq <= 0 ? "≤ 0" : dcfPct(o.mReq * 100)}`))}">—</span>`;
+  if (o.status === "negfcf") return `<span class="na" data-tip="${esc(esc(o.ramp ? `稳态 FCF 利润率 ≤ 0，增速无法反推；需要的稳态 FCF 利润率 ${dcfPS(o.mReq)}` : `FCF 利润率 ≤ 0，增速无法反推；需要的 FCF 利润率 ${o.mReq <= 0 ? "≤ 0" : dcfPct(o.mReq * 100)}`))}">—</span>`;
   return `<span class="na" data-tip="${esc(esc(DCF_WHY[o.why] || o.why))}">N/A</span>`;
 }
 const dcfSortVs = code => { const o = dcfOf(code); return o.status === "ok" ? o.sc.base.vs : null; };
 const dcfSortG = code => { const o = dcfOf(code); return o.status === "ok" && o.rev === "ok" ? o.revG : null; };
-const dcfParamTxt = () => `rf ${dF(DP.rf)}% · ERP ${dF(DP.erp)}% · gT ${dF(DP.rf == null ? DP.gT : Math.min(DP.gT, DP.rf))}% · r ±${dF(DP.dr)}pt · 增速 ±${dF(DP.ag)}% · 利润率 ±${dF(DP.am)}% · 截断 [${dF(DP.glo)}%, ${dF(DP.ghi)}%]`;
+const dcfParamTxt = () => `rf ${dF(DP.rf)}% · ERP ${dF(DP.erp)}% · gT ${dF(DP.rf == null ? DP.gT : Math.min(DP.gT, DP.rf))}% · r ±${dF(DP.dr)}pt · 增速 ±${dF(DP.ag)}% · 利润率 ±${dF(DP.am)}% · 截断 [${dF(DP.glo)}%, ${dF(DP.ghi)}%] · 利润率口径 ${DCF_BASIS_T[DP.basis] || "自动"} · 爬坡 N ${dF(DP.rampN)} 年 T ${dF(DP.rampT)}%${Object.keys(DCF_CO).length ? ` · ${Object.keys(DCF_CO).length} 家单独设定` : ""}`;
 
 // parameters panel
+const DCF_CO_RE = /^\d{6}$/;
 function dcfLoad() {
-  DP = dcfDefaults(); dcfErr = "";
+  DP = dcfDefaults(); DCF_CO = {}; dcfErr = "";
   try { const j = JSON.parse(localStorage.getItem(DKEY) || "null");
-    if (j && j.p && typeof j.p === "object") DCF_FIELDS.forEach(f => { const v = j.p[f.k]; if (typeof v === "number" && isFinite(v) && v >= f.min && v <= f.max) DP[f.k] = v; });
-    if (DP.glo >= DP.ghi) { DP.glo = DCF_DEF.glo; DP.ghi = DCF_DEF.ghi; } }
+    if (j && j.p && typeof j.p === "object") DCF_FIELDS.forEach(f => { const v = j.p[f.k]; if (typeof v === "number" && isFinite(v) && v >= f.min && v <= f.max && (!f.int || Number.isInteger(v))) DP[f.k] = v; });
+    if (j && j.p && DCF_BASES.includes(j.p.basis)) DP.basis = j.p.basis;
+    if (DP.glo >= DP.ghi) { DP.glo = DCF_DEF.glo; DP.ghi = DCF_DEF.ghi; }
+    // per-company overrides: {code: {basis?, N?, T?}}, invalid entries dropped
+    const fN = DCF_FIELDS.find(f => f.k === "rampN"), fT = DCF_FIELDS.find(f => f.k === "rampT");
+    if (j && j.co && typeof j.co === "object") Object.entries(j.co).forEach(([code, x]) => { if (!DCF_CO_RE.test(code) || !x || typeof x !== "object") return;
+      const y = {};
+      if (DCF_BASES.includes(x.basis)) y.basis = x.basis;
+      if (typeof x.N === "number" && Number.isInteger(x.N) && x.N >= fN.min && x.N <= fN.max) y.N = x.N;
+      if (typeof x.T === "number" && isFinite(x.T) && x.T >= fT.min && x.T <= fT.max) y.T = x.T;
+      if (Object.keys(y).length) DCF_CO[code] = y; }); }
   catch (err) { dcfErr = "浏览器不允许读取本地存储，参数只在本次打开期间有效。"; }
 }
 function dcfSave() {
   const d0 = dcfDefaults(), p = {}; DCF_FIELDS.forEach(f => { if (DP[f.k] != null && DP[f.k] !== d0[f.k]) p[f.k] = DP[f.k]; });
-  try { if (Object.keys(p).length) localStorage.setItem(DKEY, JSON.stringify({version: 1, saved_at: new Date().toISOString(), p})); else localStorage.removeItem(DKEY); dcfErr = ""; }
+  if (DP.basis !== d0.basis) p.basis = DP.basis;
+  const j = {version: 1, saved_at: new Date().toISOString(), p};
+  if (Object.keys(DCF_CO).length) j.co = DCF_CO;
+  try { if (Object.keys(p).length || j.co) localStorage.setItem(DKEY, JSON.stringify(j)); else localStorage.removeItem(DKEY); dcfErr = ""; }
   catch (err) { dcfErr = "保存失败：浏览器不允许本地存储，参数只在本次打开期间有效。"; }
 }
+const dcfU = f => f.u === "pt" ? "pt" : f.u === "年" ? " 年" : "%";
 function dcfSrc() {
   const d0 = dcfDefaults();
   DCF_FIELDS.forEach(f => { const ch = DP[f.k] !== d0[f.k];
-    $("dcfs_" + f.k).innerHTML = esc(f.src()) + (ch ? ` <span class="chg">已修改（默认 ${esc(d0[f.k] == null ? "未取到" : dF(d0[f.k]) + (f.u === "pt" ? "pt" : "%"))}）</span>` : ""); });
+    $("dcfs_" + f.k).innerHTML = esc(f.src()) + (ch ? ` <span class="chg">已修改（默认 ${esc(d0[f.k] == null ? "未取到" : dF(d0[f.k]) + dcfU(f))}）</span>` : ""); });
+  $("dcfs_basis").innerHTML = esc(DCF_BASIS_SRC) + (DP.basis !== d0.basis ? ` <span class="chg">已修改（默认 ${esc(DCF_BASIS_T[d0.basis])}）</span>` : "");
 }
+const DCF_BASIS_SRC = "自动：周期行业用近 5 年平均（不用 TTM / 爬坡）；否则 TTM 存在、无疑似一次性收入、高于近 3 年平均且近三个财年利润率逐年上升时用 TTM；"
+  + "近 3 年平均 ≤ 0 且最近财年利润率改善时用利润率爬坡；其余用近 3 年平均。所选口径缺数据时改用历史平均。每张评估卡可单独设定";
 function dcfDerived() {
   if (DP.rf == null) { $("dcfDerived").innerHTML = `<span class="warn">无风险利率未取到，请手动填写；填写前所有现金流估值显示 N/A。</span>`; return; }
   const rb = DP.rf + DP.erp, gT = Math.min(DP.gT, DP.rf);
-  const parts = [`基准折现率 r = ${dF(DP.rf)}% + ${dF(DP.erp)}% = ${dF(rb)}%（牛 ${dF(rb - DP.dr)}%，熊 ${dF(rb + DP.dr)}%）`, `生效永续增速 gT = ${dF(gT)}%`];
+  const parts = [`基准折现率 r = ${dF(DP.rf)}% + ${dF(DP.erp)}% = ${dF(rb)}%（牛 ${dF(rb - DP.dr)}%，熊 ${dF(rb + DP.dr)}%）`, `生效永续增速 gT = ${dF(gT)}%`,
+    `爬坡：利润率从起点线性走到 ${dF(DP.rampT)}%，第 ${dF(DP.rampN)} 年达到（${dcfPath(0, 1, DP.rampN).slice(0, DP.rampN).map(w => Math.round(w * 100) + "%").join(" / ")} 的进度）；熊 / 牛稳态值 × (1 ∓ ${dF(DP.am)}%)`];
   if (gT < DP.gT) parts.push(`<span class="warn">永续增速不超过无风险利率，已调为 ${dF(gT)}%</span>`);
   if (rb - gT <= 0.5) parts.push(`<span class="warn">基准折现率需比永续增速高 0.5 个百分点以上，否则不计算</span>`);
   else if (rb - DP.dr - gT <= 0.5) parts.push(`<span class="warn">牛情景折现率与永续增速之差 ≤ 0.5pt，牛情景不计算</span>`);
@@ -1697,7 +1889,8 @@ function dcfDerived() {
 }
 function dcfFill() {
   DCF_FIELDS.forEach(f => { const i = $("dcf_" + f.k); i.value = DP[f.k] == null ? "" : String(DP[f.k]); i.removeAttribute("aria-invalid"); });
-  dcfSrc(); dcfDerived();
+  $("dcf_basis").value = DP.basis;
+  dcfSrc(); dcfDerived(); dcfCoCount();
 }
 function dcfRefresh() {
   DCF_CACHE = {};
@@ -1710,6 +1903,7 @@ function dcfInput(i) {
   let msg = "";
   if (!isFinite(v)) msg = f.k === "rf" ? "请填写无风险利率（%）" : `${f.t}需要是数字`;
   else if (v < f.min || v > f.max) msg = `${f.t}需在 ${f.min} ~ ${f.max} 之间`;
+  else if (f.int && !Number.isInteger(v)) msg = `${f.t}需要是整数`;
   else if ((f.k === "glo" && v >= DP.ghi) || (f.k === "ghi" && v <= DP.glo)) msg = "起始增速下限需小于上限";
   if (msg) { i.setAttribute("aria-invalid", "true"); $("dcfMsg").textContent = msg + "，未生效"; return; }
   i.removeAttribute("aria-invalid"); DP[f.k] = v; dcfSave(); dcfSrc(); dcfDerived(); $("dcfMsg").textContent = "";
@@ -1717,16 +1911,177 @@ function dcfInput(i) {
 }
 function dcfInit() {
   dcfLoad();
-  $("dcfForm").innerHTML = DCF_FIELDS.map(f => `<div class="dcf-f"><label for="dcf_${f.k}">${esc(f.t)}（${esc(f.u)}）</label>
-    <input type="number" id="dcf_${f.k}" data-dcfk="${f.k}" step="${f.step}" min="${f.min}" max="${f.max}" inputmode="decimal" aria-describedby="dcfs_${f.k}"><span class="small" id="dcfs_${f.k}"></span></div>`).join("");
+  const fld = f => `<div class="dcf-f"><label for="dcf_${f.k}">${esc(f.t)}（${esc(f.u)}）</label>
+    <input type="number" id="dcf_${f.k}" data-dcfk="${f.k}" step="${f.step}" min="${f.min}" max="${f.max}" inputmode="${f.int ? "numeric" : "decimal"}" aria-describedby="dcfs_${f.k}"><span class="small" id="dcfs_${f.k}"></span></div>`;
+  $("dcfForm").innerHTML = DCF_FIELDS.filter(f => !f.ramp).map(fld).join("")
+    + `<div class="dcf-f"><label for="dcf_basis">FCF 利润率口径</label><select id="dcf_basis" aria-describedby="dcfs_basis">${DCF_BASES.map(b => `<option value="${b}">${esc(DCF_BASIS_T[b])}${b === "auto" ? "（默认）" : b === "avg3" ? "（原做法）" : ""}</option>`).join("")}</select><span class="small" id="dcfs_basis"></span></div>`
+    + DCF_FIELDS.filter(f => f.ramp).map(fld).join("");
+  $("dcfReset").insertAdjacentHTML("afterend", ` <button type="button" class="btn ghost" id="dcfCoClr">清除全部单独设定</button> <span class="small" id="dcfCoN"></span>`);
   dcfFill();
   $("dcfForm").addEventListener("input", ev => { const i = ev.target.closest("input[data-dcfk]"); if (i) dcfInput(i); });
-  $("dcfReset").onclick = () => { DP = dcfDefaults(); dcfSave(); dcfFill(); dcfRefresh(); $("dcfMsg").textContent = "已恢复默认参数"; };
+  $("dcf_basis").addEventListener("change", ev => { const v = ev.target.value; if (!DCF_BASES.includes(v)) return; DP.basis = v; dcfSave(); dcfSrc(); dcfDerived(); $("dcfMsg").textContent = ""; dcfRefreshDeb(); });
+  // 恢复默认 resets the global parameters only; per-company settings have their own clear buttons
+  $("dcfReset").onclick = () => { DP = dcfDefaults(); dcfSave(); dcfFill(); dcfRefresh(); $("dcfMsg").textContent = "已恢复默认参数（本公司单独设定保留）"; };
+  $("dcfCoClr").onclick = () => { const n = Object.keys(DCF_CO).length; DCF_CO = {}; dcfSave(); dcfCoCount(); dcfRefresh(); $("dcfMsg").textContent = `已清除 ${n} 家公司的单独设定`; };
+  // per-company controls inside the cards (delegated; change = committed value, so typing does not re-render the card)
+  document.addEventListener("change", ev => { const el = ev.target.closest && ev.target.closest("[data-dcfco]"); if (el) dcfCoInput(el); });
+  document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest("[data-dcfco-clr]"); if (!b) return;
+    const code = b.dataset.dcfcoClr; delete DCF_CO[code]; dcfSave(); dcfCoRefresh(code, "dcfco_b_" + code, "已清除单独设定，跟随全局参数"); });
   $("bkDcfLink").onclick = ev => { ev.preventDefault(); goSec("dcfPanel"); $("dcfPanel").focus({preventScroll: true}); };
   document.addEventListener("toggle", ev => { const t = ev.target; if (t && t.dataset && t.dataset.dcfs) { if (t.open) DCF_SENS.add(t.dataset.dcfs); else DCF_SENS.delete(t.dataset.dcfs); } }, true);
   addEventListener("storage", ev => { if (ev.key === DKEY || ev.key === null) { dcfLoad(); dcfFill(); dcfRefresh(); } });
 }
 dcfInit();
+
+// ---------- 估值台账 (valuation ledger, display only): `python -m cn ledger` appends one record per ② screen code per data update,
+// computed with the DEFAULT 估值参数 by the Python mirror (cn/ledger.py). Never enters ④ priority, labels, warn_n or bkScore.
+// D.ledger = {file, runs: [{snap, val, date, run_at, n}], latest, prev, matches_snap, rules, order_base, order_mreq, names,
+//   cards: {code: [{d, ra, p, s, w, lo, b, hi, gp, ig, igs, mr, m, mb, mw, g, gs, c, t, ao, a: [[k, delta, pct]], bp, pp, gpp, igp}]} (last 26, the cards),
+//   all: {code: "first date" | [tag, base_pct, gap_pp, implied_g_pp, price_pct, attr, [prev_status, status], conclusion, prev_date, attr_of, implied_m_pp]}}
+const LG = D.ledger || {}, LGA = LG.all || {}, LGC = LG.cards || {}, LG_NM = LG.names || {};
+const LG_DISC = "台账记录的是模型在默认参数下的输出，用来对比数据变化带来的估值变化；不是目标价，不是买卖建议；方法未回测";
+const LG_FLAT = (LG.rules || {}).flat_pct ?? 2, LG_FIRST = (LG.runs || [])[0]?.date || "—", LG_ONE = (LG.runs || []).length < 2;
+const LG_OPEN = new Set(), LG_AB = {r0: "营", m0: "利", g0: "增", ncsh: "现", par: "参", price: "价"};
+const LG_S = {ok: "三情景", negfcf: "FCF ≤ 0", na: "不计算"};
+const lgSg = (v, d = 1, u = "%") => { if (v == null || !isFinite(v)) return "—"; const s = Math.abs(v).toFixed(d); return +s === 0 ? `0${d ? "." + "0".repeat(d) : ""}${u}` : (v > 0 ? "+" : "−") + s + u; };
+const lgCls = v => v == null || Math.abs(v) < 1e-9 ? "" : v > 0 ? "pos" : "neg";
+const lgIg = x => x.igs === "ok" && x.ig != null ? `${num(x.ig, 0)}%` : x.igs === "below" ? "< −30%" : x.igs === "above" ? "> 100%" : "—";
+const lgName = code => coOf(code)?.name || "";
+// m0 cell: effective margin (ramp: start → T in N years) + basis; ⚠ when the one-off guard fired (keys a / b / c)
+const lgM = (r, code) => r.m == null ? "—" : `${dcfPct(r.m * 100)}${r.mb === "ramp" && r.mT != null ? `→${esc(dF(r.mT * 100))}%（${esc(r.mN)} 年）` : ""} <span class="small">${esc(dcfUsedT(r.mb, BYCODE[code]?.cyclical))}${r.gd ? `<span class="warn" title="疑似一次性收入 (${esc(r.gd)})"> ⚠</span>` : ""}</span>`;
+const lgReq = r => `${r.mk === "T" ? "需要稳态利润率" : "需要利润率"} ${dcfPct(r.mr * 100)}`;
+// attribution mini-bars: one diverging bar per factor (fixed order), height ∝ |contribution| / max |contribution| of the row
+function lgBars(attr, of) {
+  if (!attr || !attr.length) return '<span class="na">—</span>';
+  const mx = Math.max(...attr.map(a => Math.abs(a[2] ?? a[1]))) || 1, u = of === "m_req" ? "pt" : "%";
+  const svg = attr.map((a, i) => { const v = a[2] ?? a[1], h = Math.abs(v) / mx * 11, x = 2 + i * 15;
+    return `<rect x="${x}" y="${v >= 0 ? 13 - h : 13}" width="10" height="${Math.max(h, 0.5).toFixed(1)}" class="${v >= 0 ? "lg-up" : "lg-dn"}"/>`; }).join("");
+  const tipT = attr.map(a => `${esc(LG_NM[a[0]] || a[0])} ${esc(a[2] != null ? lgSg(a[2], 2, u) : lgSg(a[1], 2, " 元"))}`).join("<br>");
+  const W = attr.length * 15 + 2, lb = attr.map((a, i) => `<text x="${7 + i * 15}" y="36" text-anchor="middle" class="lg-bl">${esc(LG_AB[a[0]] || "?")}</text>`).join("");
+  return `<span class="lg-bars" data-tip="${esc(`<b>归因（顺序替换，按此顺序）</b><br>${tipT}`)}"><svg viewBox="0 0 ${W} 38" width="${W}" height="38" role="img" aria-label="${esc("归因：" + attr.map(a => (LG_NM[a[0]] || a[0]) + " " + (a[2] != null ? lgSg(a[2], 1, u) : lgSg(a[1], 2, " 元"))).join("，"))}"><line x1="0" x2="${W}" y1="13" y2="13" class="lg-ax"/>${svg}${lb}</svg></span>`;
+}
+const lgAttrTxt = (attr, of) => attr ? attr.map(a => `${LG_NM[a[0]] || a[0]} ${a[2] != null ? lgSg(a[2], 2, of === "m_req" ? "pt" : "%") : lgSg(a[1], 2, " 元")}`).join("；") : "";
+// short form for the 对比池 column
+function lgShort(x) {
+  if (!x) return {t: "无记录", tip: "台账中没有这家公司（运行 python -m cn ledger）"};
+  if (typeof x === "string") return {t: "首次记录", tip: `首次记录（${x}），下次更新后显示变化`};
+  const [tag, bp, , , ppx, attr, st, concl, pd, of, mrp] = x;
+  const core = st[0] === "ok" && st[1] === "ok" ? `基准 ${lgSg(bp)}` : st[0] === "negfcf" && st[1] === "negfcf" ? `需要利润率 ${lgSg(mrp, 1, "pt")}` : `${LG_S[st[0]] || st[0]}→${LG_S[st[1]] || st[1]}`;
+  return {t: `${core} · ${tag || ""}`, v: st[0] === "ok" && st[1] === "ok" ? bp : null,
+    tip: `<b>${esc(`${pd} → ${LG.latest?.date || ""}`)}</b><br>${esc(concl)}${attr ? `<br>归因：${esc(lgAttrTxt(attr, of))}` : ""}<br>${esc(LG_DISC)}`};
+}
+function lgPoolCell(code) { const s = lgShort(LGA[code]); return `<span class="small" data-tip="${esc(s.tip)}">${esc(s.t)}</span>`; }
+const lgPoolSort = code => { const x = LGA[code]; return Array.isArray(x) && x[6][0] === "ok" && x[6][1] === "ok" ? x[1] : null; };
+// time series: price vs base value with the bear-bull band (default parameters)
+function lgChart(rs) {
+  const W = 560, H = 150, L = 46, R = 10, T = 10, B = 22, pts = rs.map((x, i) => ({i, ...x}));
+  const pmax = Math.max(...pts.map(x => x.p || 0)) || 1, cap = pmax * 3;
+  const vals = pts.flatMap(x => [x.p, x.s === "ok" ? x.lo : null, x.s === "ok" ? x.b : null, x.s === "ok" ? x.hi : null]).filter(v => v != null && isFinite(v));
+  if (!vals.length) return '<div class="small muted">没有可画的数值</div>';
+  const clip = v => Math.min(v, cap), anyClip = vals.some(v => v > cap);
+  let lo = Math.min(...vals.map(clip)), hi = Math.max(...vals.map(clip)); const pad = (hi - lo) * 0.08 || Math.abs(hi) * 0.1 || 1; lo -= pad; hi += pad;
+  const n = pts.length, X = i => n === 1 ? (L + W - R) / 2 : L + (W - L - R) * i / (n - 1), Y = v => T + (H - T - B) * (1 - (clip(v) - lo) / (hi - lo)), f = v => v.toFixed(1);
+  const ok = pts.filter(x => x.s === "ok" && x.lo != null && x.hi != null);
+  let g = `<line class="lg-ax" x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}"/>`;
+  [lo + pad, hi - pad].forEach(v => { g += `<text class="lg-tx" x="${L - 4}" y="${f(Y(v) + 4)}" text-anchor="end">${esc(num(v, 2))}</text>`; });
+  if (ok.length > 1) g += `<polygon class="lg-band" points="${ok.map(x => `${f(X(x.i))},${f(Y(x.hi))}`).join(" ")} ${ok.slice().reverse().map(x => `${f(X(x.i))},${f(Y(x.lo))}`).join(" ")}"/>`;
+  ok.forEach(x => { g += `<line class="lg-bandv" x1="${f(X(x.i))}" x2="${f(X(x.i))}" y1="${f(Y(x.hi))}" y2="${f(Y(x.lo))}"/>`; });
+  const line = (arr, cls) => arr.length > 1 ? `<polyline class="${cls}" fill="none" points="${arr.map(x => `${f(X(x[0]))},${f(Y(x[1]))}`).join(" ")}"/>` : "";
+  const pb = ok.map(x => [x.i, x.b]), pp_ = pts.filter(x => x.p != null).map(x => [x.i, x.p]);
+  g += line(pb, "lg-lb") + line(pp_, "lg-lp");
+  pb.forEach(([i, v]) => { g += `<rect class="lg-mb" x="${f(X(i) - 4)}" y="${f(Y(v) - 4)}" width="8" height="8" transform="rotate(45 ${f(X(i))} ${f(Y(v))})"/>`; });
+  pp_.forEach(([i, v]) => { g += `<circle class="lg-mp" cx="${f(X(i))}" cy="${f(Y(v))}" r="4"/>`; });
+  const lab = n === 1 ? [0] : [0, n - 1];
+  lab.forEach(i => { g += `<text class="lg-tx" x="${f(X(i))}" y="${H - 6}" text-anchor="${n === 1 ? "middle" : i ? "end" : "start"}">${esc(pts[i].d)}</text>`; });
+  const aria = `估值台账：${pts.map(x => `${x.d} 股价 ${num(x.p, 2)}${x.s === "ok" ? `，基准 ${num(x.b, 2)}（熊 ${num(x.lo, 2)}–牛 ${num(x.hi, 2)}）` : `，${LG_S[x.s]}`}`).join("；")}`;
+  return `<svg class="lg-ch" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(aria)}">${g}</svg>
+    <div class="small">蓝点 = 股价；◆ = 基准每股价值；阴影 / 竖线 = 熊–牛区间（默认参数）。${anyClip ? "高于最高股价 3 倍的值截到图顶。" : ""}${n === 1 ? "只有 1 条记录。" : ""}</div>`;
+}
+function lgCardBlock(code) {
+  const rs = LGC[code] || [], last = rs[rs.length - 1], x = LGA[code];
+  const P0 = dcfDefaults(), Pc = dcfPOf(code);
+  const changed = DCF_FIELDS.some(f => Pc[f.k] !== P0[f.k]) || ["basis", "rampN", "rampT"].some(k => Pc[k] !== P0[k]);
+  const note = `台账数值按<b>默认参数</b>计算（rf ${esc(dF(RF0))}% · ERP ${esc(dF(DCF_DEF.erp))}% · gT ${esc(dF(DCF_DEF.gT))}% · 利润率口径 自动，爬坡 N ${esc(DCF_DEF.rampN)} 年 / T ${esc(dF(DCF_DEF.rampT))}% · 无本公司单独设定）；上面的实时估值用你当前的参数${changed ? '（<span class="warn">当前参数已改动，两者不可直接比较</span>）' : ""}。${esc(LG_DISC)}。`;
+  if (!rs.length) return `<div class="lg-card"><div class="small"><b>估值台账：</b>${LG.file ? "台账中没有这家公司的记录" : "还没有台账（运行 python -m cn ledger）"}</div></div>`;
+  const concl = last.c ? `${esc(last.c)} ${last.t ? `<span class="tag">${esc(last.t)}</span>` : ""}` : `首次记录（${esc(last.d)}），下次更新后显示变化。`;
+  const tr = rs.slice().reverse().map(r => `<tr><td class="nw">${esc(r.d)}</td><td class="n">${num(r.p, 2)}</td>
+    <td class="n nw">${r.s === "ok" ? `${num(r.lo, 2)} / <b>${num(r.b, 2)}</b> / ${num(r.hi, 2)}` : `<span class="na">${esc(LG_S[r.s] || r.s)}</span>`}</td>
+    <td class="n nw">${r.s === "ok" ? dcfVs(r.gp * 100) : r.s === "negfcf" ? lgReq(r) : "—"}</td><td class="n">${lgIg(r)}</td>
+    <td class="n nw">${lgM(r, code)}</td><td class="n">${r.g == null ? "—" : dcfPct(r.g)}</td>
+    <td class="small" style="white-space:normal;min-width:220px">${r.c ? esc(r.c) + (r.t ? ` <span class="tag">${esc(r.t)}</span>` : "") : `首次记录（${esc(r.d)}）`}${r.a ? `<div>${lgBars(r.a, r.ao)}</div>` : ""}</td></tr>`).join("");
+  return `<div class="lg-card"><div class="small"><b>估值台账（默认参数）：</b>${concl}</div>
+    <details class="grp" data-lgd="${esc(code)}" ${LG_OPEN.has(code) ? "open" : ""} style="margin-top:6px"><summary>估值台账 <span class="small">${rs.length} 条记录 · 股价 vs 基准估值 · 熊–牛区间 · 默认参数</span></summary>
+    <div class="grp-body"><p class="small" style="margin:0 0 6px">${note}</p>${lgChart(rs)}
+      <div class="tscroll" style="margin-top:6px"><table class="lg-t"><thead><tr><th scope="col">日期</th><th scope="col" class="n">股价</th><th scope="col" class="n">熊 / 基准 / 牛</th><th scope="col" class="n">基准 vs 现价</th>
+      <th scope="col" class="n">隐含增速</th><th scope="col" class="n">m0（口径）</th><th scope="col" class="n">g0</th><th scope="col">结论（规则生成）</th></tr></thead><tbody>${tr}</tbody></table></div></div></details></div>`;
+}
+document.addEventListener("toggle", ev => { const t = ev.target; if (t && t.dataset && t.dataset.lgd) { if (t.open) LG_OPEN.add(t.dataset.lgd); else LG_OPEN.delete(t.dataset.lgd); } }, true);
+// section 估值台账 · 本期变化
+const LG_LIM = {c: 40, a: 30};
+function lgRows(codes) {
+  return codes.filter(c => Array.isArray(LGA[c])).map(c => { const x = LGA[c];
+    return {code: c, name: lgName(c), tag: x[0], bp: x[1], gpp: x[2], igp: x[3], ppx: x[4], a: x[5], st: x[6], c: x[7], pd: x[8], of: x[9], mrp: x[10]}; });
+}
+function lgCols(key) {
+  const ab = v => v == null ? null : Math.abs(v);
+  return [
+    {k: "code", t: "代码 · 名称", f: e => `<button type="button" class="linkbtn" data-lgjump="${esc(e.code)}" aria-label="跳到 ${esc(e.code)} ${esc(e.name)}"><b>${esc(e.code)}</b> ${esc(e.name)}</button>`},
+    {k: "tag", t: "类型", f: e => e.tag ? `<span class="tag">${esc(e.tag)}</span>` : "—"},
+    {k: "bp", t: "基准估值变化", n: 1, v: e => ab(e.bp ?? null), f: e => e.bp != null ? `<span class="${lgCls(e.bp)}">${lgSg(e.bp)}</span>` : e.mrp != null ? `<span class="small">需要利润率 ${lgSg(e.mrp, 1, "pt")}</span>` : `<span class="small">${esc((LG_S[e.st[0]] || e.st[0]) + "→" + (LG_S[e.st[1]] || e.st[1]))}</span>`},
+    {k: "ppx", t: "股价变化", n: 1, v: e => ab(e.ppx), f: e => `<span class="${lgCls(e.ppx)}">${lgSg(e.ppx)}</span>`},
+    {k: "gpp", t: "基准 vs 现价变化（pp）", n: 1, v: e => ab(e.gpp), f: e => `<span class="${lgCls(e.gpp)}">${lgSg(e.gpp, 1, "")}</span>`},
+    {k: "igp", t: "隐含增速变化（pp）", n: 1, v: e => ab(e.igp), f: e => `<span class="${lgCls(e.igp)}">${lgSg(e.igp, 1, "")}</span>`},
+    {k: "attr", t: "归因", nosort: 1, cls: "nw", f: e => lgBars(e.a, e.of)},
+    {k: "concl", t: "结论（规则生成）", nosort: 1, f: e => `<span class="small">${esc(e.c)}</span>`},
+  ];
+}
+function lgTable(key, codes) {
+  const rows = lgRows(codes), cols = lgCols(key), sorted = table("lg" + key, `lgHead_${key}`, `lgBody_${key}`, cols, rows);
+  $(`lgBody_${key}`).innerHTML = sorted.slice(0, LG_LIM[key]).map(e => `<tr>${cols.map(c => `<td class="${c.n ? "n" : c.cls || ""}"${c.k === "concl" ? ' style="white-space:normal;min-width:260px"' : ""}>${c.f(e)}</td>`).join("")}</tr>`).join("")
+    || `<tr><td colspan="${cols.length}" class="small">没有变化记录</td></tr>`;
+  $(`lgMore_${key}`).hidden = sorted.length <= LG_LIM[key];
+  $(`lgCnt_${key}`).textContent = `${Math.min(sorted.length, LG_LIM[key])} / ${sorted.length} 家`;
+}
+function lgCounts(codes) {
+  const c = {up: 0, down: 0, flat: 0, neg: 0, st: 0, first: 0, none: 0};
+  codes.forEach(k => { const x = LGA[k]; if (x == null) { c.none++; return; } if (!Array.isArray(x)) { c.first++; return; }
+    if (x[6][0] === "ok" && x[6][1] === "ok") { if (x[1] >= LG_FLAT) c.up++; else if (x[1] <= -LG_FLAT) c.down++; else c.flat++; }
+    else if (x[6][0] === x[6][1]) c.neg++; else c.st++; });
+  return c;
+}
+let lgInitDone = false;
+function renderLg() {
+  const el = $("lgMain"); if (!el) return;
+  const cards = (D.cards || []).map(c => c.code), all = D.screen.map(r => r.code);
+  if (!LG.file) { el.innerHTML = `<div class="small warn">还没有估值台账（运行 python -m cn ledger 后重新构建）。</div>`; return; }
+  const warn = LG.matches_snap ? "" : `<p class="small warn">台账最新一次（${esc(LG.latest.date)}，${esc(LG.latest.snap)}）不是本页的数据快照；请在构建前运行 python -m cn ledger。</p>`;
+  if (LG_ONE) {
+    if (lgInitDone) return;
+    const tr = cards.map(code => { const r = (LGC[code] || []).slice(-1)[0]; if (!r) return "";
+      return `<tr><td><button type="button" class="linkbtn" data-lgjump="${esc(code)}"><b>${esc(code)}</b> ${esc(lgName(code))}</button></td><td>${esc(LG_S[r.s] || r.s)}</td><td class="n">${num(r.p, 2)}</td>
+        <td class="n nw">${r.s === "ok" ? `${num(r.lo, 2)} / <b>${num(r.b, 2)}</b> / ${num(r.hi, 2)}` : "—"}</td><td class="n nw">${r.s === "ok" ? dcfVs(r.gp * 100) : r.s === "negfcf" ? lgReq(r) : "—"}</td>
+        <td class="n">${lgIg(r)}</td><td class="n nw">${lgM(r, code)}</td><td class="n">${r.g == null ? "—" : dcfPct(r.g)}</td></tr>`; }).join("");
+    el.innerHTML = warn + `<p class="lg-first"><b>首次记录 ${esc(LG.latest.date)}，共 ${esc(LG.latest.n)} 家；下次每周更新后显示变化。</b></p>
+      <h3>当前记录 · ⑤ 评估卡 ${cards.length} 家（默认参数）</h3>
+      <div class="tscroll"><table><thead><tr><th scope="col">代码 · 名称</th><th scope="col">状态</th><th scope="col" class="n">股价</th><th scope="col" class="n">熊 / 基准 / 牛</th><th scope="col" class="n">基准 vs 现价</th><th scope="col" class="n">隐含增速</th><th scope="col" class="n">m0（口径）</th><th scope="col" class="n">g0</th></tr></thead><tbody>${tr}</tbody></table></div>`;
+    lgInitDone = true; return;
+  }
+  if (!lgInitDone) {
+    const kp = (t, c) => `<div class="card"><h4>${esc(t)}</h4><div class="lg-k"><span class="pos">上调 <b>${c.up}</b></span><span class="neg">下调 <b>${c.down}</b></span><span>基本不变 <b>${c.flat}</b></span></div>
+      <div class="small">FCF ≤ 0 / 不计算（跟踪需要的利润率）${c.neg} · 状态变化 ${c.st} · 首次记录 ${c.first}${c.none ? ` · 无记录 ${c.none}` : ""}</div></div>`;
+    const tb = (key, h) => `<h3>${esc(h)} <span class="small" id="lgCnt_${key}"></span></h3><div class="tscroll"><table><thead><tr id="lgHead_${key}"></tr></thead><tbody id="lgBody_${key}"></tbody></table></div>
+      <div class="toolbar"><button type="button" class="btn" id="lgMore_${key}">显示更多</button></div>`;
+    el.innerHTML = warn + `<p class="small">本期 ${esc(LG.latest.date)}（${esc(LG.latest.snap)}）vs 上期 ${esc(LG.prev.date)}（${esc(LG.prev.snap)}）。上调 / 下调 = 基准估值变化 ≥ ${LG_FLAT}% / ≤ −${LG_FLAT}%，其余为基本不变（只统计两期都能做三情景的公司）。</p>
+      <div class="grid g2">${kp(`⑤ 评估卡 ${cards.length} 家`, lgCounts(cards))}${kp(`② 全部 ${all.length} 家`, lgCounts(all))}</div>
+      ${tb("c", "变化最大 · ⑤ 评估卡")}${tb("a", "变化最大 · ② 全部筛选公司")}
+      <p class="small">表头可排序（按变动幅度的绝对值）；默认按基准估值变化。归因条：${esc((LG.order_base || []).map(k => LG_NM[k] || k).join(" → "))}（FCF ≤ 0 的公司对“需要的 FCF 利润率”归因：${esc((LG.order_mreq || []).map(k => LG_NM[k] || k).join(" → "))}），绿色向上 = 推高，红色向下 = 拉低；营 = 营收基数，利 = FCF 利润率，增 = 起始增速，现 = 净现金与股本，参 = 参数，价 = 股价；鼠标悬停看数值。</p>`;
+    ["c", "a"].forEach(k => { $(`lgMore_${k}`).onclick = () => { LG_LIM[k] += k === "a" ? 30 : 40; renderLg(); }; });
+    lgInitDone = true;
+  }
+  lgTable("c", cards); lgTable("a", all);
+}
+state.sort.lgc = ["bp", -1]; state.sort.lga = ["bp", -1];
+document.addEventListener("click", ev => { const t = ev.target.closest && ev.target.closest("[data-lgjump]"); if (!t) return; ev.preventDefault(); jumpCN(t.dataset.lgjump); });
 
 // ---------- 对比池 (comparison basket): a short list of companies compared side by side, stored only in this browser.
 //   localStorage["industry-radar-basket-cn-v1"] = {version: 1, saved_at, items: [{code, added}], weights: {dimKey: number}}
@@ -1888,6 +2243,8 @@ function bkCols() {
     // display only: 现金流估值（情景参考）, computed in the page with the 估值参数; not a BK_DIMS dimension, never in bkScore
     {k: "dcfvs", t: "Base 估值 vs 现价", n: 1, cls: "nw", v: e => dcfSortVs(e.r.code), f: e => dcfPoolCell(e.r.code)},
     {k: "dcfg", t: "隐含增速", n: 1, v: e => dcfSortG(e.r.code), f: e => dcfPoolG(e.r.code)},
+    // display only: 估值台账 latest change (default parameters), never in bkScore
+    {k: "lgchg", t: "台账：本期变化", cls: "nw", v: e => lgPoolSort(e.r.code), f: e => lgPoolCell(e.r.code)},
     // display only: tracked top-10 float holders, not a BK_DIMS dimension
     {k: "inst", t: "机构动向", cls: "nw", v: e => instSort(e.r), f: e => instBadges(e.r, 2)},
     {k: "prank", t: "④ 名次", n: 1, v: e => PRANK[e.r.code] ?? null, f: e => PRANK[e.r.code] ? `#${esc(PRANK[e.r.code])}` : '<span class="na">—</span>'},
@@ -1929,14 +2286,16 @@ function bkCsv() {
     "PE(TTM)", "PB", "估值分位口径", "估值5年分位(%)", "风险门禁⚠数", "PEG(参考)", "PEG口径", "④优先级名次", "有评估卡", "评分分组", "总分", "名次", "覆盖维度",
     ...BK_DIMS.map(d => `${d.t}·池内分位`), ...BK_DIMS.map(d => `${d.t}·权重`), "估值评分口径", "说明",
     "现金流估值状态", "Base估值(元/股)", "Base较现价(%)", "Bear估值(元/股)", "Bull估值(元/股)", "隐含起始增速(%)", "需要的FCF利润率(%)",
-    "DCF起始增速g0(%)", "DCF增速来源", "DCF基准FCF利润率(%)", "DCF参数", "DCF说明"];
+    "DCF起始增速g0(%)", "DCF增速来源", "DCF基准FCF利润率(%)", "DCF利润率口径", "DCF参数", "DCF说明"];
   const dcfCsv = code => { const o = dcfOf(code), ok = o.status === "ok", sc = o.sc || {};
     return [ok ? "三情景" : o.status === "negfcf" ? "基准FCF利润率≤0" : "不计算：" + (DCF_WHY[o.why] || o.why),
       ok ? r1(sc.base.vps, 2) : "", ok ? r1(sc.base.vs) : "", ok ? r1(sc.bear.vps, 2) : "", ok ? r1(sc.bull.vps, 2) : "",
       ok && o.rev === "ok" ? r1(o.revG) : ok ? (o.rev === "below" ? "<-30" : ">100") : "", o.mReq != null ? r1(o.mReq * 100) : "",
-      r1(o.g0), o.gsrc ? DCF_SHORT[o.gsrc] + (o.capped ? "（已截断）" : "") : "", o.m0 != null ? r1(o.m0 * 100) : "", dcfParamTxt(), DCF_DISC]; };
+      r1(o.g0), o.gsrc ? DCF_SHORT[o.gsrc] + (o.capped ? "（已截断）" : "") : "", o.m0 != null ? r1((o.ramp ? o.mm.T : o.m0) * 100) : "",
+      o.mm && o.mm.m0 != null ? dcfUsedT(o.mm.used, o.cyc) + (o.ramp ? `（${dcfMTxt(o)}；稳态值为用户设定）` : "") + (DCF_CO[code] ? "（本公司单独设定）" : "") + (o.mm.guard.length ? "（疑似一次性收入）" : "") : "",
+      dcfParamTxt(), DCF_DISC]; };
   const lines = bkView.map(e => { const r = e.r;
-    if (!r) return [e.i, e.x.code, "", "", "", "", "", ...Array(19).fill(""), ...BK_DIMS.map(() => ""), ...BK_DIMS.map(d => bkW(d.k)), "", "本次数据中已不存在", ...Array(12).fill("")];
+    if (!r) return [e.i, e.x.code, "", "", "", "", "", ...Array(19).fill(""), ...BK_DIMS.map(() => ""), ...BK_DIMS.map(d => bkW(d.k)), "", "本次数据中已不存在", ...Array(13).fill("")];
     const s = e.s, g = CARDS[r.code]?.peg, main = s.group === "main";
     return [e.i, r.code, r.name, r.industry, BOARD_CN[r.board] || r.board, r.label, r.cyclical ? "是" : "否", r1(r.rev_yoy), r1(r.accel), r1(r.gm), r1(r.gm_chg), r1(r.ocf_np, 2), r1(r.np_yoy),
       r1(r.pe_ttm), r1(r.pb, 2), bkFin(r.pe_pct) ? "PE" : bkFin(r.pb_pct) ? "PB" : "", bkFin(r.pe_pct) ? r1(r.pe_pct) : r1(r.pb_pct), r.warn_n,
@@ -1982,7 +2341,7 @@ document.addEventListener("click", ev => {
 addEventListener("storage", ev => { if (ev.key === BKEY || ev.key === null) { bkLoad(); bkWSync(); renderBk(); bkSync(); } });   // another tab changed the basket
 bkLoad(); bkInit();
 
-function render() { renderHeat(); renderScreen(); renderPriority(); renderBk(); }
+function render() { renderHeat(); renderScreen(); renderPriority(); renderBk(); renderLg(); }
 function init() {
   renderHeader();
   const inds = [...new Set(D.screen.map(r => r.industry).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));

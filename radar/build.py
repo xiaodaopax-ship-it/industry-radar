@@ -15,13 +15,18 @@ from .paths import CFG, DATA, ROOT, SITE, TEMPLATES, load
 MARKET = {"TW": "TW", "TWO": "TW", "T": "JP", "KS": "KR", "KQ": "KR", "HK": "HK", "AS": "NL", "PA": "FR", "DE": "DE", "L": "UK"}
 
 
-def latest_raw():
+def latest_raw_file():
+    """(path, snapshot) of the newest version-2 raw snapshot."""
     for f in sorted(glob.glob(os.path.join(DATA, "raw_*.json")), key=os.path.getmtime, reverse=True):
         with open(f, encoding="utf-8") as fh:
             raw = json.load(fh)
         if raw.get("version") == 2:
-            return raw
+            return f, raw
     raise SystemExit("no compatible raw snapshot in data/; run `python -m radar fetch` first")
+
+
+def latest_raw():
+    return latest_raw_file()[1]
 
 
 def _opt(name):
@@ -88,7 +93,28 @@ def _valuation(tickers):
     return {"fetched_at": V["fetched_at"], "rf": V.get("rf"), "defaults": CFG.get("valuation", {}).get("defaults"), "by": by}
 
 
-def build(raw):
+def build(raw, ledger_file=None, out_path=None):
+    """Data model + render site/index.html (or out_path). ledger_file: the valuation ledger to embed (default data/ledger/us_ledger.jsonl)."""
+    data = model(raw, ledger_file=ledger_file)
+    render(data, out_path)
+    secs, out = data["sectors"], data["entries"]
+    by = {s["id"]: (sum(1 for e in out if e["sector"] == s["id"] and e["kind"] == "leader"),
+                    sum(1 for e in out if e["sector"] == s["id"] and e["kind"] == "emerging")) for s in secs}
+    print(f"{os.path.relpath(out_path) if out_path else 'site/index.html'} written. (leaders, emerging) per sector: {by}")
+    return data
+
+
+def render(data, out_path=None):
+    with open(os.path.join(TEMPLATES, "dashboard.html"), encoding="utf-8") as f:
+        tpl = f.read()
+    out_path = out_path or os.path.join(SITE, "index.html")
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write(tpl.replace("/*__DATA__*/null", json.dumps(data, ensure_ascii=False).replace("</", "<\\/")))
+
+
+def model(raw, ledger_file=None, with_ledger=True):
+    """The dashboard data model (D in the template). with_ledger=False skips the ledger embed (used by `python -m radar ledger`)."""
     secs, notes, zh = sectors(), _opt("notes.json"), _opt("profiles_zh.json")
     deep = CFG.get("deep_dives", {})
     bench = raw["benchmarks"]
@@ -198,18 +224,19 @@ def build(raw):
     # ---- cash-flow valuation inputs (optional; needs `python -m radar valuation`). Display only: the page computes the
     # scenario / reverse DCF in the browser; nothing here touches score, factors, level, PEG tiers or the basket score.
     val = _valuation({e["ticker"] for e in out})
+    # valuation ledger (optional; needs `python -m radar ledger`): the last records per ticker under default parameters. Display only.
+    led = None
+    if with_ledger:
+        try:   # a broken / foreign ledger file must not break the dashboard build (reported, page shows "no records")
+            from . import ledger
+            led = ledger.embed(ledger_file)
+        except Exception as err:  # noqa: BLE001
+            print(f"valuation ledger not embedded: {type(err).__name__}: {err}")
+            led = None
 
-    data = {"heat": hm, "sector_names": sec_names, "val": val,
+    data = {"heat": hm, "sector_names": sec_names, "val": val, "ledger": led,
             "built_at": dt.datetime.now().strftime("%Y-%m-%d %H:%M"), "fetched_at": raw["fetched_at"], "periods": raw["periods"],
             "fx": raw.get("fx"), "funnel": [f for f in raw["funnel"] if not US_ONLY or f["step"].startswith("美国")], "us_only": US_ONLY, "form4_since": raw["form4_since"], "sectors": secs, "entries": out,
             "overview": overview, "excluded": [x for x in raw["excluded"] if not US_ONLY or "." not in (x.get("ticker") or "")], "notes": notes, "factor_cn": S.FACTOR_CN,
             "cfg": {"flags": CFG["flags"], "pool": CFG["pool"], "benchmark": CFG["market_benchmark"]}}
-    with open(os.path.join(TEMPLATES, "dashboard.html"), encoding="utf-8") as f:
-        tpl = f.read()
-    os.makedirs(SITE, exist_ok=True)
-    with open(os.path.join(SITE, "index.html"), "w", encoding="utf-8") as f:
-        f.write(tpl.replace("/*__DATA__*/null", json.dumps(data, ensure_ascii=False).replace("</", "<\\/")))
-    by = {s["id"]: (sum(1 for e in out if e["sector"] == s["id"] and e["kind"] == "leader"),
-                    sum(1 for e in out if e["sector"] == s["id"] and e["kind"] == "emerging")) for s in secs}
-    print(f"site/index.html written. (leaders, emerging) per sector: {by}")
     return data
