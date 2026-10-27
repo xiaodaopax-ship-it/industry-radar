@@ -58,6 +58,8 @@ REG_KIND_CN = {"inquiry_letter": "问询函", "concern_letter": "关注函", "re
                "warning_letter": "警示函", "investigation": "立案调查", "disciplinary_action": "纪律处分",
                "administrative_penalty": "行政处罚"}
 NEG_FORECAST = {"decrease", "slight_decrease", "first_loss", "continued_loss", "larger_loss"}
+# display names of the internal label values (page text and ledger conclusions)
+LABEL_CN = {"偏价值": "基本面支撑", "中性": "中性", "偏博弈": "交易驱动"}
 FIN_INDUSTRY_WORDS = ("银行", "保险", "证券", "多元金融")
 RISK_GATES = ("ocf", "ar", "inv", "goodwill", "pledge", "selling", "unlock", "reg")
 
@@ -470,7 +472,7 @@ def analyze(snap, valuation=None):
         if rh:
             game.append(f"12 个月监管类标题 {len(rh)} 条")
         cyc_why = (f"周期行业（东财：{q.get('industry')}）：盈利主要随商品价格或产能周期变化，"
-                   f"周期高点时利润高、PE 反而低，所以不标偏价值，也不参与研究优先级排序")
+                   f"周期高点时利润高、PE 反而低，所以不标基本面支撑，也不参与研究优先级排序")
         if game:
             label, reasons = "偏博弈", game + ([cyc_why] if cyc else [])
         elif cyc:

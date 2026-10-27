@@ -272,7 +272,8 @@ def compute_chg(prev, cur):
     elif c["cons_org_d"]:
         extra.append(f"一致预期机构 {prev.get('cons_org'):.0f}→{cur.get('cons_org'):.0f} 家")
     if c["label"]:
-        extra.append(f"标签 {c['label'][0]}→{c['label'][1]}")
+        from .build import LABEL_CN
+        extra.append(f"标签 {LABEL_CN.get(c['label'][0], c['label'][0])}→{LABEL_CN.get(c['label'][1], c['label'][1])}")
     if c["warn_n_d"]:
         extra.append(f"⚠ {prev.get('warn_n')}→{cur.get('warn_n')}")
     if ps == "ok" and cs == "ok":

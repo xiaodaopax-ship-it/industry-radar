@@ -1,11 +1,10 @@
 name: build-dashboard
 
-# Weekly refresh. The dashboard is uploaded as a build artifact only.
-# Publishing it publicly (e.g. GitHub Pages) redistributes Yahoo Finance data;
-# check the data providers' terms before enabling the deploy job below.
+# Manual only (the weekly schedule was removed and the workflow is disabled in the repo settings).
+# This is a PUBLIC repository: an uploaded dashboard artifact would redistribute third-party data (Yahoo Finance),
+# and Yahoo answers GitHub-hosted runners with HTTP 429 anyway (probe 2026-10-27). The weekly refresh runs on the
+# owner's machine and publishes only to a private location.
 on:
-  schedule:
-    - cron: "0 2 * * 1"   # Mondays 02:00 UTC
   workflow_dispatch:
 
 permissions:

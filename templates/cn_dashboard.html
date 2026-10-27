@@ -364,7 +364,7 @@
   <b>A 股看板</b><span class="small" id="topCtx"></span>
 </div>
 <nav class="side" id="side" aria-label="页面导航">
-  <div class="brand">A 股看板<span>行业热度 → 新兴筛选 / 价值通道 → 研究优先级 → 价值 / 博弈</span></div>
+  <div class="brand">A 股看板<span>行业热度 → 新兴筛选 / 价值通道 → 研究优先级 → 基本面 / 交易</span></div>
   <a class="sl back" href="../index.html">← 美股看板</a>
   <div class="qs" role="search">
     <div class="gt"><label for="qs">公司快速跳转</label></div>
@@ -379,7 +379,7 @@
       <li><a class="sl" href="#s2" data-sec="s2">② 新兴筛选</a></li>
       <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li>
       <li><a class="sl" href="#s4" data-sec="s4">③ 研究优先级</a><div class="substeps"><a class="sl" href="#s4cy">周期行业单列</a></div></li>
-      <li><a class="sl" href="#s3" data-sec="s3">④ 价值·博弈</a></li>
+      <li><a class="sl" href="#s3" data-sec="s3">④ 基本面·交易</a></li>
       <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li>
       <li><a class="sl" href="#sLg" data-sec="sLg">估值台账 · 本期变化</a></li>
       <li><a class="sl" href="#s6" data-sec="s6">⑤ 个股评估卡</a></li>
@@ -392,7 +392,7 @@
   <header>
     <div>
       <h1 id="pageTop" tabindex="-1">A 股看板</h1>
-      <div class="sub">行业热度 → 新兴公司筛选 / 价值通道 → 研究优先级 → 价值 / 博弈标签 → 对比池 · 估值台账 → 个股评估卡</div>
+      <div class="sub">行业热度 → 新兴公司筛选 / 价值通道 → 研究优先级 → 基本面 / 交易标签 → 对比池 · 估值台账 → 个股评估卡</div>
     </div>
     <div class="chips" id="chips"><a href="../index.html">← 美股看板</a></div>
   </header>
@@ -400,7 +400,7 @@
 
   <div class="sticky">
     <nav class="steps" aria-label="页面分节">
-      <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#sVc">价值通道</a><a href="#s4">③ 研究优先级</a><a href="#s3">④ 价值 / 博弈标签</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
+      <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#sVc">价值通道</a><a href="#s4">③ 研究优先级</a><a href="#s3">④ 基本面 / 交易标签</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
     </nav>
   </div>
 
@@ -431,7 +431,7 @@
     <p class="lead" id="scLead"></p>
     <div class="toolbar">
       <label>行业 <select id="fInd"><option value="">全部</option></select></label>
-      <label>标签 <select id="fLb"><option value="">全部</option><option>偏价值</option><option>中性</option><option>偏博弈</option></select></label>
+      <label>标签 <select id="fLb"><option value="">全部</option><option value="偏价值">基本面支撑</option><option value="中性">中性</option><option value="偏博弈">交易驱动</option></select></label>
       <label>风险门槛 ⚠ 数 <select id="fW"><option value="">不限</option><option value="0">0</option><option value="1">≤ 1</option><option value="2">≤ 2</option></select></label>
       <label>机构 <select id="fInst" aria-describedby="instHint"><option value="">不限</option></select></label>
       <label>近 12 个月 <select id="fInstS" aria-describedby="instHint"><option value="">不限</option><option value="any">新进前十或增持</option><option value="new">新进前十</option><option value="up">增持</option><option value="downout">减持或跌出前十</option><option value="latest">最新期在前十</option></select></label>
@@ -448,7 +448,7 @@
   <section id="sVc" aria-labelledby="vcTitle">
     <h2 id="vcTitle"><span class="step-tag">价</span>价值通道 · 长期质量 + 估值收益率</h2>
     <p class="lead" id="vcLead"></p>
-    <p class="dcf-disc">价值通道是和 ② 并列的第二个入口：不要求营收高增长，看过去 5 个完整财年的 ROE、自由现金流、现金转化、负债和商誉，再按质量和估值收益率在通道内排序。排序只表示“按这六个维度先看谁”，没有回测，不是买卖建议；不进入 ③ 排序、价值 / 博弈标签、⚠ 数和对比池评分。</p>
+    <p class="dcf-disc">价值通道是和 ② 并列的第二个入口：不要求营收高增长，看过去 5 个完整财年的 ROE、自由现金流、现金转化、负债和商誉，再按质量和估值收益率在通道内排序。排序只表示“按这六个维度先看谁”，没有回测，不是买卖建议；不进入 ③ 排序、基本面 / 交易标签、⚠ 数和对比池评分。</p>
     <div class="toolbar" role="group" aria-label="价值通道筛选">
       <label class="small" for="vcQ">搜索</label><input type="search" id="vcQ" placeholder="代码或名称" autocomplete="off">
       <label class="small" for="vcInd">行业</label><select id="vcInd"><option value="">全部行业</option></select>
@@ -465,14 +465,14 @@
     <h2><span class="step-tag">③</span>研究优先级 · Top <span id="pN"></span></h2>
     <p class="lead" id="pLead"></p>
     <div class="tscroll"><table><thead><tr id="pHead"></tr></thead><tbody id="pBody"></tbody></table></div>
-    <p class="note">排序只表示"按这四个数据维度，先看谁"，没有做过回测，不代表后续表现。估值分位只描述相对自身近几年的位置，不是估值结论。点击代码打开该公司的评估卡。<br>PEG 列只作参考，<b>不参与排序，也不影响价值 / 博弈标签和 ⚠ 数</b>：标签「前瞻」= PE(TTM) ÷ 机构一致预期 EPS 年化增速，「历史」= PE(TTM) ÷ 扣非年初至今同比增速，「—」= 不适用（周期行业、PE ≤ 0、增速 ≤ 0 或无数据）；数值后带 ⚠ = 不可靠（基数低、增速 &gt; 100% 或一致预期年度间大幅下降）。鼠标悬停看原因，口径见"数据与方法"。</p>
+    <p class="note">排序只表示"按这四个数据维度，先看谁"，没有做过回测，不代表后续表现。估值分位只描述相对自身近几年的位置，不是估值结论。点击代码打开该公司的评估卡。<br>PEG 列只作参考，<b>不参与排序，也不影响基本面 / 交易标签和 ⚠ 数</b>：标签「前瞻」= PE(TTM) ÷ 机构一致预期 EPS 年化增速，「历史」= PE(TTM) ÷ 扣非年初至今同比增速，「—」= 不适用（周期行业、PE ≤ 0、增速 ≤ 0 或无数据）；数值后带 ⚠ = 不可靠（基数低、增速 &gt; 100% 或一致预期年度间大幅下降）。鼠标悬停看原因，口径见"数据与方法"。</p>
     <h3 id="s4cy">周期行业的高增长公司（单独列出，不参与排序）</h3>
     <p class="small" id="cyLead"></p>
     <div class="tscroll"><table><thead><tr><th scope="col">代码</th><th scope="col">名称</th><th scope="col">对比</th><th scope="col">行业</th><th scope="col" class="n">营收同比</th><th scope="col" class="n">净利同比</th><th scope="col" class="n">毛利率变化（pp）</th><th scope="col" class="n">现金流/净利</th><th scope="col" class="n">PE(TTM)</th><th scope="col">业绩预告</th><th scope="col">要先核实</th></tr></thead><tbody id="cyBody"></tbody></table></div>
   </section>
 
   <section id="s3">
-    <h2><span class="step-tag">④</span>价值 / 博弈标签</h2>
+    <h2><span class="step-tag">④</span>基本面 / 交易标签</h2>
     <p class="lead">按固定规则给每家筛选出的公司打一个描述性标签，说明它目前更接近"基本面与估值数据较扎实"还是"受事件、资金或估值位置影响较大"。标签不是结论，原因列在 ② 表格最后一列。</p>
     <div class="grid g3" id="lbKpis"></div>
     <div class="rule" id="lbRule"></div>
@@ -502,7 +502,7 @@
   <section id="sLg" aria-labelledby="lgTitle">
     <h2 id="lgTitle"><span class="step-tag">Δ</span>估值台账 · 本期变化</h2>
     <p class="lead">每次数据更新后，用<b>默认估值参数</b>对 ② 全部筛选公司算一次现金流估值并追加到本地台账（data/cn/ledger/cn_ledger.jsonl，只追加、不改写），再和同一公司的上一条记录比较：股价、基准估值、基准相对现价、隐含增速、一致预期，并把基准估值的变化按固定顺序拆到 营收基数 → FCF 利润率 → 起始增速 → 净现金与股本 → 参数。结论句按规则生成，只描述数字变化。</p>
-    <p class="dcf-disc">台账记录的是模型在默认参数下的输出，用来对比数据变化带来的估值变化；不是目标价，不是买卖建议；方法未回测。只展示，不进入 ③ 排序、价值 / 博弈标签、⚠ 数和对比池评分。</p>
+    <p class="dcf-disc">台账记录的是模型在默认参数下的输出，用来对比数据变化带来的估值变化；不是目标价，不是买卖建议；方法未回测。只展示，不进入 ③ 排序、基本面 / 交易标签、⚠ 数和对比池评分。</p>
     <div id="lgMain"></div>
     <div id="lgFwd" class="lg-fwd"></div>
   </section>
@@ -513,7 +513,7 @@
     <div class="card dcfp" id="dcfPanel" tabindex="-1" role="group" aria-labelledby="dcfPTitle">
       <h3 id="dcfPTitle">估值参数 · 现金流估值（情景参考）</h3>
       <p class="dcf-disc">情景估值参考，不是目标价，不是买卖建议。</p>
-      <p class="small" style="margin:0">这些参数只影响评估卡和对比池里的“现金流估值”，不进入 ③ 排序、价值 / 博弈标签、⚠ 数和对比池评分。改动后立即重算全部评估卡和对比池，参数只保存在本浏览器（localStorage）。口径见“数据与方法”。</p>
+      <p class="small" style="margin:0">这些参数只影响评估卡和对比池里的“现金流估值”，不进入 ③ 排序、基本面 / 交易标签、⚠ 数和对比池评分。改动后立即重算全部评估卡和对比池，参数只保存在本浏览器（localStorage）。口径见“数据与方法”。</p>
       <div class="dcf-form" id="dcfForm"></div>
       <div class="toolbar" style="margin:0"><button type="button" class="btn ghost" id="dcfReset">恢复默认</button><span class="small" id="dcfMsg" role="status" aria-live="polite"></span></div>
       <div class="small" id="dcfDerived" style="margin-top:4px"></div>
@@ -627,6 +627,8 @@ const R = D.rules;
 const growthColor = v => { if (v == null) return "#4a515b"; const t = Math.max(-1, Math.min(1, v >= 5 ? (v - 5) / 35 : (v - 5) / 35));
   const mix = (a, b, k) => Math.round(a + (b - a) * k); return t < 0 ? `rgb(${mix(74, 184, -t)},${mix(81, 68, -t)},${mix(91, 61, -t)})` : `rgb(${mix(74, 47, t)},${mix(81, 158, t)},${mix(91, 106, t)})`; };
 const BYCODE = Object.fromEntries(D.screen.map(r => [r.code, r]));
+// label display names (internal values 基本面支撑 / 中性 / 交易驱动 stay unchanged in data, filters and CSS classes)
+const LBT = {偏价值: "基本面支撑", 中性: "中性", 偏博弈: "交易驱动"}, lbT = v => LBT[v] || v;
 // 全市场速查 rows (cn/build.py full_lookup): one object per quoted stock
 const LK_ROWS = (L => L && L.rows ? L.rows.map(r => Object.fromEntries(L.cols.map((k, i) => [k, r[i]]))) : [])(D.lookup);
 const LK_BY = Object.fromEntries(LK_ROWS.map(r => [r.code, r]));
@@ -729,7 +731,7 @@ const gateCell = g => g ? `<span class="${esc(g.s)}" data-tip="${esc(esc(g.v))}"
 function detail(r) {
   return `<tr class="detail"><td colspan="99"><div class="dwrap grid g2">
     <div>${GATES.map(([k, t]) => { const g = r.gates[k]; return `<div class="chk"><span class="${esc(g.s)}">${ICON[g.s] || "·"}</span><span>${esc(t)}</span><span>${esc(g.v)}</span></div>`; }).join("")}</div>
-    <div><div class="label">标签：<span class="tag lb-${esc(r.label)}">${esc(r.label)}</span></div><ul class="small">${r.reasons.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+    <div><div class="label">标签：<span class="tag lb-${esc(r.label)}">${esc(lbT(r.label))}</span></div><ul class="small">${r.reasons.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
       <div class="label">财务</div><div class="small">营收 ${yi(r.revenue)} 亿元 · 同比 ${num(r.rev_yoy)}%（上期累计 ${num(r.rev_yoy_prev)}%）· 归母净利润 ${yi(r.np)} 亿元 · 净利同比 ${num(r.np_yoy)}% · 毛利率 ${num(r.gm)}%（同比 ${num(r.gm_chg)} pp）· 总市值 ${yi(r.mcap)} 亿元 · PE(TTM) ${num(r.pe_ttm)} · PB ${num(r.pb, 2)}</div>
       <div class="label" style="margin-top:6px">股价与 52 周区间 <span class="tier">只展示，不参与标签和排序</span></div>${rangeBarCN(r, null, r)}
       <div class="label" style="margin-top:6px">机构动向（前十大流通股东，近 12 个月）</div>${instBlock(r.inst)}
@@ -754,7 +756,7 @@ function renderScreen() {
     {k: "inst", t: "机构动向", cls: "nw", v: instSort, f: r => instBadges(r)},
     ...GATES.map(([k, t]) => ({k: "g_" + k, t, v: r => ({warn: 0, ok: 1, na: 2})[r.gates[k].s], g: 1, f: r => gateCell(r.gates[k])})),
     {k: "warn_n", t: "⚠ 数", n: 1, f: r => esc(r.warn_n)},
-    {k: "label", t: "标签", f: r => `<span class="tag lb-${esc(r.label)}">${esc(r.label)}</span>`},
+    {k: "label", t: "标签", f: r => `<span class="tag lb-${esc(r.label)}">${esc(lbT(r.label))}</span>`},
     {k: "reasons", t: "标签原因", nosort: 1, cls: "why", f: r => `<span class="small">${esc(r.reasons.join("；"))}</span>`},
   ];
   const all = table("sc", "scHead", "scBody", cols, screenRows());
@@ -777,15 +779,15 @@ function renderScreen() {
 
 function renderLabels() {
   const cnt = {偏价值: 0, 中性: 0, 偏博弈: 0}; D.screen.forEach(r => cnt[r.label]++);
-  $("lbKpis").innerHTML = Object.entries(cnt).map(([k, v]) => `<div class="card k-${esc(k)}"><div class="label"><span class="tag lb-${esc(k)}">${esc(k)}</span></div><div class="kpi">${esc(v)}<small> 家</small></div>
+  $("lbKpis").innerHTML = Object.entries(cnt).map(([k, v]) => `<div class="card k-${esc(k)}"><div class="label"><span class="tag lb-${esc(k)}">${esc(lbT(k))}</span></div><div class="kpi">${esc(v)}<small> 家</small></div>
     <div class="small"><button type="button" class="linkbtn" data-lb="${esc(k)}">在 ② 中只看这一类</button></div></div>`).join("");
   $("lbKpis").querySelectorAll("button[data-lb]").forEach(b => b.onclick = () => { state.lb = b.dataset.lb; $("fLb").value = state.lb; render(); goSec("s2"); });
   $("lbRule").innerHTML = `<b>规则（按顺序判断）</b><ul>
-    <li><span class="tag lb-偏博弈">偏博弈</span>：满足任一条——年初至今归母净利润 ≤ 0；PE 分位 ≥ ${esc(R.pe_pct_high)}%；未来 ${esc(R.unlock_days)} 天解禁 > 流通股 ${esc(R.unlock_float_warn)}%；近 ${esc(R.holder_months)} 个月净减持 ≥ 总股本 ${esc(R.net_sell_warn)}%；近 ${esc(R.reg_months)} 个月有监管类公告标题命中。</li>
-    <li><span class="tag lb-偏价值">偏价值</span>：不满足上面任何一条，且同时满足——盈利；经营现金流 / 归母净利润 ≥ ${esc(R.value_ocf_np_min)}；PE 分位 ≤ ${esc(R.value_pe_pct_max)}%（需要有估值历史）；无监管类标题命中。</li>
+    <li><span class="tag lb-偏博弈">交易驱动</span>：满足任一条——年初至今归母净利润 ≤ 0；PE 分位 ≥ ${esc(R.pe_pct_high)}%；未来 ${esc(R.unlock_days)} 天解禁 > 流通股 ${esc(R.unlock_float_warn)}%；近 ${esc(R.holder_months)} 个月净减持 ≥ 总股本 ${esc(R.net_sell_warn)}%；近 ${esc(R.reg_months)} 个月有监管类公告标题命中。</li>
+    <li><span class="tag lb-偏价值">基本面支撑</span>：不满足上面任何一条，且同时满足——盈利；经营现金流 / 归母净利润 ≥ ${esc(R.value_ocf_np_min)}；PE 分位 ≤ ${esc(R.value_pe_pct_max)}%（需要有估值历史）；无监管类标题命中。</li>
     <li><span class="tag lb-中性">中性</span>：其余情况。没有估值历史的公司（不在短名单）最多只能是"中性"，原因里会写明。</li>
-    <li><span class="tag t-cyc">周期</span>：东财行业属于 ${esc(R.cyclical_industries.join("、"))} 的公司，盈利主要随商品价格或产能周期变化，周期高点时利润高、PE 反而低。它们不标"偏价值"（最多"中性"，触发上面任一条时仍为"偏博弈"），也不参与 ③ 研究优先级排序，单独列在 ③ 下方。名单在 cn/build.py 的 RULES 里，可调整。</li></ul>
-    <span class="small">"价值 / 博弈"只是对数据特征的描述性分组，不包含任何买卖含义。</span>`;
+    <li><span class="tag t-cyc">周期</span>：东财行业属于 ${esc(R.cyclical_industries.join("、"))} 的公司，盈利主要随商品价格或产能周期变化，周期高点时利润高、PE 反而低。它们不标"基本面支撑"（最多"中性"，触发上面任一条时仍为"交易驱动"），也不参与 ③ 研究优先级排序，单独列在 ③ 下方。名单在 cn/build.py 的 RULES 里，可调整。</li></ul>
+    <span class="small">"基本面 / 交易"只是对数据特征的描述性分组，不包含任何买卖含义。</span>`;
 }
 
 function renderPriority() {
@@ -808,7 +810,7 @@ function renderPriority() {
     {k: "peg", t: "PEG（参考）", n: 1, v: p => CARDS[p.code]?.peg?.value ?? null, f: p => pegCell(CARDS[p.code]?.peg)},
     {k: "price", t: "股价", n: 1, v: p => BYCODE[p.code].price, f: p => priceCell(BYCODE[p.code])},
     {k: "pos52", t: "52 周位置", n: 1, cls: "nw", v: p => BYCODE[p.code].pos52, f: p => miniRange(BYCODE[p.code], BYCODE[p.code])},
-    {k: "label", t: "标签", v: p => BYCODE[p.code].label, f: p => `<span class="tag lb-${esc(BYCODE[p.code].label)}">${esc(BYCODE[p.code].label)}</span>`},
+    {k: "label", t: "标签", v: p => BYCODE[p.code].label, f: p => `<span class="tag lb-${esc(BYCODE[p.code].label)}">${esc(lbT(BYCODE[p.code].label))}</span>`},
     {k: "fc", t: "业绩预告", nosort: 1, f: p => gateCell(BYCODE[p.code].gates.fc)},
     {k: "why", t: "标签原因", nosort: 1, cls: "why", f: p => `<span class="small">${esc(BYCODE[p.code].reasons.join("；"))}</span>`},
   ];
@@ -849,7 +851,7 @@ function renderMethod() {
     `加速 = ${D.periods.latest} 年初至今营收同比 − ${D.periods.prev} 年初至今营收同比（百分点）。` +
     `估值分位 = 最新 PE(TTM) / PB 在近 ${R.valuation_years} 年日频历史中的百分位（剔除 ≤ 0 的值）。百分位排名在候选集合内计算，0 = 最低，100 = 最高。`);
   const RR = RM.rules || {};
-  $("rngNote").innerHTML = `<b>股价、52 周区间与机构目标价（只展示）</b>：<b>不参与 ③ 排序、价值 / 博弈标签、⚠ 数和对比池评分</b>。` + esc(
+  $("rngNote").innerHTML = `<b>股价、52 周区间与机构目标价（只展示）</b>：<b>不参与 ③ 排序、基本面 / 交易标签、⚠ 数和对比池评分</b>。` + esc(
     `股价 = 行情快照日（${D.quote_date || "—"}）收盘价。52 周区间 = 行情日往前 ${RR.weeks ?? 52} 周内的最高 / 最低价，前复权口径（最新一天是实际成交价，之前的价格按分红、送转除权除息换算），与现价可比；` +
     `本次数据口径：${(RM.item_bases || []).map(b => RNG_BASIS[b] || b).join("、") || "—"}（push2his 日 K 线不可用时用数据中心日收盘价换算，此时最高 / 最低是收盘价口径，不含日内高低点；配股未调整）。` +
     `52 周位置 = (现价 − 52 周最低) ÷ (52 周最高 − 52 周最低) × 100%；区间内第一个交易日晚于窗口起点 ${RR.short_gap_days ?? 14} 天以上且之前没有交易记录时标"上市不足 52 周，区间按上市以来"；最近交易日早于行情日 ${RR.stale_days ?? 3} 天以上时标停牌。` +
@@ -857,14 +859,14 @@ function renderMethod() {
     `机构目标价：逐篇读取东方财富个股研报列表，取近 ${CR.target_window_days ?? 180} 天内每家机构最新一篇带目标价的研报（给出区间时取中值），至少 ${CR.target_min_org ?? 3} 家机构才显示中位数，标为"机构目标价中位数（n 家，近 ${CR.target_window_days ?? 180} 天），不是预测"；不足时显示"机构目标价样本不足，不显示"，不用汇总表的目标价上下限代替。` +
     `窗口内有送转除权时，除权前发布的目标价股本口径不同，不计入；现金分红不调整，只在卡片注明。目标价是第三方观点，大多数研报不给目标价，覆盖偏向大公司；本页不显示评级用词。`);
   const nr = IM.n_reported || {};
-  $("instNote").innerHTML = `<b>机构动向（只展示）</b>：<b>不参与 ③ 排序、价值 / 博弈标签、⚠ 数和对比池评分</b>。` + (IM.file ? esc(
+  $("instNote").innerHTML = `<b>机构动向（只展示）</b>：<b>不参与 ③ 排序、基本面 / 交易标签、⚠ 数和对比池评分</b>。` + (IM.file ? esc(
     `来源：东方财富 RPT_F10_EH_FREEHOLDERS（前十大流通股东），按股东名称 / 股东类型做全市场查询，期末 ${IPER.join("、")}（各期有前十大流通股东名单的公司 ${IPER.map(p => nr[p] ?? "—").join(" / ")} 家）；` +
     (instPart ? `${instPart.period} 为部分披露（${instPart.n_reported} 家，截止 ${instPart.deadline}），单独显示，不计入近 12 个月状态。` : "") +
     `跟踪名单（cn/holders.py HOLDER_RULES）：${IRULES.map(q => `${q.short} = ${q.label}（${q.note}）`).join(" ")}` +
     `状态：以 ${IPER[0]}（公司之后才有定期报告时取第一期）为期初、${instLast} 为期末——两期都在前十时比较持股数（期初股数按期间送转除权调整${IM.bonus_ok === false ? "；本次送转数据未取到，改为比较占流通比例" : ""}）：增持 / 减持 / 不变；期初不在、期末在 = 新进前十；期初在、期末不在 = 跌出前十；只在中间几期出现 = 期间进出前十。` +
     `占流通 pp = 期末占流通 A 股比例 − 期初（解禁等流通股本变化也会影响）。环比增 / 减季数只数相邻两期都在前十的情形。多个社保 / 养老组合按公司合计。` +
     `抓取 ${IM.fetched_at}（${IM.file}${IM.complete === false ? "，未抓完" : ""}）。${INST_CAVEAT}`) : "未抓取（python -m cn holders）。");
-  $("pegNote").innerHTML = `<b>PEG（评估卡参考项）</b>：PEG = PE(TTM) ÷ 每年盈利增速（%）。<b>不参与 ③ 排序，也不影响价值 / 博弈标签和 ⚠ 数</b>，只在评估卡和 ③ 的 PEG 列显示。` + esc(
+  $("pegNote").innerHTML = `<b>PEG（评估卡参考项）</b>：PEG = PE(TTM) ÷ 每年盈利增速（%）。<b>不参与 ③ 排序，也不影响基本面 / 交易标签和 ⚠ 数</b>，只在评估卡和 ③ 的 PEG 列显示。` + esc(
     `① 前瞻口径（优先）：当年 = 第一个年份 ≥ 最新报告期（${D.periods.latest}）所在年的预测年度；增速 = (两年后预期 EPS ÷ 当年预期 EPS)^(1/2) − 1，只有当年和下一年预期时用 1 年增速并注明。` +
     `要求覆盖机构 ≥ ${CR.peg_min_org} 家、有当年预期、所用各年预期 EPS 均 > 0，否则改用历史口径。` +
     `② 历史口径（扣非，年初至今同比）：${D.periods.latest} 与 ${D.periods.year_ago} 的年初至今累计扣非数据相比；两期扣非 EPS 都 ≥ ${CR.peg_hist_eps_min} 元时用扣非 EPS（东财只披露到两位小数，数值小时误差大），否则用扣非归母净利润增速（股本变化未调整）。` +
@@ -877,7 +879,7 @@ function renderMethod() {
   const fy = VM.fy || [], bOf = r => r.dcf ? dcfBasis(r.dcf.m, r.dcf.mt, r.cyclical, DCF_DEF.basis, dcfGuard(r.dcf, CARDS[r.code] && CARDS[r.code].dcf_drop)) : null;
   const bAll = D.screen.map(bOf).filter(Boolean), nNeg = bAll.filter(b => b.mEnd != null && b.mEnd <= 0).length,
     nTtm = bAll.filter(b => b.used === "ttm").length, nRamp = bAll.filter(b => b.used === "ramp").length, nGuard = bAll.filter(b => b.guard.length).length;
-  $("dcfNote").innerHTML = `<b>现金流估值（情景参考）</b>：${esc(DCF_DISC)}。<b>只在评估卡和对比池显示，不参与 ③ 排序、价值 / 博弈标签、⚠ 数和对比池评分</b>；页面按“估值参数”实时计算，参数存在本浏览器。` + esc(
+  $("dcfNote").innerHTML = `<b>现金流估值（情景参考）</b>：${esc(DCF_DISC)}。<b>只在评估卡和对比池显示，不参与 ③ 排序、基本面 / 交易标签、⚠ 数和对比池评分</b>；页面按“估值参数”实时计算，参数存在本浏览器。` + esc(
     `输入：TTM 营收 = FY${fy[fy.length - 1] || "—"} 营业总收入 + ${VM.ytd || "—"} 年初至今 − ${VM.ytd_ago || "—"} 年初至今（RPT_DMSK_FN_INCOME TOTAL_OPERATE_INCOME）。` +
     `FCF = 经营活动现金流量净额 − 购建固定资产、无形资产和其他长期资产支付的现金（RPT_DMSK_FN_CASHFLOW NETCASH_OPERATE − CONSTRUCT_LONG_ASSET；不加回处置收回的现金，租赁付款不扣）；年度 FCF 利润率 = FCF ÷ 营业总收入（FY${fy[0] || "—"}~FY${fy[fy.length - 1] || "—"}）。` +
     `FCF 利润率按参数“FCF 利润率口径”（默认 自动；每张评估卡可单独设定口径和爬坡参数，存在本浏览器）：近 3 年平均（原做法）= 近 3 个财年平均（缺年份时用剩下的年份并标注；周期行业用近 5 年平均，标“周期：用多年平均利润率”）；最近财年 = FY${fy[fy.length - 1] || "—"}；` +
@@ -914,7 +916,7 @@ const CR = CM.rules || {};
 const RM = D.ranges_meta || {};
 
 // ---------- 机构动向: tracked holders in the top-10 float holders (前十大流通股东), last 5 report dates. Display only:
-// never part of the ③ score, the 价值 / 博弈 label, the ⚠ count or the 对比池 bkScore.
+// never part of the ③ score, the 基本面 / 交易 label, the ⚠ count or the 对比池 bkScore.
 // r.inst = {key: {s: status, il: in top 10 at the latest full period, fs: first seen, b: base period, l: latest reported,
 //   ns: net shares (送转-adjusted), np: net float pp, nu / nd: quarters up / down, adj: 送转 factor, h: [[period, shares, float_pct, change, status, n]], q: partial period}}
 const IM = D.inst_meta || {};
@@ -988,18 +990,18 @@ function setInstFilter(k, s, lb) {
   $("fInst").value = state.inst; $("fInstS").value = state.instS; $("fLb").value = state.lb;
   renderScreen(); goSec("s2");
 }
-// ④ 偏价值 × 机构动向: counts per tracked holder, each count applies the ② filter
+// ④ 基本面支撑 × 机构动向: counts per tracked holder, each count applies the ② filter
 function renderInstX() {
-  if (!IM.file) { $("instX").innerHTML = `<div class="small muted">未抓取机构持仓数据（python -m cn holders），没有“偏价值 × 机构动向”统计。</div>`; return; }
+  if (!IM.file) { $("instX").innerHTML = `<div class="small muted">未抓取机构持仓数据（python -m cn holders），没有“基本面支撑 × 机构动向”统计。</div>`; return; }
   const cols = ["latest", "any", "new", "up", "downout"];
   const val = D.screen.filter(r => r.label === "偏价值");
-  const btn = (k, s, lb, n) => n ? `<button type="button" class="linkbtn" data-ix="${esc(k)}|${esc(s)}|${esc(lb)}" aria-label="在 ② 中筛选 ${esc(lb || "全部标签")}、${esc(IRK[k].label)}、${esc(INST_FT[s])}（${n} 家）">${n}</button>` : '<span class="na">0</span>';
-  $("instX").innerHTML = `<h3 style="margin:0 0 6px;font-size:15px">偏价值 × 机构动向 <span class="tier">近 12 个月（${esc(IPER[0] || "—")} → ${esc(instLast)}），前十大流通股东；只展示</span></h3>
+  const btn = (k, s, lb, n) => n ? `<button type="button" class="linkbtn" data-ix="${esc(k)}|${esc(s)}|${esc(lb)}" aria-label="在 ② 中筛选 ${esc(lbT(lb) || "全部标签")}、${esc(IRK[k].label)}、${esc(INST_FT[s])}（${n} 家）">${n}</button>` : '<span class="na">0</span>';
+  $("instX").innerHTML = `<h3 style="margin:0 0 6px;font-size:15px">基本面支撑 × 机构动向 <span class="tier">近 12 个月（${esc(IPER[0] || "—")} → ${esc(instLast)}），前十大流通股东；只展示</span></h3>
     <div class="tscroll"><table class="ih"><thead><tr><th scope="col">机构</th>${cols.map(s => `<th scope="col" class="n">${esc(INST_FT[s])}</th>`).join("")}</tr></thead>
     <tbody>${IRULES.map(q => `<tr><td class="nw" data-tip="${esc(esc(q.note))}">${esc(q.short)} <span class="small">${esc(q.label)}</span></td>${cols.map(s => {
       const a = val.filter(r => instHit((r.inst || {})[q.key], s)).length, b = D.screen.filter(r => instHit((r.inst || {})[q.key], s)).length;
       return `<td class="n">${btn(q.key, s, "偏价值", a)} <span class="small muted">/ 全部 ${b ? btn(q.key, s, "", b) : 0}</span></td>`; }).join("")}</tr>`).join("")}</tbody></table></div>
-    <div class="small muted">每格 = ② 中「偏价值」公司数 / ② 全部 ${D.screen.length} 家中的公司数，点数字在 ② 里套用对应筛选。偏价值共 ${val.length} 家。${esc(INST_CAVEAT)}</div>`;
+    <div class="small muted">每格 = ② 中「基本面支撑」公司数 / ② 全部 ${D.screen.length} 家中的公司数，点数字在 ② 里套用对应筛选。基本面支撑共 ${val.length} 家。${esc(INST_CAVEAT)}</div>`;
   $("instX").querySelectorAll("button[data-ix]").forEach(b => b.onclick = () => { const [k, s, lb] = b.dataset.ix.split("|"); setInstFilter(k, s, lb); });
 }
 const codeCell = code => CARDS[code] ? `<a href="#card-${esc(code)}" class="cardlink" data-card="${esc(code)}" title="打开评估卡">${esc(code)}</a>` : esc(code);
@@ -1183,7 +1185,7 @@ function qualCN(c) {
 }
 function evalCardCN(c) {
   const rs = c.research || {}, f = c.fin || {}, mk = ["STAR", "SH_MAIN"].includes(c.board) ? "SH" : c.board === "BSE" ? "BJ" : "SZ";
-  const rk = c.rank ? `研究优先级第 ${c.rank} 名 · 综合分 ${num(c.score)}` : `「偏价值」标签 · 不在优先级前 ${R.priority_top}`;
+  const rk = c.rank ? `研究优先级第 ${c.rank} 名 · 综合分 ${num(c.score)}` : `「基本面支撑」标签 · 不在优先级前 ${R.priority_top}`;
   const gates = GATES.map(([k, t]) => { const g = c.gates[k]; return `<div class="chk"><span class="${esc(g.s)}">${ICON[g.s] || "·"}</span><span>${esc(t)}</span><span class="small">${esc(g.v)}</span></div>`; }).join("");
   const nq = (rs.open_questions || []).length + (c.questions || []).length;
   const qs = (rs.open_questions || []).map(x => `<li>${esc(x)} <span class="tier">调研</span></li>`).join("") + lis(c.questions);
@@ -1200,7 +1202,7 @@ function evalCardCN(c) {
   const pegNp = `<span class="np ${g && g.value != null && (g.flags || []).length ? "unrel" : g && g.status === "ok" ? "good" : g && g.status === "warn" ? "unrel" : ""}"${g ? ` data-tip="${esc(pegTip(g))}"` : ""}>PEG 参考 <b>${g && g.value != null ? num(g.value, 2) : "—"}</b><span class="tag">${esc(pegKind(g))}</span></span>`;
   const evWarn = ["pledge", "selling", "unlock", "reg"].some(k => c.gates[k]?.s === "warn") || c.forecasts.some(x => FC_BAD.includes(x.forecast_type));
   return `<details class="ec" id="card-${esc(c.code)}">
-    <summary><span class="ec-tk">${esc(c.code)}</span><span class="ec-nm">${esc(c.name)}</span><span class="tag">${esc(c.industry)}</span><span class="tag">${esc(BOARD_CN[c.board] || c.board)}</span><span class="tag lb-${esc(c.label)}">${esc(c.label)}</span>
+    <summary><span class="ec-tk">${esc(c.code)}</span><span class="ec-nm">${esc(c.name)}</span><span class="tag">${esc(c.industry)}</span><span class="tag">${esc(BOARD_CN[c.board] || c.board)}</span><span class="tag lb-${esc(c.label)}">${esc(lbT(c.label))}</span>
       <span class="ec-meta">${esc(rk)}</span>
       <span class="ec-nums"><span class="np">股价 <b>${f.price != null ? num(f.price, 2) + " 元" : "—"}</b></span><span class="np" data-tip="${esc(rngTip(c.range, f))}">52 周位置 <b>${rngOk(c.range) ? num(c.range.pos52, 0) + "%" : "—"}</b>${rngFlags(c.range).length ? '<span class="tag">注</span>' : ""}</span><span class="np">总市值 <b>${yi(f.mcap)} 亿</b></span><span class="np">PE(TTM) <b>${num(f.pe_ttm)}</b></span>
         <span class="np ${vs === "warn" ? "unrel" : vs === "ok" ? "good" : ""}">PE 分位 <b>${f.pe_pct == null ? "—" : num(f.pe_pct, 0) + "%"}</b></span>${pegNp}
@@ -1253,7 +1255,7 @@ function openCard(code, scroll, smooth) {
 function renderCards() {
   const cs = D.cards || [];
   $("ecN").textContent = cs.length;
-  $("ecLead").innerHTML = esc(`范围：③ 研究优先级前 ${D.priority.length} 名 + ② 中所有「偏价值」公司，去重后 ${cs.length} 家。每张卡依次是规则生成的结论、四个指标块、机会与风险，然后是可折叠的分组：证据（因子雷达、PE 历史、价格、一致预期、主营构成、前十大流通股东）、事件（业绩预告、增减持、解禁、监管标题）、门槛与待核实（10 项门槛、PEG 参考项、待核实问题）、定性六维。判断句都是按固定规则从数字生成的，需要人工核实；不包含买卖含义。` +
+  $("ecLead").innerHTML = esc(`范围：③ 研究优先级前 ${D.priority.length} 名 + ② 中所有「基本面支撑」公司，去重后 ${cs.length} 家。每张卡依次是规则生成的结论、四个指标块、机会与风险，然后是可折叠的分组：证据（因子雷达、PE 历史、价格、一致预期、主营构成、前十大流通股东）、事件（业绩预告、增减持、解禁、监管标题）、门槛与待核实（10 项门槛、PEG 参考项、待核实问题）、定性六维。判断句都是按固定规则从数字生成的，需要人工核实；不包含买卖含义。` +
     `PEG 是参考项，不参与排序、标签和 ⚠ 数：优先用前瞻口径 = PE(TTM) ÷ 机构一致预期 EPS 从当年预期到两年后预期的年化增速（覆盖机构 ≥ ${CR.peg_min_org} 家、所用预期均 > 0）；` +
     `没有可用一致预期时用历史口径（扣非，年初至今同比）；周期行业、PE ≤ 0、增速 ≤ 0 时不显示。PEG ≤ ${CR.peg_ok_max} 记 ✓，> ${CR.peg_warn_min} 记 ⚠，其余或不可靠时记 ·。` +
     `“现金流估值（情景参考）”块：反向 DCF 和熊 / 基准 / 牛三情景 DCF，在上方“估值参数”里改折现率、永续增速和情景幅度后立即重算；${DCF_DISC}，不参与排序、标签、⚠ 数和对比池评分。`);
@@ -1284,7 +1286,7 @@ function jumpCN(code) {
 }
 
 // ---------- left sidebar: section links with scroll-spy, industries (by number of screened companies)
-const SECTS = [["sLk", "全市场速查"], ["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["sVc", "价值通道"], ["s4", "③ 研究优先级"], ["s3", "④ 价值·博弈"], ["sBk", "对比池"], ["sLg", "估值台账"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
+const SECTS = [["sLk", "全市场速查"], ["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["sVc", "价值通道"], ["s4", "③ 研究优先级"], ["s3", "④ 基本面·交易"], ["sBk", "对比池"], ["sLg", "估值台账"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
 let curSec = "s1";
 function markSec() {
   document.querySelectorAll("#side a[data-sec], .steps a").forEach(a => { const on = (a.dataset.sec || a.getAttribute("href").slice(1)) === curSec;
@@ -1388,7 +1390,7 @@ function lkShow(code, scroll) {
   let st;
   if (s) {
     const pr = PRIO_RANK[code];
-    st = `<p><b>在 ② 新兴筛选内</b>：${esc(s.label)}，风险门禁 ⚠ ${s.warn_n} 项${pr ? `，③ 研究优先级第 ${pr} 名` : CYC_SET.has(code) ? "，周期行业单列" : ""}${s.cyclical ? "（周期行业）" : ""}。</p>
+    st = `<p><b>在 ② 新兴筛选内</b>：${esc(lbT(s.label))}，风险门禁 ⚠ ${s.warn_n} 项${pr ? `，③ 研究优先级第 ${pr} 名` : CYC_SET.has(code) ? "，周期行业单列" : ""}${s.cyclical ? "（周期行业）" : ""}。</p>
       <div class="toolbar"><button type="button" class="btn" data-lkjump="${esc(code)}">${CARDS[code] ? "打开评估卡" : "在 ② 筛选表中查看"}</button></div>`;
   } else {
     st = `<p><b>未进入 ② 新兴筛选</b>，原因（按规则逐条列出，不止第一条）：</p><ul>${why.map(w => `<li>${esc((LK_WHY[w] || (() => w))(r))}</li>`).join("")}</ul>
@@ -2140,7 +2142,7 @@ function lgRulesTxt() {
   const c = R.chg_pct, q = R.mreq_pt, g = R.gap, k = R.combo, P = v => num(v * 100, 0) + "%";
   return [`<b>变化幅度</b>（需上一条记录；两期都是三情景时看基准估值变化）：≥ +${c.big}% 大幅上调；+${c.mid}%~+${c.big}% 上调；±${c.flat}%~${c.mid}% 小幅变化；绝对值 < ${c.flat}% 基本不变；−${c.mid}%~−${c.big}% 下调；≤ −${c.big}% 大幅下调。两期都是 FCF ≤ 0 时看需要的利润率：变化 ≥ ${q.mid}pt 上升，≥ ${q.big}pt 大幅上升（下降同理）。`,
     `<b>估值位置</b>（三情景；基准相对现价 = 基准 ÷ 现价 − 1）：≥ +${P(g.far)} 现价远低于基准；+${P(g.near)}~+${P(g.far)} 现价低于基准；±${P(g.near)} 以内 接近基准；−${P(g.near)}~−${P(g.far)} 现价高于基准；≤ −${P(g.far)} 现价远高于基准；另：现价 < 熊情景 → 现价低于熊情景，现价 > 牛情景 → 现价高于牛情景。`,
-    `<b>组合信号</b>（需上一条记录）：基本面改善·价格未跟 = 基准 ≥ +${k.fund_up}% 且股价 ≤ +${k.price_flat}%；价格先行 = 股价 ≥ +${k.price_lead}% 且基准 ≤ +${k.base_flat}%；基本面转弱 = 基准 ≤ −${k.fund_dn}% 且归因最大项是营收基数 / FCF 利润率 / 起始增速；预期上修 / 下修 = 一致预期增速变化 ≥ +${k.cons_pt}pt / ≤ −${k.cons_pt}pt；差距收窄 / 扩大 = |基准相对现价| 向 0 靠近 / 远离 ≥ ${k.gap_pp}pp；口径切换 = FCF 利润率口径变化；标签变化 = 偏价值 / 中性 / 偏博弈 变化；风险门禁变化 = ⚠ 数变化。`,
+    `<b>组合信号</b>（需上一条记录）：基本面改善·价格未跟 = 基准 ≥ +${k.fund_up}% 且股价 ≤ +${k.price_flat}%；价格先行 = 股价 ≥ +${k.price_lead}% 且基准 ≤ +${k.base_flat}%；基本面转弱 = 基准 ≤ −${k.fund_dn}% 且归因最大项是营收基数 / FCF 利润率 / 起始增速；预期上修 / 下修 = 一致预期增速变化 ≥ +${k.cons_pt}pt / ≤ −${k.cons_pt}pt；差距收窄 / 扩大 = |基准相对现价| 向 0 靠近 / 远离 ≥ ${k.gap_pp}pp；口径切换 = FCF 利润率口径变化；标签变化 = 基本面支撑 / 中性 / 交易驱动 变化；风险门禁变化 = ⚠ 数变化。`,
     `<b>注意</b>（灰色）：一次性收入 = 一次性收入保护触发；增速截断 = 起始增速被截断；爬坡假设 = 利润率爬坡口径；周期 = 周期行业；估值≤0 = 基准每股价值 ≤ 0。`,
     esc(TAG_NOTE)].map(x => `<li>${x}</li>`).join("");
 }
@@ -2535,7 +2537,7 @@ function bkCols() {
     ...sc,
     {k: "industry", t: "行业", cls: "nw", f: e => `<span class="small">${esc(e.r.industry)}</span>`},
     {k: "board", t: "板块", cls: "nw", v: e => BOARD_CN[e.r.board] || e.r.board, f: e => `<span class="small">${esc(BOARD_CN[e.r.board] || e.r.board || "—")}</span>`},
-    {k: "label", t: "标签", f: e => `<span class="tag lb-${esc(e.r.label)}">${esc(e.r.label)}</span>`},
+    {k: "label", t: "标签", f: e => `<span class="tag lb-${esc(e.r.label)}">${esc(lbT(e.r.label))}</span>`},
     {k: "cyclical", t: "周期", v: e => e.r.cyclical ? 1 : 0, f: e => e.r.cyclical ? '<span class="tag t-cyc">周期</span>' : '<span class="na">—</span>'},
     {k: "rev_yoy", t: "营收同比", n: 1, hl: e => bkHl(e, "growth"), f: e => pc(e.r.rev_yoy)},
     {k: "accel", t: "增速变化（pp）", n: 1, hl: e => bkHl(e, "accel"), f: e => pp(e.r.accel, 0)},
@@ -2608,7 +2610,7 @@ function bkCsv() {
   const lines = bkView.map(e => { const r = e.r;
     if (!r) return [e.i, e.x.code, "", "", "", "", "", ...Array(19).fill(""), ...BK_DIMS.map(() => ""), ...BK_DIMS.map(d => bkW(d.k)), "", "本次数据中已不存在", ...Array(13).fill("")];
     const s = e.s, g = CARDS[r.code]?.peg, main = s.group === "main";
-    return [e.i, r.code, r.name, r.industry, BOARD_CN[r.board] || r.board, r.label, r.cyclical ? "是" : "否", r1(r.rev_yoy), r1(r.accel), r1(r.gm), r1(r.gm_chg), r1(r.ocf_np, 2), r1(r.np_yoy),
+    return [e.i, r.code, r.name, r.industry, BOARD_CN[r.board] || r.board, lbT(r.label), r.cyclical ? "是" : "否", r1(r.rev_yoy), r1(r.accel), r1(r.gm), r1(r.gm_chg), r1(r.ocf_np, 2), r1(r.np_yoy),
       r1(r.pe_ttm), r1(r.pb, 2), bkFin(r.pe_pct) ? "PE" : bkFin(r.pb_pct) ? "PB" : "", bkFin(r.pe_pct) ? r1(r.pe_pct) : r1(r.pb_pct), r.warn_n,
       g && g.value != null ? r1(g.value, 2) : "", g ? pegKind(g) : "", PRANK[r.code] ?? "", CARDS[r.code] ? "是" : "否",
       main ? "非周期" : "周期·不参与评分", s.score ?? "", s.rank ?? "", main ? `${s.covered}/${s.total}` : "",
@@ -2636,7 +2638,7 @@ function bkInit() {
     <li><b>总分</b> = Σ(权重 × 分位) ÷ Σ(权重)，只对有数值的维度求和，保留 1 位小数；权重为 0 的维度不计分（仍显示原值）。覆盖维度 = 有数值的计分维度数 / 计分维度数。</li>
     <li><b>数据不足</b>：覆盖维度少于计分维度数的一半（向上取整）时标“数据不足”，排在其他公司之后。组内只有 1 家时不打分（“组内仅 1 家，无法相对比较”）。同分并列同名次。</li>
     <li><b>周期行业</b>（${esc(R.cyclical_industries.join("、"))}）：${esc(BK_CYC)}，与 ③ 的规则一致，单列在“周期 · 不参与评分”。</li>
-    <li><b>不使用</b>：股价、PEG、现金流估值（Base 估值 vs 现价、隐含增速）、价值 / 博弈标签、③ 研究优先级名次、机构一致预期都不进入评分；PEG 和现金流估值只展示（${esc(DCF_DISC)}）。</li></ul>
+    <li><b>不使用</b>：股价、PEG、现金流估值（Base 估值 vs 现价、隐含增速）、基本面 / 交易标签、③ 研究优先级名次、机构一致预期都不进入评分；PEG 和现金流估值只展示（${esc(DCF_DISC)}）。</li></ul>
     <span class="small">池内相对排序：只反映所选这几家在下列口径上的相对位置，换一批公司分数就会变。不是买卖建议，不预测股价；PEG 只展示、不计分。</span>`;
 }
 document.addEventListener("click", ev => {
@@ -2665,7 +2667,7 @@ const vcS = {k: "rank", dir: 1, n: 50};
 const vcP = v => v == null ? "—" : num(v, 1) + "%";
 const VC_COLS = [
   ["rank", "通道排名", r => r.rank ?? (r.cyclical ? '<span class="tag t-cyc">周期</span>' : "—"), r => r.rank ?? 9999, 1],
-  ["code", "代码 · 名称", r => `${codeCell(r.code)} ${esc(r.name)}${r.in2 ? `<div class="small">② 内 · ${esc(r.label || "")}</div>` : '<div class="small">未进入 ②</div>'}`, r => r.code, 1],
+  ["code", "代码 · 名称", r => `${codeCell(r.code)} ${esc(r.name)}${r.in2 ? `<div class="small">② 内 · ${esc(lbT(r.label) || "")}</div>` : '<div class="small">未进入 ②</div>'}`, r => r.code, 1],
   ["industry", "行业", r => `<span class="small">${esc(r.industry)}</span>`, r => r.industry, 1],
   ["score", "通道得分", r => r.score != null ? `<span data-tip="${esc(Object.entries(r.f || {}).map(([k, v]) => `${VC_F[k]} ${v == null ? "—" : num(v, 0)}`).join("；"))}">${num(r.score, 1)}</span>` : "—", r => r.score, -1],
   ["roe_med", `ROE 中位数（${(VC.years || []).at(0) || ""}–${(VC.years || []).at(-1) || ""}）`, r => `${vcP(r.roe_med)}<div class="small">${(r.roe || []).map(x => x == null ? "—" : num(x, 0)).join(" / ")}</div>`, r => r.roe_med, -1],

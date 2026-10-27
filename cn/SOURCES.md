@@ -245,7 +245,7 @@ PEG（评估卡参考项，规则与阈值在 `cn/cards.py` 的 `CARD_RULES["peg
 
 ## k. 机构动向：跟踪机构在前十大流通股东中的 12 个月变化（`python -m cn holders`，只展示）
 
-核验时间 2026-10-23。**不进入** ③ 综合分、价值 / 博弈标签、warn_n 和对比池 bkScore；build 在 `analyze()` 之后才挂到 ② 行（`r.inst`）和评估卡（`c.inst`）。
+核验时间 2026-10-23。**不进入** ③ 综合分、基本面 / 交易标签、warn_n 和对比池 bkScore；build 在 `analyze()` 之后才挂到 ② 行（`r.inst`）和评估卡（`c.inst`）。
 
 | 接口 | 参数 | 字段 → 输出键 | 结果 |
 |---|---|---|---|
@@ -269,7 +269,7 @@ PEG（评估卡参考项，规则与阈值在 `cn/cards.py` 的 `CARD_RULES["peg
 
 ## l. 现金流估值（情景参考）输入（`python -m cn valuation`，只展示）
 
-核验时间 2026-10-26。情景估值参考，不是目标价，不是买卖建议。**不进入** ③ 综合分、价值 / 博弈标签、warn_n 和对比池 bkScore；build 在 `analyze()` 之后才把紧凑输入挂到 ② 行（`r.dcf`）和评估卡（`c.dcf_g`），DCF 本身在页面 JS 里按用户参数计算（`dcfEngine` / `dcfReverse` / `dcfCase`），`cn/valuation.py` 有同逻辑的 Python 镜像（smoke 测试）。
+核验时间 2026-10-26。情景估值参考，不是目标价，不是买卖建议。**不进入** ③ 综合分、基本面 / 交易标签、warn_n 和对比池 bkScore；build 在 `analyze()` 之后才把紧凑输入挂到 ② 行（`r.dcf`）和评估卡（`c.dcf_g`），DCF 本身在页面 JS 里按用户参数计算（`dcfEngine` / `dcfReverse` / `dcfCase`），`cn/valuation.py` 有同逻辑的 Python 镜像（smoke 测试）。
 
 | 接口 | 参数 | 字段 → 用途 | 结果 |
 |---|---|---|---|
