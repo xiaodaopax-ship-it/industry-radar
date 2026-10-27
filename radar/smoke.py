@@ -37,13 +37,22 @@ def main():
         D = model(latest_raw(), with_ledger=False)
         V = D["vc"]
         R = Q.VALUE_RULES
-        bad = [r["ticker"] for r in V["rows"] if not (r["roe_med"] >= R["roe_median_min"] - 0.05 and r["roe_min"] >= R["roe_min_min"] - 0.05
+        std = [r for r in V["rows"] if r["group"] == "std"]
+        fin = [r for r in V["rows"] if r["group"] == "fin"]
+        bad = [r["ticker"] for r in std if not (r["roe_med"] >= R["roe_median_min"] - 0.05 and r["roe_min"] >= R["roe_min_min"] - 0.05
                and r["fcf_pos"] >= R["fcf_pos_min"] and r["conv"] >= R["conv_min"] - 0.005 and r["cagr"] >= -0.05
                and (r["nd_fcf"] is None or r["nd_fcf"] <= R["nd_fcf_max"] + 0.05))]
-        ranks = sorted(r["rank"] for r in V["rows"] if r.get("rank"))
-        check("value channel (real file): every row meets every rule, cyclical unranked, ranks 1..n, rows have market cap",
-              not bad and ranks == list(range(1, V["n_ranked"] + 1)) and all(not r.get("rank") for r in V["rows"] if r["cyclical"])
-              and all(r["mcap"] for r in V["rows"]), f"pass={V['n_pass']} ranked={V['n_ranked']} bad={bad[:5]}")
+        ranks = sorted(r["rank"] for r in std if r.get("rank"))
+        check("value channel (real file): every standard row meets every rule, cyclical unranked, ranks 1..n, rows have market cap",
+              not bad and ranks == list(range(1, V["n_ranked"] + 1)) and all(not r.get("rank") for r in std if r["cyclical"])
+              and all(r["mcap"] for r in V["rows"]) and all(len(r["fy"]) == 5 for r in V["rows"]), f"pass={V['n_pass']} ranked={V['n_ranked']} bad={bad[:5]}")
+        F = Q.FIN_RULES
+        badf = [r["ticker"] for r in fin if not (r["eq"] >= F["eq_min"] and r["ni_pos"] >= F["ni_pos_min"] and r["roe_med"] >= F["roe_median_min"] - 0.05
+                and r["roe_min"] >= F["roe_min_min"] - 0.05 and r["eq_cagr"] >= -0.05 and str(r["sic"]).zfill(4)[:2] in ("60", "61", "62", "63", "64", "67")
+                and r["sic"] not in (6770, 6798, 6726))]
+        fr = sorted(r["rank"] for r in fin if r.get("rank"))
+        check("value channel financial (real file): every row is SIC 60-67 (not REIT / SPAC / fund) and meets the financial rules, ranks 1..n",
+              not badf and fr == list(range(1, V["n_ranked_fin"] + 1)) and V["n_fin"] == len(fin), f"fin={len(fin)} bad={badf[:5]}")
         L = D["lookup"]
         ent = {e["ticker"] for e in D["entries"]}
         scr = {r[0] for r in L["rows"] if r[8] == "screen"}

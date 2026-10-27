@@ -157,7 +157,13 @@ def metrics(it, years):
             "nd_fcf": (nd / fa if nd > 0 else 0.0) if fa and fa > 0 else None,
             "gw_pct": 100 * (bs.get("gw") or 0) / cap if cap > 0 else None,
             "net_cash": net_cash, "no_cx": no_cx,
-            "m3": statistics.mean(mg) if mg else None, "div": ys[-1].get("div") or 0.0, "bb": ys[-1].get("bb") or 0.0}
+            "m3": statistics.mean(mg) if mg else None, "div": ys[-1].get("div") or 0.0, "bb": ys[-1].get("bb") or 0.0,
+            # financial view: profitable years, book equity (latest and 4-year growth)
+            "ni_pos": sum(1 for d in ys if (d.get("ni") or 0) > 0), "eq0": e_last,
+            "eq_cagr": ((e_last / eq[years[0]]) ** (1 / (len(years) - 1)) - 1) * 100
+            if e_last and eq.get(years[0]) and e_last > 0 and eq[years[0]] > 0 else None,
+            # per-year table for the simplified evaluation card: [year, revenue, NI, OCF, capex, dividends, buybacks, equity]
+            "fy": [[y, d.get("rev"), d.get("ni"), d.get("ocf"), d.get("cx"), d.get("div"), d.get("bb"), eq.get(y)] for y, d in zip(years, ys)]}
 
 
 def fails(m):
@@ -184,14 +190,75 @@ def fails(m):
     return w
 
 
-def _cyclical_sics():
-    from .classify import sectors
-    return {sic for s in sectors() for g in s["segments"] if g.get("cyclical") for sic in g.get("sic", [])}
+FIN_RULES = {"eq_min": 1e9, "ni_pos_min": 4, "roe_years_min": 4, "roe_median_min": 10.0, "roe_min_min": 4.0}
+FIN_SKIP_SIC = {6770: "空白支票公司（SPAC）", 6798: "REIT：需要 FFO / AFFO", 6726: "投资基金 / 信托"}
+
+
+def fails_fin(m):
+    """金融口径 (banks, insurers, brokers, asset managers; SIC 60-67 except REITs / SPACs / funds): no FCF or debt rules
+    (deposits and float are the business), judged on profitability and book value instead."""
+    R, w = FIN_RULES, []
+    if not m["eq0"] or m["eq0"] < R["eq_min"]:
+        w.append("f_small")
+    if m["ni0"] is None or m["ni0"] <= 0:
+        w.append("np")
+    if m["ni_pos"] < R["ni_pos_min"]:
+        w.append("f_nipos")
+    if m["n_roe"] < R["roe_years_min"]:
+        w.append("roe_n")
+    else:
+        if m["roe_med"] < R["roe_median_min"]:
+            w.append("f_roe_med")
+        if m["roe_min"] < R["roe_min_min"]:
+            w.append("f_roe_min")
+    if m["eq_cagr"] is None or m["eq_cagr"] < 0:
+        w.append("f_eq")
+    return w
+
+
+def _listing(us, cik, FINANCIAL_MAJOR):
+    """(ticker, exchange, sic, sic_desc, is_financial) or None when not on a major exchange."""
+    sub = us.submissions(cik)
+    ex = [e for e in sub.get("exchanges", []) if e in CFG["screen"]["exchanges"]]
+    if not (ex and sub.get("tickers")):
+        return None
+    sic = sub.get("sic")
+    return sub["tickers"][sub["exchanges"].index(ex[0])], ex[0], sic, sub.get("sic_desc"), bool(sic and f"{sic:04d}"[:2] in FINANCIAL_MAJOR)
+
+
+def _row(cik, name, lst, m, mk, rf, fin):
+    from .valuation import dcf_reverse
+    tk, ex, sic, desc, _ = lst
+    mc, px = mk.get("mcap"), mk.get("price")
+    base = {"cik": cik, "ticker": tk, "name": name, "sic": sic, "sic_desc": desc, "exchange": ex, "price": px, "mcap": mc,
+            "roe": [_r(x, 1) for x in m["roe"]], "roe_med": _r(m["roe_med"], 1), "roe_min": _r(m["roe_min"], 1), "cagr": _r(m["cagr"], 1),
+            "rev": m["r0"], "ni": m["ni0"], "ey": _r(100 * m["ni0"] / mc) if mc and m["ni0"] is not None else None,
+            "dy": _r(100 * m["div"] / mc) if mc else None, "shy": _r(100 * (m["div"] + m["bb"]) / mc) if mc else None,
+            "analysts": mk.get("analysts"), "target": mk.get("target"), "fy": m["fy"], "group": "fin" if fin else "std"}
+    if fin:
+        pb = mc / m["eq0"] if mc and m["eq0"] else None
+        r, gT = ((rf + VALUE_RULES["erp"]) / 100, min(VALUE_RULES["gT"], rf) / 100) if rf is not None else (None, None)
+        # residual income, steady state: P/B = (ROE - g) / (r - g)  =>  ROE implied by the price = g + P/B x (r - g)
+        iroe = 100 * (gT + pb * (r - gT)) if pb and r is not None else None
+        base.update({"eq": m["eq0"], "pb": _r(pb), "eq_cagr": _r(m["eq_cagr"], 1), "ni_pos": m["ni_pos"],
+                     "iroe": _r(iroe, 1), "iroe_gap": _r(iroe - m["roe_med"], 1) if iroe is not None and m["roe_med"] is not None else None})
+        return base
+    ig = igs = None
+    if rf is not None and mc and px and m["m3"] and m["m3"] > 0 and m["net_cash"] is not None and m["r0"]:
+        rr, gT = (rf + VALUE_RULES["erp"]) / 100, min(VALUE_RULES["gT"], rf) / 100
+        o = dcf_reverse({"R0": m["r0"], "m": m["m3"], "g0": 0.0, "gT": gT, "r": rr, "netCash": m["net_cash"], "shares": mc / px}, px)
+        ig, igs = (o["x"] * 100, "ok") if o["ok"] else (None, o["side"])
+    base.update({"conv": _r(m["conv"]), "fcf_pos": m["fcf_pos"], "n_fcf": m["n_fcf"], "no_cx": m["no_cx"], "de": _r(m["de"]),
+                 "nd_fcf": _r(m["nd_fcf"], 1), "gw_pct": _r(m["gw_pct"], 1), "net_cash": m["net_cash"], "m3": _r(m["m3"], 4),
+                 "gw_warn": bool(m["gw_pct"] is not None and m["gw_pct"] > VALUE_RULES["goodwill_warn_pct"]),
+                 "fcfy": _r(100 * m["fcf_avg"] / mc) if mc and m["fcf_avg"] is not None else None,
+                 "ig": _r(ig, 1), "igs": igs, "ig_gap": _r(ig - m["cagr"], 1) if ig is not None and m["cagr"] is not None else None})
+    return base
 
 
 def run():
     from . import us, yh as Y
-    from .heat import CYCLICAL_MAJOR, FINANCIAL_MAJOR
+    from .heat import FINANCIAL_MAJOR
     from .net import Yahoo
     from .valuation import latest as val_latest
     years = years_for()
@@ -199,82 +266,54 @@ def run():
     log(f"quality: SEC frames CY{years[0]}..CY{years[-1]} (all filers)")
     items, nreq = fetch_frames(years)
     log(f"  frames: {nreq} frame queries, filers with data: {len(items)}")
-    passed, why = {}, {}
+    M, why, why_fin, std_ok, fin_ok = {}, {}, {}, [], []
     for cik, it in items.items():
-        m = metrics(it, years)
-        w = fails(m)
-        if w:
-            why[cik] = w
+        m = M[cik] = metrics(it, years)
+        w, wf = fails(m), fails_fin(m)
+        why[cik], why_fin[cik] = w, wf
+        if not w:
+            std_ok.append(cik)
+        if not wf:
+            fin_ok.append(cik)
+    log(f"  rules: standard pass {len(std_ok)}, financial pass {len(fin_ok)} / {len(items)}; submissions ...")
+    picks = []           # (cik, listing, financial?)
+    for cik in sorted(set(std_ok) | set(fin_ok)):
+        lst = _listing(us, cik, FINANCIAL_MAJOR)
+        if not lst:
+            if cik in std_ok:
+                why[cik] = ["exchange"]
+            continue
+        if lst[4]:
+            why[cik] = ["financial"]                 # standard rules do not apply to financials
+            if lst[2] in FIN_SKIP_SIC:
+                why_fin[cik] = ["f_skip"]
+            elif cik in fin_ok:
+                picks.append((cik, lst, True))
         else:
-            passed[cik] = m
-    log(f"  fundamental rules: pass {len(passed)} / {len(items)}; submissions for the passers ...")
-    cyc_sic = _cyclical_sics()
-    rows, listed = [], {}
-    for cik, m in passed.items():
-        sub = us.submissions(cik)
-        ex = [e for e in sub.get("exchanges", []) if e in CFG["screen"]["exchanges"]]
-        sic = sub.get("sic")
-        if not (ex and sub.get("tickers")):
-            why[cik] = ["exchange"]
-            continue
-        tk = sub["tickers"][sub["exchanges"].index(ex[0])]
-        if sic and f"{sic:04d}"[:2] in FINANCIAL_MAJOR:
-            why[cik] = ["financial"]
-            listed[cik] = (tk, sic, sub.get("sic_desc"))
-            continue
-        listed[cik] = (tk, sic, sub.get("sic_desc"))
-        rows.append({"cik": cik, "ticker": tk, "name": items[cik].get("name"), "sic": sic, "sic_desc": sub.get("sic_desc"),
-                     "exchange": ex[0], "cyclical": bool(sic and (f"{sic:04d}"[:2] in CYCLICAL_MAJOR or sic in cyc_sic)), "_m": m})
-    log(f"  listed, non-financial passers: {len(rows)}; Yahoo market data ...")
-    yh = Yahoo()
-    fx = {"USD": 1.0}
-    V = val_latest() or {}
-    rf = (V.get("rf") or {}).get("value")
-    from .valuation import dcf_reverse
-    n_mk = 0
-    for i, r in enumerate(rows):
-        mk = Y.market(yh, r["ticker"], fx) or {}
-        m = r.pop("_m")
-        mc, px = mk.get("mcap"), mk.get("price")
-        n_mk += 1 if mc else 0
-        ig = igs = None
-        if rf is not None and mc and px and m["m3"] and m["m3"] > 0 and m["net_cash"] is not None and m["r0"]:
-            rr, gT = (rf + VALUE_RULES["erp"]) / 100, min(VALUE_RULES["gT"], rf) / 100
-            o = dcf_reverse({"R0": m["r0"], "m": m["m3"], "g0": 0.0, "gT": gT, "r": rr, "netCash": m["net_cash"], "shares": mc / px}, px)
-            ig, igs = (o["x"] * 100, "ok") if o["ok"] else (None, o["side"])
-        r.update({"price": px, "mcap": mc, "roe": [_r(x, 1) for x in m["roe"]], "roe_med": _r(m["roe_med"], 1), "roe_min": _r(m["roe_min"], 1),
-                  "conv": _r(m["conv"]), "fcf_pos": m["fcf_pos"], "n_fcf": m["n_fcf"], "no_cx": m["no_cx"], "cagr": _r(m["cagr"], 1),
-                  "de": _r(m["de"]), "nd_fcf": _r(m["nd_fcf"], 1), "gw_pct": _r(m["gw_pct"], 1),
-                  "gw_warn": bool(m["gw_pct"] is not None and m["gw_pct"] > VALUE_RULES["goodwill_warn_pct"]), "rev": m["r0"], "ni": m["ni0"],
-                  "fcfy": _r(100 * m["fcf_avg"] / mc) if mc and m["fcf_avg"] is not None else None,
-                  "ey": _r(100 * m["ni0"] / mc) if mc else None, "dy": _r(100 * m["div"] / mc) if mc else None,
-                  "shy": _r(100 * (m["div"] + m["bb"]) / mc) if mc else None,
-                  "ig": _r(ig, 1), "igs": igs, "ig_gap": _r(ig - m["cagr"], 1) if ig is not None and m["cagr"] is not None else None,
-                  "analysts": mk.get("analysts"), "target": mk.get("target")})
+            why_fin[cik] = ["f_notfin"]
+            if cik in std_ok:
+                picks.append((cik, lst, False))
+    log(f"  listed passers: standard {sum(1 for p in picks if not p[2])}, financial {sum(1 for p in picks if p[2])}; Yahoo market data ...")
+    yh, fx = Yahoo(), {"USD": 1.0}
+    rf = ((val_latest() or {}).get("rf") or {}).get("value")
+    rows, n_mk = [], 0
+    for i, (cik, lst, fin) in enumerate(picks):
+        mk = Y.market(yh, lst[0], fx) or {}
+        n_mk += 1 if mk.get("mcap") else 0
+        rows.append(_row(cik, items[cik].get("name"), lst, M[cik], mk, rf, fin))
         if (i + 1) % 100 == 0:
-            log(f"  market {i + 1}/{len(rows)}")
-    # tickers of every filer with data (for the lookup's "not in the channel" reasons): only already-cached submissions
-    tick = {}
-    for cik in items:
-        p = os.path.join(CACHE, f"sub_{cik}.json")
-        if cik in listed:
-            tick[listed[cik][0]] = cik
-        elif os.path.exists(p):
-            try:
-                with open(p, encoding="utf-8") as f:
-                    s = json.load(f)
-                if s.get("tickers"):
-                    tick[s["tickers"][0]] = cik
-            except (OSError, ValueError):
-                pass
-    doc = {"version": 1, "fetched_at": t0.isoformat(timespec="seconds"), "years": years, "rules": VALUE_RULES, "rf": rf,
-           "n_filers": len(items), "rows": rows, "why": {str(k): v for k, v in why.items()}, "ticker_cik": tick,
-           "n_market": n_mk}
+            log(f"  market {i + 1}/{len(picks)}")
+    tick = {r["ticker"]: r["cik"] for r in rows}
+    doc = {"version": 2, "fetched_at": t0.isoformat(timespec="seconds"), "years": years, "rules": VALUE_RULES, "fin_rules": FIN_RULES,
+           "fin_skip_sic": FIN_SKIP_SIC, "rf": rf, "n_filers": len(items), "rows": rows,
+           "why": {str(k): v for k, v in why.items() if v}, "why_fin": {str(k): v for k, v in why_fin.items() if v},
+           "ticker_cik": tick, "n_market": n_mk}
     path = os.path.join(DATA, f"quality_{t0.strftime('%Y%m%d_%H%M%S')}.json")
     with open(path + ".tmp", "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False)
     os.replace(path + ".tmp", path)
-    log(f"saved {os.path.relpath(path, DATA)}: filers={len(items)} passers={len(rows)} with_mcap={n_mk} rf={rf}")
+    log(f"saved {os.path.relpath(path, DATA)}: filers={len(items)} rows={len(rows)} (financial {sum(1 for r in rows if r['group'] == 'fin')}) "
+        f"with_mcap={n_mk} rf={rf}")
     return path
 
 
@@ -358,49 +397,58 @@ def lookup(entries, heat):
             "periods": (heat or {}).get("periods"), "fetched_at": (heat or {}).get("fetched_at")}
 
 
+def _pct(vals):
+    """Percentile 0..100 inside the list (average rank for ties); None values skipped."""
+    items = sorted((v, k) for k, v in vals.items() if v is not None)
+    n, out, i = len(items), {}, 0
+    while i < n:
+        j = i
+        while j + 1 < n and items[j + 1][0] == items[i][0]:
+            j += 1
+        for t in range(i, j + 1):
+            out[items[t][1]] = round(100.0 * ((i + j) / 2) / (n - 1), 1) if n > 1 else 50.0
+        i = j + 1
+    return out
+
+
+# ranking factors per group (all "higher is better"; P/B enters as its negative)
+RANK_KEYS = {"std": ("roe_med", "roe_min", "conv", "fcfy", "ey", "shy"), "fin": ("roe_med", "roe_min", "eq_cagr", "ey", "shy", "pbn")}
+
+
 def channel(entries, doc, path=None):
-    """Page payload: rows (passers with mcap) ranked inside the channel; why-codes per ticker for the lookup."""
+    """Page payload: rows (passers with mcap) ranked inside their group (standard / financial); why-codes per ticker."""
     from .classify import is_us
+    from .heat import CYCLICAL_MAJOR
     if not doc:
         return {"file": None}
     ent = {}
     for e in entries:
         ent.setdefault(e["ticker"], e)
-    from .heat import CYCLICAL_MAJOR
     rows = [dict(r) for r in doc["rows"] if r.get("mcap") and is_us(r["ticker"])]
     for r in rows:
+        r.setdefault("group", "std")
         e = ent.get(r["ticker"])
         r["in_screen"] = bool(e)
         # cyclical: commodity / freight SIC major groups, or the company's own segment in the sector screens is cyclical
         # (a whole SIC code is not used: e.g. 3674 holds both memory makers and fabless designers)
-        r["cyclical"] = bool(r.get("sic") and f"{r['sic']:04d}"[:2] in CYCLICAL_MAJOR) or bool(e and e.get("cyclical"))
+        r["cyclical"] = r["group"] == "std" and (bool(r.get("sic") and f"{r['sic']:04d}"[:2] in CYCLICAL_MAJOR) or bool(e and e.get("cyclical")))
         if e:
             r["sector"], r["kind"], r["segment"] = e["sector"], e["kind"], e["segment"]
-        r.pop("cik", None)
-    rk = [r for r in rows if not r["cyclical"]]
-    keys = ("roe_med", "roe_min", "conv", "fcfy", "ey", "shy")
-
-    def pct(vals):
-        items = sorted((v, k) for k, v in vals.items() if v is not None)
-        n, out, i = len(items), {}, 0
-        while i < n:
-            j = i
-            while j + 1 < n and items[j + 1][0] == items[i][0]:
-                j += 1
-            for t in range(i, j + 1):
-                out[items[t][1]] = round(100.0 * ((i + j) / 2) / (n - 1), 1) if n > 1 else 50.0
-            i = j + 1
-        return out
-    pc = {k: pct({r["ticker"]: r[k] for r in rk}) for k in keys}
-    for r in rk:
-        f = {k: pc[k].get(r["ticker"]) for k in keys}
-        av = [v for v in f.values() if v is not None]
-        r["f"], r["score"] = f, round(statistics.mean(av), 1) if av else None
-    rk.sort(key=lambda r: -(r["score"] or 0))
-    for i, r in enumerate(rk, 1):
-        r["rank"] = i
-    rows.sort(key=lambda r: (r["cyclical"], r.get("rank") or 9999, -(r["roe_med"] or 0)))
-    why_t = {}
+        if r["group"] == "fin":
+            r["pbn"] = -r["pb"] if r.get("pb") and r["pb"] > 0 else None
+    n_rank = {}
+    for g, keys in RANK_KEYS.items():
+        rk = [r for r in rows if r["group"] == g and not r["cyclical"]]
+        pc = {k: _pct({r["ticker"]: r.get(k) for r in rk}) for k in keys}
+        for r in rk:
+            f = {k: pc[k].get(r["ticker"]) for k in keys}
+            av = [v for v in f.values() if v is not None]
+            r["f"], r["score"] = f, round(statistics.mean(av), 1) if av else None
+        rk.sort(key=lambda r: -(r["score"] or 0))
+        for i, r in enumerate(rk, 1):
+            r["rank"] = i
+        n_rank[g] = len(rk)
+    rows.sort(key=lambda r: (r["group"] != "std", r["cyclical"], r.get("rank") or 9999, -(r["roe_med"] or 0)))
     tmap = dict(doc.get("ticker_cik", {}))
     try:   # SEC company_tickers.json (cached by research.ticker_map): ticker -> CIK for every listed filer
         with open(os.path.join(CACHE, "company_tickers.json"), encoding="utf-8") as f:
@@ -408,16 +456,23 @@ def channel(entries, doc, path=None):
                 tmap.setdefault(x["ticker"], x["cik_str"])
     except (OSError, ValueError, KeyError, AttributeError):
         pass
+    why_t, whyf_t = {}, {}
+    wf = doc.get("why_fin") or {}
     for t, cik in tmap.items():
         w = doc["why"].get(str(cik))
         if w is not None:
             why_t[t] = ",".join(w)
+        if str(cik) in wf:
+            whyf_t[t] = ",".join(wf[str(cik)])
     for r in rows:
         why_t[r["ticker"]] = ""
+        whyf_t[r["ticker"]] = ""
     cnt = {}
     for w in doc["why"].values():
         for k in w:
             cnt[k] = cnt.get(k, 0) + 1
     return {"file": os.path.basename(path) if path else None, "fetched_at": doc.get("fetched_at"), "years": doc["years"],
-            "rules": doc["rules"], "rf": doc.get("rf"), "rows": rows, "n_pass": len(rows), "n_ranked": len(rk),
-            "n_filers": doc.get("n_filers"), "counts": cnt, "why": why_t}
+            "rules": doc["rules"], "fin_rules": doc.get("fin_rules"), "fin_skip_sic": doc.get("fin_skip_sic"), "rf": doc.get("rf"),
+            "rows": rows, "n_pass": sum(1 for r in rows if r["group"] == "std"), "n_ranked": n_rank.get("std", 0),
+            "n_fin": sum(1 for r in rows if r["group"] == "fin"), "n_ranked_fin": n_rank.get("fin", 0),
+            "n_filers": doc.get("n_filers"), "counts": cnt, "why": why_t, "why_fin": whyf_t}
