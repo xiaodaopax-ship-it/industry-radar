@@ -362,6 +362,7 @@ def analyze(snap, valuation=None):
             excl["small"] += 1
             continue
         screen.append(code)
+    lookup, dropped = full_lookup(Q, fl, floor)
 
     rows = []
     for code in screen:
@@ -539,14 +540,65 @@ def analyze(snap, valuation=None):
     return {
         "industries": industries, "screen": rows, "priority": prio, "shortlist": shortlist, "cyclical_list": cyc_list,
         "counts": {"quotes": len(Q), "with_fin": n_fin, "industries_all": len(groups), "industries": len(industries),
-                   "screen_raw": len(screen) + sum(excl.values()), "screen": len(rows), "excluded": excl,
+                   "screen_raw": len(screen) + sum(excl.values()), "screen": len(rows), "excluded": excl, "dropped": dropped,
                    "eligible": len(elig), "eligible_cyclical": len(base) - len(elig), "shortlist": len(shortlist), "valuation_ok": sum(1 for c in shortlist if c in valuation),
                    "priority": len(prio), "regulatory_rows": len(snap["regulatory"]),
                    "reg_hit_rows": sum(len(v) for v in reg.values())},
         "market": {"yoy_median": med(all_y),
                    "share_ge20": r1(100 * sum(1 for y in all_y if y is not None and y >= 20) / max(1, sum(1 for y in all_y if y is not None)))},
-        "revenue_floor": floor,
+        "revenue_floor": floor, "lookup": lookup,
     }
+
+
+# 全市场速查: every quoted stock with its key numbers and EVERY screen rule it fails (not only the first one), so a code
+# that is not in ② can still be found and the reason is visible. Display only. Reason keys (page text in LK_WHY):
+#   no_fin    no financial row for the latest report date (new listing, suspended, late report)
+#   no_rev    revenue missing or <= 0
+#   no_yoy    revenue YoY missing (no comparable period, e.g. listed within a year)
+#   growth    revenue YoY < growth_yoy_min
+#   st        ST / *ST / risk-warning board
+#   financial bank / insurer / broker / other financial, or no general-template balance sheet
+#   small     YTD revenue below the floor
+# Rows: [code, name, industry, board, price, mcap, pe_ttm, pb, revenue, rev_yoy, parent_np, np_yoy, gross_margin,
+#        ocf / np (NP > 0 only), reasons "a,b" ("" = in the ② screen)]
+LOOKUP_COLS = ["code", "name", "industry", "board", "price", "mcap", "pe", "pb", "rev", "rev_yoy", "np", "np_yoy", "gm", "ocf_np", "why"]
+
+
+def full_lookup(Q, fl, floor):
+    rows, cnt = [], {}
+    for code in sorted(Q):
+        q, f = Q[code], fl.get(code)
+        why = []
+        name = q.get("name") or (f or {}).get("name") or ""
+        ind = q.get("industry") or (f or {}).get("industry") or ""
+        if not f:
+            why.append("no_fin")
+        else:
+            rev, y = f.get("revenue"), f.get("revenue_yoy_pct")
+            if rev is None or rev <= 0:
+                why.append("no_rev")
+            elif y is None:
+                why.append("no_yoy")
+            elif y < RULES["growth_yoy_min"]:
+                why.append("growth")
+            if f.get("risk_warning") or "ST" in name.upper():
+                why.append("st")
+            if not f.get("has_balance_sheet") or any(w in ind for w in FIN_INDUSTRY_WORDS):
+                why.append("financial")
+            if rev is not None and 0 < rev < floor:
+                why.append("small")
+        for w in why or ["screen"]:
+            cnt[w] = cnt.get(w, 0) + 1
+        f = f or {}
+        np_, ocf = f.get("parent_net_profit"), f.get("operating_cash_flow")
+        rows.append([code, name, ind, q.get("board"), q.get("price"), q.get("total_mcap"), r1(q.get("pe_ttm")), r1(q.get("pb"), 2),
+                     f.get("revenue"), r1(f.get("revenue_yoy_pct")), np_, r1(f.get("net_profit_yoy_pct")), r1(f.get("gross_margin_pct")),
+                     r1(ocf / np_, 2) if ocf is not None and np_ and np_ > 0 else None, ",".join(why)])
+    # amounts in 亿 with 2 decimals keep the page small (the page shows 亿 anyway)
+    for r in rows:
+        for i in (5, 8, 10):
+            r[i] = None if r[i] is None else round(r[i] / 1e8, 2)
+    return {"cols": LOOKUP_COLS, "rows": rows, "unit": "mcap / rev / np in 亿元"}, cnt
 
 
 # ----------------------------------------------------------------------------- build
@@ -615,6 +667,19 @@ def build(path=None):
         # one-off guard (c): consensus EPS next year vs current-year estimate (display only)
         c["dcf_drop"] = vmod.eps_drop(c.get("consensus"), snap["periods"]["latest"])
     payload["dcf_meta"] = vmod.meta(vdoc, vpath, res["screen"], payload["cards"])
+    # 价值通道 (value channel, `python -m cn quality`): a second entry that does not require growth; optional block
+    try:
+        from . import quality as qmod
+        qdoc, qpath = qmod.load_latest()
+        if qdoc:
+            qdoc["_path"] = qpath
+        payload["value"] = qmod.channel(snap, res, qdoc, ((vdoc or {}).get("rf") or {}).get("value"))
+        pv = payload["value"]
+        if pv.get("file"):
+            log(f"value channel: {pv['file']} pass={pv['n_pass']} ranked={pv['n_ranked']} complete={pv['complete']}")
+    except Exception as e:  # noqa: BLE001
+        log(f"WARNING: value channel skipped ({type(e).__name__}: {e})")
+        payload["value"] = {"file": None}
     # 估值台账 (default-parameter valuation history, display only): written by `python -m cn ledger`, embedded compactly.
     # Optional: the page works without it (a later step owns cn/ledger.py)
     try:

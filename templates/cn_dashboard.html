@@ -199,6 +199,13 @@
   .lg-fbar { flex-wrap:wrap; align-items:center; gap:8px 12px; } .lg-tsel { position:relative; } .lg-tsel > summary { cursor:pointer; }
   .lg-tbox { display:flex; flex-wrap:wrap; gap:6px 16px; padding:8px; margin-top:4px; border:1px solid var(--line); border-radius:6px; max-width:980px; }
   .lg-fwd { margin-top:18px; } .lg-fwd tr.muted td { color:var(--muted); }
+  .lk-hits { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; } .lk-hit { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:4px 10px; font:inherit; font-size:13px; cursor:pointer; text-align:left; }
+  .lk-hit:hover, .lk-hit:focus-visible { border-color:var(--accent); }
+  .vc-t { max-height:640px; overflow:auto; } .vc-t thead th { position:sticky; top:0; background:var(--panel); z-index:1; }
+  .sortbtn { background:none; border:0; color:inherit; font:inherit; font-weight:600; padding:0; cursor:pointer; text-align:inherit; }
+  .sortbtn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .lk-card { margin-top:8px; } .lk-kv { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:6px 14px; margin:8px 0; }
+  .lk-kv dt { font-size:12px; color:var(--muted); } .lk-kv dd { margin:0; font-size:14px; }
   .lg-fwd .seg-pick { display:flex; gap:6px; flex-wrap:wrap; margin:6px 0 10px; }
   .lg-fwd .seg-pick button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:999px; padding:2px 12px; font:inherit; font-size:12.5px; cursor:pointer; }
   .lg-fwd .seg-pick button[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); font-weight:600; }
@@ -367,10 +374,12 @@
   </div>
   <div><div class="gt">页面分节</div>
     <ul>
+      <li><a class="sl" href="#sLk" data-sec="sLk">全市场速查</a></li>
       <li><a class="sl" href="#s1" data-sec="s1">① 行业热度</a></li>
       <li><a class="sl" href="#s2" data-sec="s2">② 新兴筛选</a></li>
       <li><a class="sl" href="#s3" data-sec="s3">③ 价值·博弈</a></li>
       <li><a class="sl" href="#s4" data-sec="s4">④ 研究优先级</a><div class="substeps"><a class="sl" href="#s4cy">周期行业单列</a></div></li>
+      <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li>
       <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li>
       <li><a class="sl" href="#sLg" data-sec="sLg">估值台账 · 本期变化</a></li>
       <li><a class="sl" href="#s6" data-sec="s6">⑤ 个股评估卡</a></li>
@@ -394,6 +403,15 @@
       <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#s3">③ 价值 / 博弈标签</a><a href="#s4">④ 研究优先级</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
     </nav>
   </div>
+
+  <section id="sLk" aria-labelledby="lkTitle">
+    <h2 id="lkTitle"><span class="step-tag">查</span>全市场速查</h2>
+    <p class="lead" id="lkLead"></p>
+    <div class="toolbar" role="search"><label for="lkQ" class="small">代码或公司名</label>
+      <input type="search" id="lkQ" placeholder="例如 002182 或 宝武镁业" autocomplete="off" aria-controls="lkRes"></div>
+    <div id="lkRes" aria-live="polite"></div>
+    <div id="lkOne"></div>
+  </section>
 
   <section id="s1">
     <h2><span class="step-tag">①</span>行业热度（东方财富行业）</h2>
@@ -443,6 +461,22 @@
     <h3 id="s4cy">周期行业的高增长公司（单独列出，不参与排序）</h3>
     <p class="small" id="cyLead"></p>
     <div class="tscroll"><table><thead><tr><th scope="col">代码</th><th scope="col">名称</th><th scope="col">对比</th><th scope="col">行业</th><th scope="col" class="n">营收同比</th><th scope="col" class="n">净利同比</th><th scope="col" class="n">毛利率变化（pp）</th><th scope="col" class="n">现金流/净利</th><th scope="col" class="n">PE(TTM)</th><th scope="col">业绩预告</th><th scope="col">要先核实</th></tr></thead><tbody id="cyBody"></tbody></table></div>
+  </section>
+
+  <section id="sVc" aria-labelledby="vcTitle">
+    <h2 id="vcTitle"><span class="step-tag">价</span>价值通道 · 长期质量 + 估值收益率</h2>
+    <p class="lead" id="vcLead"></p>
+    <p class="dcf-disc">价值通道是和 ② 并列的第二个入口：不要求营收高增长，看过去 5 个完整财年的 ROE、自由现金流、现金转化、负债和商誉，再按质量和估值收益率在通道内排序。排序只表示“按这六个维度先看谁”，没有回测，不是买卖建议；不进入 ④ 排序、价值 / 博弈标签、⚠ 数和对比池评分。</p>
+    <div class="toolbar" role="group" aria-label="价值通道筛选">
+      <label class="small" for="vcQ">搜索</label><input type="search" id="vcQ" placeholder="代码或名称" autocomplete="off">
+      <label class="small" for="vcInd">行业</label><select id="vcInd"><option value="">全部行业</option></select>
+      <label class="small"><input type="checkbox" id="vcNot2"> 只看未进入 ② 的</label>
+      <label class="small"><input type="checkbox" id="vcCyc"> 包含周期行业（不排名）</label>
+      <span class="small" id="vcCnt" role="status" aria-live="polite"></span>
+    </div>
+    <div class="tscroll vc-t"><table><thead><tr id="vcHead"></tr></thead><tbody id="vcBody"></tbody></table></div>
+    <div class="toolbar"><button type="button" class="btn" id="vcMore">显示更多</button></div>
+    <p class="note" id="vcNote"></p>
   </section>
 
   <section id="sBk" aria-labelledby="bkTitle">
@@ -593,6 +627,9 @@ const R = D.rules;
 const growthColor = v => { if (v == null) return "#4a515b"; const t = Math.max(-1, Math.min(1, v >= 5 ? (v - 5) / 35 : (v - 5) / 35));
   const mix = (a, b, k) => Math.round(a + (b - a) * k); return t < 0 ? `rgb(${mix(74, 184, -t)},${mix(81, 68, -t)},${mix(91, 61, -t)})` : `rgb(${mix(74, 47, t)},${mix(81, 158, t)},${mix(91, 106, t)})`; };
 const BYCODE = Object.fromEntries(D.screen.map(r => [r.code, r]));
+// 全市场速查 rows (cn/build.py full_lookup): one object per quoted stock
+const LK_ROWS = (L => L && L.rows ? L.rows.map(r => Object.fromEntries(L.cols.map((k, i) => [k, r[i]]))) : [])(D.lookup);
+const LK_BY = Object.fromEntries(LK_ROWS.map(r => [r.code, r]));
 const GATES = [["ocf", "现金流/净利"], ["ar", "应收增速"], ["inv", "存货增速"], ["goodwill", "商誉/权益"], ["pledge", "质押比例"],
   ["selling", "6 月净增减持"], ["unlock", "90 天解禁"], ["reg", "监管类标题"], ["val", "PE 分位"], ["fc", "业绩预告"]];
 const state = {indAll: false, ind: "", lb: "", w: "", q: "", inst: "", instS: "", limit: 150, open: new Set(), hl: "", sideIndAll: false, sort: {ind: ["revenue", -1], sc: ["rev_yoy", -1], p: ["rank", 1], bk: ["added", 1]}};
@@ -1247,7 +1284,7 @@ function jumpCN(code) {
 }
 
 // ---------- left sidebar: section links with scroll-spy, industries (by number of screened companies)
-const SECTS = [["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["s3", "③ 价值·博弈"], ["s4", "④ 研究优先级"], ["sBk", "对比池"], ["sLg", "估值台账"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
+const SECTS = [["sLk", "全市场速查"], ["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["s3", "③ 价值·博弈"], ["s4", "④ 研究优先级"], ["sVc", "价值通道"], ["sBk", "对比池"], ["sLg", "估值台账"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
 let curSec = "s1";
 function markSec() {
   document.querySelectorAll("#side a[data-sec], .steps a").forEach(a => { const on = (a.dataset.sec || a.getAttribute("href").slice(1)) === curSec;
@@ -1285,17 +1322,19 @@ SECTS.forEach(([id]) => $(id) && secIO.observe($(id)));
 const QIDX = (() => { const m = new Map();
   D.screen.forEach(r => m.set(r.code, {code: r.code, name: r.name || "", ind: r.industry || "", mcap: r.mcap || 0}));
   (D.cards || []).forEach(c => { if (!m.has(c.code)) m.set(c.code, {code: c.code, name: c.name || "", ind: c.industry || "", mcap: c.fin?.mcap || 0}); });
+  // every other quoted stock (全市场速查): found here too, opens the lookup panel with the reason it is not in ②
+  LK_ROWS.forEach(r => { if (!m.has(r.code)) m.set(r.code, {code: r.code, name: r.name || "", ind: r.industry || "", mcap: (r.mcap || 0) * 1e8, lk: 1}); });
   return [...m.values()].map(x => ({...x, card: !!CARDS[x.code], k: (x.code + " " + x.name).toLowerCase(), nl: x.name.toLowerCase()})); })();
 let qsHits = [];
 function qsRender() {
   const q = $("qs").value.trim().toLowerCase();
   if (!q) { qsHits = []; $("qsRes").innerHTML = ""; return; }
   const rk = x => x.code === q ? 0 : x.code.startsWith(q) ? 1 : x.nl.startsWith(q) ? 2 : 3;
-  qsHits = QIDX.filter(x => x.k.includes(q)).sort((a, b) => rk(a) - rk(b) || (b.card - a.card) || (b.mcap - a.mcap)).slice(0, 12);
-  $("qsRes").innerHTML = qsHits.map((x, i) => `<button type="button" data-qi="${i}"><b>${esc(x.code)}</b>${esc(x.name.slice(0, 16))}<br><span>${esc(x.ind)} · ${x.card ? "评估卡" : "② 筛选表"}</span></button>`).join("")
-    || `<span class="small">没有匹配的公司（只收录进入 ② 筛选的公司）</span>`;
+  qsHits = QIDX.filter(x => x.k.includes(q)).sort((a, b) => rk(a) - rk(b) || (!!a.lk - !!b.lk) || (b.card - a.card) || (b.mcap - a.mcap)).slice(0, 12);
+  $("qsRes").innerHTML = qsHits.map((x, i) => `<button type="button" data-qi="${i}"><b>${esc(x.code)}</b>${esc(x.name.slice(0, 16))}<br><span>${esc(x.ind)} · ${x.card ? "评估卡" : x.lk ? "未进入 ②（速查）" : "② 筛选表"}</span></button>`).join("")
+    || `<span class="small">没有匹配的公司（全市场 ${LK_ROWS.length} 只里也没有，请核对代码）</span>`;
 }
-const qsGo = i => { const x = qsHits[i]; if (!x) return; if (narrow()) sideClose(false); jumpCN(x.code); };
+const qsGo = i => { const x = qsHits[i]; if (!x) return; if (narrow()) sideClose(false); if (x.lk) lkShow(x.code, true); else jumpCN(x.code); };
 $("qs").addEventListener("input", debounce(qsRender, 150));
 $("qs").addEventListener("keydown", ev => {
   if (ev.key === "Enter") { ev.preventDefault(); qsRender(); qsGo(0); }
@@ -1308,6 +1347,71 @@ $("qsRes").addEventListener("keydown", ev => {
   if (ev.key === "ArrowDown" && i >= 0) { ev.preventDefault(); bs[Math.min(bs.length - 1, i + 1)].focus(); }
   if (ev.key === "ArrowUp" && i >= 0) { ev.preventDefault(); (i ? bs[i - 1] : $("qs")).focus(); }
 });
+
+// ---------- 全市场速查: every quoted stock, its key numbers, and why it is (not) in ② (all failing rules are listed)
+const LK_WHY = {
+  no_fin: () => `没有 ${D.periods.latest} 报告期的财务数据（新上市、停牌或未按时披露）`,
+  no_rev: () => "营业收入缺失或 ≤ 0",
+  no_yoy: () => "没有营收同比（上市不满一年或无可比期）",
+  growth: r => `年初至今营收同比 ${num(r.rev_yoy)}% < ${num(R.growth_yoy_min, 0)}%（② 是成长筛选）`,
+  st: () => "ST / *ST（风险警示）",
+  financial: () => "金融类（银行、保险、证券、多元金融）或没有一般工商业资产负债表，口径不同，不进入 ②",
+  small: () => `年初至今营收低于 ${num(D.revenue_floor / 1e8, 0)} 亿（规模下限）`,
+};
+const PRIO_RANK = Object.fromEntries((D.priority || []).map(p => [p.code, p.rank])), CYC_SET = new Set(D.cyclical_list || []);
+function lkLead() {
+  const c = D.counts, dr = c.dropped || {}, n = LK_ROWS.length;
+  $("lkLead").innerHTML = `收录 ${D.quote_date || "—"} 全部有行情的 A 股 <b>${n}</b> 只（财报期 ${esc(D.periods.latest)}）。进入 ② 新兴筛选 <b>${c.screen}</b> 只；没进入的主要原因：`
+    + [["growth", "营收增速不足"], ["small", "规模不足"], ["financial", "金融类"], ["st", "ST"], ["no_fin", "无最新财报"], ["no_yoy", "无可比同比"], ["no_rev", "无营收"]]
+      .filter(([k]) => dr[k]).map(([k, t]) => `${t} ${dr[k]}`).join(" · ")
+    + `（一只股票可能同时有多个原因）。没进入 ② 的公司只显示快照里的基础数字，没有风险门禁、估值和台账。`;
+}
+function lkRow(r) {
+  const s = BYCODE[r.code];
+  return `<button type="button" class="lk-hit" data-lk="${esc(r.code)}"><b>${esc(r.code)}</b> ${esc(r.name)} <span class="small">${esc(r.industry || "")} · ${s ? "② 筛选内" : "未进入 ②"}</span></button>`;
+}
+function lkSearch() {
+  const q = $("lkQ").value.trim().toLowerCase(), el = $("lkRes");
+  if (!q) { el.innerHTML = ""; return; }
+  const rk = r => r.code === q ? 0 : r.code.startsWith(q) ? 1 : (r.name || "").toLowerCase().startsWith(q) ? 2 : 3;
+  const hits = LK_ROWS.filter(r => (r.code + " " + (r.name || "")).toLowerCase().includes(q)).sort((a, b) => rk(a) - rk(b) || (b.mcap || 0) - (a.mcap || 0));
+  el.innerHTML = hits.length ? `<div class="lk-hits">${hits.slice(0, 20).map(lkRow).join("")}</div>${hits.length > 20 ? `<div class="small">共 ${hits.length} 条，只显示前 20 条，请输入更完整的代码或名称</div>` : ""}`
+    : `<div class="small">全市场 ${LK_ROWS.length} 只里没有匹配（快照只含有行情的 A 股；退市、未上市和北交所以外的转板中股票可能不在其中）。</div>`;
+  if (hits.length === 1 || (hits[0] && rk(hits[0]) === 0)) lkShow(hits[0].code, false);
+}
+function lkShow(code, scroll) {
+  const r = LK_BY[code]; if (!r) return;
+  const s = BYCODE[code], why = (r.why || "").split(",").filter(Boolean), yi2 = v => v == null ? "—" : `${num(v, Math.abs(v) >= 100 ? 0 : 2)} 亿`;
+  const kv = [["股价", r.price != null ? num(r.price, 2) : "—"], ["总市值", yi2(r.mcap)], ["PE(TTM)", r.pe != null ? num(r.pe) : "—"], ["PB", r.pb != null ? num(r.pb, 2) : "—"],
+    [`营收（${D.periods.latest} 年初至今）`, yi2(r.rev)], ["营收同比", r.rev_yoy != null ? pc(r.rev_yoy, 1) : "—"], ["归母净利润", yi2(r.np)], ["净利润同比", r.np_yoy != null ? pc(r.np_yoy, 1) : "—"],
+    ["毛利率", r.gm != null ? num(r.gm) + "%" : "—"], ["经营现金流 / 净利润", r.ocf_np != null ? num(r.ocf_np, 2) : r.np != null && r.np <= 0 ? "净利润 ≤ 0，不适用" : "—"]];
+  let st;
+  if (s) {
+    const pr = PRIO_RANK[code];
+    st = `<p><b>在 ② 新兴筛选内</b>：${esc(s.label)}，风险门禁 ⚠ ${s.warn_n} 项${pr ? `，④ 研究优先级第 ${pr} 名` : CYC_SET.has(code) ? "，周期行业单列" : ""}${s.cyclical ? "（周期行业）" : ""}。</p>
+      <div class="toolbar"><button type="button" class="btn" data-lkjump="${esc(code)}">${CARDS[code] ? "打开评估卡" : "在 ② 筛选表中查看"}</button></div>`;
+  } else {
+    st = `<p><b>未进入 ② 新兴筛选</b>，原因（按规则逐条列出，不止第一条）：</p><ul>${why.map(w => `<li>${esc((LK_WHY[w] || (() => w))(r))}</li>`).join("")}</ul>
+      ${(r.industry || "") && R.cyclical_industries.includes(r.industry) ? `<p class="small">另：${esc(r.industry)} 属于周期行业，即使进入 ② 也不参与 ④ 排序，单列显示。</p>` : ""}`;
+  }
+  const V = D.value || {}, vr = (V.rows || []).find(x => x.code === code), vw = V.why ? (V.why[code] ?? null) : null;
+  const vtxt = !V.file ? "" : vr ? `<p><b>在价值通道内</b>${vr.rank ? `：通道排名第 ${vr.rank} / ${V.n_ranked}，得分 ${num(vr.score, 1)}` : "（周期行业，只列出不排名）"}；近 5 年 ROE 中位数 ${num(vr.roe_med, 1)}%，FCF 为正 ${vr.fcf_pos} / ${vr.n_fcf} 年。<button type="button" class="btn ghost" data-lkvc="${esc(code)}">在价值通道中查看</button></p>`
+    : vw != null ? `<p><b>未进入价值通道</b>：${vw.split(",").filter(Boolean).map(w => esc(VC_WHY[w] || w)).join("；")}。</p>` : "";
+  $("lkOne").innerHTML = `<div class="card lk-card"><h3>${esc(r.code)} ${esc(r.name)} <span class="small">${esc(r.industry || "—")} · ${esc(BOARD_CN[r.board] || r.board || "")}</span></h3>${st}${vtxt}
+    <dl class="lk-kv">${kv.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join("")}</dl>
+    <p class="small">数字来自 ${esc(D.quote_date || "—")} 行情快照和 ${esc(D.periods.latest)} 财报（年初至今累计）。速查只做定位和说明，不是评估结论。</p></div>`;
+  if (scroll) { $("lkQ").value = code; $("sLk").scrollIntoView({behavior: "smooth", block: "start"}); }
+}
+$("lkQ").addEventListener("input", debounce(lkSearch, 150));
+$("lkQ").addEventListener("keydown", ev => { if (ev.key === "Enter") { ev.preventDefault(); lkSearch(); const b = $("lkRes").querySelector("[data-lk]"); if (b) lkShow(b.dataset.lk, false); } });
+$("sLk").addEventListener("click", ev => {
+  const h = ev.target.closest("[data-lk]"); if (h) { lkShow(h.dataset.lk, false); return; }
+  const j = ev.target.closest("[data-lkjump]"); if (j) jumpCN(j.dataset.lkjump);
+  const v = ev.target.closest("[data-lkvc]");
+  if (v) { const r = VC_BY[v.dataset.lkvc]; $("vcQ").value = v.dataset.lkvc; $("vcInd").value = ""; $("vcNot2").checked = false; if (r && r.cyclical) $("vcCyc").checked = true;
+    vcS.n = 50; renderVc(); $("sVc").scrollIntoView({behavior: "smooth", block: "start"}); }
+});
+lkLead();
 
 // ---------- back to top
 let ttRaf = 0;
@@ -2548,7 +2652,71 @@ document.addEventListener("click", ev => {
 addEventListener("storage", ev => { if (ev.key === BKEY || ev.key === null) { bkLoad(); bkWSync(); renderBk(); bkSync(); } });   // another tab changed the basket
 bkLoad(); bkInit();
 
-function render() { renderHeat(); renderScreen(); renderPriority(); renderBk(); renderLg(); renderLgFwd(); }
+// ---------- 价值通道 (cn/quality.py channel(): rows already filtered; ranking inside the channel, cyclical not ranked)
+const VC = D.value || {}, VCR = VC.rows || [], VC_BY = Object.fromEntries(VCR.map(r => [r.code, r]));
+const VC_WHY = (V => ({
+  st: "ST / *ST", financial: "金融类（银行、保险、证券等，口径不同，通道未覆盖）", small: "年初至今营收低于规模下限", np: "年初至今归母净利润 ≤ 0",
+  nodata: "没有近 5 个财年的财务数据", roe_n: `ROE 有数据的财年少于 ${V.roe_years_min} 个`, roe_med: `近 5 年 ROE 中位数 < ${V.roe_median_min}%`,
+  roe_min: `近 5 年最低 ROE < ${V.roe_min_min}%`, fcf: `自由现金流（经营现金流 − 资本开支）为正的财年少于 ${V.fcf_pos_min} 个`,
+  conv: `5 年经营现金流合计 / 归母净利润合计 < ${V.conv_min}`, shrink: "最近财年营收低于 4 年前（规模在收缩）",
+  de: `有息负债 / 归母权益 > ${V.de_max}`, goodwill: `商誉 / 归母权益 > ${V.goodwill_max_pct}%`}))(VC.rules || {});
+const VC_F = {roe_med: "ROE 中位数", roe_min: "最低 ROE", conv: "现金转化", fcfy: "FCF 收益率", ey: "盈利收益率", dy: "股息率"};
+const vcS = {k: "rank", dir: 1, n: 50};
+const vcP = v => v == null ? "—" : num(v, 1) + "%";
+const VC_COLS = [
+  ["rank", "通道排名", r => r.rank ?? (r.cyclical ? '<span class="tag t-cyc">周期</span>' : "—"), r => r.rank ?? 9999, 1],
+  ["code", "代码 · 名称", r => `${codeCell(r.code)} ${esc(r.name)}${r.in2 ? `<div class="small">② 内 · ${esc(r.label || "")}</div>` : '<div class="small">未进入 ②</div>'}`, r => r.code, 1],
+  ["industry", "行业", r => `<span class="small">${esc(r.industry)}</span>`, r => r.industry, 1],
+  ["score", "通道得分", r => r.score != null ? `<span data-tip="${esc(Object.entries(r.f || {}).map(([k, v]) => `${VC_F[k]} ${v == null ? "—" : num(v, 0)}`).join("；"))}">${num(r.score, 1)}</span>` : "—", r => r.score, -1],
+  ["roe_med", `ROE 中位数（${(VC.years || []).at(0) || ""}–${(VC.years || []).at(-1) || ""}）`, r => `${vcP(r.roe_med)}<div class="small">${(r.roe || []).map(x => x == null ? "—" : num(x, 0)).join(" / ")}</div>`, r => r.roe_med, -1],
+  ["roe_min", "最低 ROE", r => vcP(r.roe_min), r => r.roe_min, -1],
+  ["conv", "现金转化（5 年）", r => r.conv != null ? num(r.conv, 2) : "—", r => r.conv, -1],
+  ["fcf_pos", "FCF 为正年数", r => `${r.fcf_pos} / ${r.n_fcf}`, r => r.fcf_pos, -1],
+  ["cagr", "营收 4 年复合增速", r => vcP(r.cagr), r => r.cagr, -1],
+  ["de", "有息负债 / 权益", r => r.de != null ? num(r.de, 2) : "—", r => r.de, 1],
+  ["fcfy", "FCF 收益率", r => vcP(r.fcfy), r => r.fcfy, -1],
+  ["ey", "盈利收益率（1/PE）", r => vcP(r.ey), r => r.ey, -1],
+  ["dy", "股息率（最近财年）", r => `${vcP(r.dy)}${r.payout != null ? `<div class="small">分红率中位数 ${num(r.payout * 100, 0)}%</div>` : ""}`, r => r.dy, -1],
+  ["ig", "现价隐含增速 vs 历史", r => r.ig != null ? `${vcP(r.ig)}<div class="small">${r.ig_gap == null ? "" : `比历史 ${r.ig_gap >= 0 ? "高" : "低"} ${num(Math.abs(r.ig_gap), 1)}pt`}</div>`
+      : `<span class="small">${r.igs === "below" ? "< −30%" : r.igs === "above" ? "> 100%" : "—"}</span>`, r => r.ig_gap, 1],
+  ["np_yoy", `最近变化（${D.periods.latest} 年初至今）`, r => `净利 ${r.np_yoy != null ? pc(r.np_yoy, 0) : "—"}${r.recent_drop ? ' <span class="tag t-warn" title="年初至今归母净利润同比 ≤ ' + num(VC.rules.recent_np_drop, 0) + '%：5 年记录可能掩盖了近期变化，先核实原因">近期下滑</span>' : ""}<div class="small">营收 ${r.rev_yoy != null ? pc(r.rev_yoy, 0) : "—"}</div>`, r => r.np_yoy, 1],
+  ["pe", "PE / PB", r => `${r.pe != null ? num(r.pe) : "—"} / ${r.pb != null ? num(r.pb, 2) : "—"}`, r => r.pe, 1],
+  ["bk", "对比", r => r.in2 ? bkCtl(r.code) : '<span class="small" title="对比池只收 ② 内公司">—</span>', null, 0],
+];
+function vcList() {
+  const q = $("vcQ").value.trim().toLowerCase(), ind = $("vcInd").value, n2 = $("vcNot2").checked, cy = $("vcCyc").checked;
+  const c = VC_COLS.find(x => x[0] === vcS.k) || VC_COLS[0], g = c[3] || (() => 0);
+  return VCR.filter(r => (cy || !r.cyclical) && (!n2 || !r.in2) && (!ind || r.industry === ind) && (!q || (r.code + " " + r.name).toLowerCase().includes(q)))
+    .sort((a, b) => { const x = g(a), y = g(b); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+      return (typeof x === "string" ? x.localeCompare(y, "zh-CN") : x - y) * vcS.dir; });
+}
+function renderVc() {
+  if (!VC.file) {
+    $("vcLead").innerHTML = '<span class="warn">还没有价值通道数据：运行 <code>python -m cn quality</code>（全市场 5 个财年财务 + 分红，约 230 次请求）后重新构建。</span>';
+    $("vcHead").innerHTML = ""; $("vcBody").innerHTML = ""; $("vcMore").hidden = true; return;
+  }
+  const V = VC.rules, ct = VC.counts || {}, nn = VCR.filter(r => !r.in2).length;
+  $("vcLead").innerHTML = `${esc(VC.years[0])}–${esc(VC.years.at(-1))} 五个完整财年（数据取于 ${esc(VC.fetched_at || "—")}${VC.complete ? "" : '，<span class="warn">部分查询不完整</span>'}）：全市场有 <b>${VC.n_pass}</b> 家同时满足全部门槛，
+    其中 <b>${VC.n_ranked}</b> 家非周期行业参与排序，<b>${nn}</b> 家不在 ② 新兴筛选里（增速不到 ${num(R.growth_yoy_min, 0)}% 或其他原因），这正是 ② 看不到的部分。
+    门槛：ROE 中位数 ≥ ${V.roe_median_min}% 且最低 ≥ ${V.roe_min_min}%，FCF 为正 ≥ ${V.fcf_pos_min} 年，现金转化 ≥ ${V.conv_min}，营收不收缩，有息负债 / 权益 ≤ ${V.de_max}，商誉 / 权益 ≤ ${V.goodwill_max_pct}%，年初至今盈利，非 ST、非金融。`;
+  if (!$("vcInd").dataset.done) { $("vcInd").insertAdjacentHTML("beforeend", [...new Set(VCR.map(r => r.industry))].sort((a, b) => a.localeCompare(b, "zh-CN")).map(i => `<option>${esc(i)}</option>`).join("")); $("vcInd").dataset.done = 1; }
+  $("vcHead").innerHTML = VC_COLS.map(([k, t, , g]) => g ? `<th scope="col" aria-sort="${vcS.k === k ? (vcS.dir > 0 ? "ascending" : "descending") : "none"}"><button type="button" class="sortbtn" data-vcs="${k}">${esc(t)}${vcS.k === k ? (vcS.dir > 0 ? " ▲" : " ▼") : ""}</button></th>` : `<th scope="col">${esc(t)}</th>`).join("");
+  const L = vcList();
+  $("vcBody").innerHTML = L.slice(0, vcS.n).map(r => `<tr>${VC_COLS.map(([k, , f]) => `<td${["code", "industry", "bk"].includes(k) ? "" : ' class="n"'}>${f(r)}</td>`).join("")}</tr>`).join("")
+    || `<tr><td colspan="${VC_COLS.length}" class="small">没有符合条件的公司</td></tr>`;
+  $("vcCnt").textContent = `${Math.min(vcS.n, L.length)} / ${L.length} 家`;
+  $("vcMore").hidden = L.length <= vcS.n;
+  $("vcNote").innerHTML = `得分 = 通道内（非周期）六项百分位的等权平均：${Object.values(VC_F).join("、")}；缺项跳过不补。FCF 收益率 = 5 年平均自由现金流 ÷ 总市值；股息率 = 最近财年税前现金分红合计 ÷ 总市值；现金转化 = 5 年经营现金流合计 ÷ 归母净利润合计（经营现金流含少数股东部分）。
+    “现价隐含增速”用页面同一套现金流估值引擎反推：营收基数 = 最近财年营收，FCF 利润率 = 近 3 年平均，折现率 = 无风险利率 ${VC.rf != null ? num(VC.rf, 2) + "%" : "—"} + ${V.erp}%，永续增速 = min(${V.gT}%, 无风险利率)，与过去 4 年营收复合增速对比；只描述现价包含的假设，不进入得分。
+    “近期下滑”= 年初至今归母净利润同比 ≤ ${num(V.recent_np_drop, 0)}%：只是提示，不进入门槛和得分，5 年数据好不代表当下没有变化，先核实原因（价值陷阱常见于此）。
+    周期行业的高 ROE 可能出现在景气高点，所以只列出、不排名。金融类（银行、保险、券商）需要不同的模型，暂未覆盖。ROE 为东方财富披露的加权 ROE。`;
+  bkSync();
+}
+$("vcHead").addEventListener("click", ev => { const b = ev.target.closest("[data-vcs]"); if (!b) return; const k = b.dataset.vcs, c = VC_COLS.find(x => x[0] === k);
+  vcS.dir = vcS.k === k ? -vcS.dir : c[4]; vcS.k = k; renderVc(); $("vcHead").querySelector(`[data-vcs="${k}"]`)?.focus(); });
+["vcQ", "vcInd", "vcNot2", "vcCyc"].forEach(id => $(id).addEventListener(id === "vcQ" ? "input" : "change", debounce(() => { vcS.n = 50; renderVc(); }, 120)));
+$("vcMore").onclick = () => { vcS.n += 50; renderVc(); };
+function render() { renderHeat(); renderScreen(); renderPriority(); renderVc(); renderBk(); renderLg(); renderLgFwd(); }
 function init() {
   renderHeader();
   const inds = [...new Set(D.screen.map(r => r.industry).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));

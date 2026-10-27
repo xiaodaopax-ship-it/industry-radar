@@ -461,6 +461,9 @@ def main():
     print("\n[o] forward tracking of the ledger tags (radar/forward.py evaluate, cn/forward.py adapter)")
     forward_checks(LDG)
 
+    print("\n[p] full-market lookup (cn/build.py full_lookup) and value channel (cn/quality.py)")
+    lookup_value_checks()
+
     print("\n[robustness] failure handling")
     bad = em.financials("1900-01-01")
     check("financials(bad date) returns [] without raising", bad == [])
@@ -677,6 +680,49 @@ def forward_checks(LDG):
               same and sum(len(v) for v in s.values()) == len({(x["code"], x["date"]) for x in real})
               and pg is not None and pg["rules"]["horizons"] == [1, 4, 13, 26, 52] and pg.get("note") is not None,
               f"stored_tags={len(stored)} starts={pg and pg.get('n_starts')} samples={pg and pg.get('n_samples')}")
+
+
+def lookup_value_checks():
+    """全市场速查: one row per quoted stock, '' reasons <=> the ② screen, every failing rule listed.
+    价值通道: metrics() on a synthetic company; on the real files every channel row satisfies every rule, ranks are 1..n."""
+    import json as _json
+    from . import build as B, quality as QM
+    sp = B.latest_snap()
+    with open(sp, encoding="utf-8") as f:
+        snap = _json.load(f)
+    res = B.analyze(snap)
+    L = res["lookup"]
+    i_why = L["cols"].index("why")
+    inl = {r[0] for r in L["rows"] if r[i_why] == ""}
+    scr = {r["code"] for r in res["screen"]}
+    multi = sum(1 for r in L["rows"] if "," in r[i_why])
+    check("lookup: one row per quoted stock, empty reason set == ② screen codes, growth-dropped stocks counted",
+          len(L["rows"]) == len(snap["quotes"]) and inl == scr and res["counts"]["dropped"].get("growth", 0) > 0,
+          f"rows={len(L['rows'])} screen={len(scr)} dropped={res['counts']['dropped']} multi_reason={multi}")
+    r182 = next((r for r in L["rows"] if r[0] == "002182"), None)
+    check("lookup real data: 002182 present with reason 'growth' (revenue YoY < 20%)",
+          r182 is not None and "growth" in r182[i_why].split(","), str(r182 and r182[i_why]))
+    ys = ["2021", "2022", "2023", "2024", "2025"]
+    it = {y: {"rev": 100.0 * (1.05 ** i), "np": 10.0, "roe": [12, 14, 9, 15, 13][i], "ocf": 12.0, "cx": 4.0, "eq": 80.0, "cash": 30.0,
+              "ibd": 20.0, "gw": 4.0, "div": 5.0} for i, y in enumerate(ys)}
+    m = QM.metrics(it, ys)
+    check("value metrics: ROE median / min, FCF positive years, cash conversion, 4-year CAGR, debt / equity, payout",
+          m["roe_med"] == 13 and m["roe_min"] == 9 and m["fcf_pos"] == 5 and abs(m["conv"] - 1.2) < 1e-12
+          and abs(m["cagr"] - 5.0) < 1e-9 and abs(m["de"] - 0.25) < 1e-12 and abs(m["payout"] - 0.5) < 1e-12 and m["net_cash"] == 10.0,
+          str({k: m[k] for k in ("roe_med", "roe_min", "fcf_pos", "conv", "cagr", "de", "payout")}))
+    qdoc, qp = QM.load_latest()
+    if not qdoc:
+        check("value channel file present (run python -m cn quality)", False)
+        return
+    V = QM.channel(snap, res, qdoc, None)
+    R = QM.VALUE_RULES
+    bad = [r["code"] for r in V["rows"] if not (r["roe_med"] >= R["roe_median_min"] - 0.05 and r["roe_min"] >= R["roe_min_min"] - 0.05
+           and r["fcf_pos"] >= R["fcf_pos_min"] and r["conv"] >= R["conv_min"] - 0.005 and r["cagr"] >= -0.05 and r["de"] <= R["de_max"] + 0.005)]
+    ranks = sorted(r["rank"] for r in V["rows"] if r.get("rank"))
+    check("value channel (real files): every row meets every rule, cyclical rows unranked, ranks 1..n, reason set for every quote",
+          not bad and ranks == list(range(1, V["n_ranked"] + 1)) and all(not r.get("rank") for r in V["rows"] if r["cyclical"])
+          and len(V["why"]) == len(snap["quotes"]) and sum(1 for w in V["why"].values() if w == "") == V["n_pass"],
+          f"file={os.path.basename(qp)} pass={V['n_pass']} ranked={V['n_ranked']} bad={bad[:5]}")
 
 
 if __name__ == "__main__":

@@ -290,6 +290,13 @@ FCF 利润率口径（页面参数，默认"自动"；不需要额外接口，�
 
 输入全部是本地文件（最新快照 + valuation + cards + ranges + holders），用默认参数算；输出 `data/cn/ledger/cn_ledger.jsonl`（只追加）。记录字段除估值数值和 `chg`（与上一条的变化、归因、结论）外，新记录带 `tags`（`TAG_RULES` 规则标签；加入标签前写的记录没有此字段，页面从 `tag_input()` 同口径的压缩记录 `ledger.rec` 重算）。页面嵌入 `ledger.rec{code: {s, p, lo, b, hi, gp, ig, igs, mr, mk, mb, gd, cp, cy, ch, bp, pp, gpp, mpp, cgp, lbc, wnd, bsc, ak}}` 和 `ledger.tag_rules`。台账记录的是模型在默认参数下的输出，用来对比数据变化带来的估值变化；不是目标价，不是买卖建议；方法未回测。
 
+## n. 价值通道输入（`python -m cn quality`，只用于价值通道分节）
+
+- 财务：对最近 5 个完整财年的 12-31 各调用一次 `financials(date)`（同 a：RPT_LICO_FN_CPD + RPT_DMSK_FN_CASHFLOW + RPT_F10_FINANCE_GBALANCE，全市场分页），取营业总收入、归母净利润、加权 ROE（`WEIGHTAVG_ROE`，年报口径即全年）、经营现金流、资本开支、归母权益、货币资金、有息负债（短期借款 + 长期借款 + 应付债券）、商誉。
+- 分红：`RPT_SHAREBONUS_DET`，按 `REPORT_DATE` 落在该财年内（中报、三季报、年报方案都算）全市场查询，字段 `PRETAX_BONUS_RMB`（税前每 10 股派现，元）、`TOTAL_SHARES`、`ASSIGN_PROGRESS`；2026-10-27 核对：FY2025 共 3651 条，进度为"实施分配"3650 条、"取消分配"1 条。现金分红 = PRETAX_BONUS_RMB / 10 × TOTAL_SHARES；进度含 取消 / 未通过 / 不分配 / 终止 的不计。
+- 缓存：已结束财年 30 天。请求量约 5 × (financials 约 36 + 分红约 8) 次。
+- 输出 `data/cn/quality_<ts>.json`：`items{code: {year: {rev, np, roe, ocf, cx, eq, cash, ibd, gw, div}}}`。门槛与排序见 README；口径局限：ROE 用东方财富披露的加权 ROE；现金转化分子含少数股东；股息率用当前总市值；未覆盖金融类。
+
 ---
 
 ## 请求量参考

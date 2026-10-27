@@ -6,6 +6,7 @@
     python -m cn holders tracked holders in the top-10 float holders, last 5 report dates, save data/cn/holders_<ts>.json
     python -m cn valuation  现金流估值 inputs (cash flow, revenue, net cash, China 10y yield), save data/cn/valuation_<ts>.json
     python -m cn ledger  估值台账: append default-parameter valuation records to data/cn/ledger/cn_ledger.jsonl (offline, idempotent)
+    python -m cn quality 价值通道 inputs: 5 fiscal years of fundamentals + cash dividends, market-wide -> data/cn/quality_<ts>.json
     python -m cn forward forward tracking of the ledger tags (price after each record vs the same-date median), offline
     python -m cn build   render site/cn/index.html from the latest snapshot + cards + ranges + holders + valuation files + ledger (offline)
     python -m cn.smoke   data-layer smoke test
@@ -41,6 +42,10 @@ def main():
     elif cmd == "forward":
         from .forward import run
         run()
+    elif cmd == "quality":
+        from .quality import fetch_quality
+        if not fetch_quality():
+            sys.exit(1)
     elif cmd == "build":
         from .build import build
         build(sys.argv[2] if len(sys.argv) > 2 else None)
