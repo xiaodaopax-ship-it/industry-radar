@@ -39,6 +39,11 @@ def main():
         from .build import build, latest_raw
         run()
         build(latest_raw())
+    elif cmd == "quality":
+        from .quality import run
+        from .build import build, latest_raw
+        run()
+        build(latest_raw())
     elif cmd == "forward":
         from .forward import us_run, summary
         print(summary(us_run()))

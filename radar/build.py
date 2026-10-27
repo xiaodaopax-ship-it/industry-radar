@@ -239,8 +239,17 @@ def model(raw, ledger_file=None, with_ledger=True):
         except Exception as err:  # noqa: BLE001
             print(f"valuation ledger not embedded: {type(err).__name__}: {err}")
             led = None
+    # 价值通道 + 全市场速查 (optional; `python -m radar quality` / `python -m radar heat`). Display only.
+    vc, lk = {"file": None}, None
+    try:
+        from . import quality as Qm
+        qdoc, qpath = Qm.latest()
+        vc = Qm.channel(out, qdoc, qpath)
+        lk = Qm.lookup(out, heat.latest())
+    except Exception as err:  # noqa: BLE001
+        print(f"value channel / lookup not embedded: {type(err).__name__}: {err}")
 
-    data = {"heat": hm, "sector_names": sec_names, "val": val, "ledger": led,
+    data = {"heat": hm, "vc": vc, "lookup": lk, "sector_names": sec_names, "val": val, "ledger": led,
             "built_at": dt.datetime.now().strftime("%Y-%m-%d %H:%M"), "fetched_at": raw["fetched_at"], "periods": raw["periods"],
             "fx": raw.get("fx"), "funnel": [f for f in raw["funnel"] if not US_ONLY or f["step"].startswith("美国")], "us_only": US_ONLY, "form4_since": raw["form4_since"], "sectors": secs, "entries": out,
             "overview": overview, "excluded": [x for x in raw["excluded"] if not US_ONLY or "." not in (x.get("ticker") or "")], "notes": notes, "factor_cn": S.FACTOR_CN,

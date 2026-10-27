@@ -236,6 +236,12 @@
   .ldg-tf .seg-pick { margin:0; gap:4px; } .ldg-tf .seg-pick button { font-size:11.5px; padding:1px 8px; }
   .ldg-tf .seg-pick button .n { color:var(--muted); margin-left:3px; font-size:10.5px; }
   .ldg-all { max-height:560px; overflow:auto; }
+  .lk-hits { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; } .lk-hit { background:var(--raised); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:4px 10px; font:inherit; font-size:13px; cursor:pointer; text-align:left; }
+  .lk-hit:hover, .lk-hit:focus-visible { border-color:var(--accent); }
+  .lk-card { margin-top:8px; } .lk-kv { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:6px 14px; margin:8px 0; }
+  .lk-kv dt { font-size:12px; color:var(--muted); } .lk-kv dd { margin:0; font-size:14px; }
+  .vc-t { max-height:640px; overflow:auto; } .vc-t thead th { position:sticky; top:0; background:var(--raised); z-index:1; }
+  .vc-t th button { background:none; border:0; color:inherit; font:inherit; font-weight:600; padding:0; cursor:pointer; text-align:inherit; }
   .ldg-fwd { margin-top:18px; } .ldg-fwd tr.muted td { color:var(--muted); } .ldg-fwd .seg-pick button:disabled { opacity:.45; cursor:default; }
   .ldg-all thead th { position:sticky; top:0; background:var(--panel, var(--bg)); z-index:1; }
 
@@ -356,7 +362,8 @@
     <div class="qs-res" id="qsRes" aria-live="polite"></div>
   </div>
   <div><div class="gt">全市场</div>
-    <ul><li><a class="sl" href="#s0" data-sec="s0">⓪ 全市场热度</a></li><li><a class="sl" href="#sPeg" data-sec="sPeg">PEG 筛选</a></li>
+    <ul><li><a class="sl" href="#sLk" data-sec="sLk">全市场速查</a></li><li><a class="sl" href="#s0" data-sec="s0">⓪ 全市场热度</a></li><li><a class="sl" href="#sPeg" data-sec="sPeg">PEG 筛选</a></li>
+      <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li>
       <li><a class="sl" href="#sDcf" data-sec="sDcf">估值参数（DCF）</a></li>
       <li><a class="sl" href="#sLdg" data-sec="sLdg">估值台账 · 本期变化</a></li>
       <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li></ul></div>
@@ -372,6 +379,16 @@
     <div class="chips" id="chips"></div>
   </header>
   <div class="banner">这是研究工具，不是投资建议。所有"机会""风险""结论"都是按数据规则自动生成的，用来决定先研究谁；业务、竞争、管理层这些判断必须人工补上。</div>
+
+  <!-- 全市场速查 (any SEC filer: why it is / is not in the screens) -->
+  <section id="sLk" aria-labelledby="lkTitle">
+    <h2 id="lkTitle"><span class="step-tag">查</span>全市场速查（美股）</h2>
+    <p class="lead" id="lkLead"></p>
+    <div class="toolbar" role="search"><label for="lkQ" class="small">代码或公司名</label>
+      <input type="search" id="lkQ" placeholder="例如 KO 或 Coca-Cola" autocomplete="off" aria-controls="lkRes"></div>
+    <div id="lkRes" aria-live="polite"></div>
+    <div id="lkOne"></div>
+  </section>
 
   <!-- ⓪ market-wide heat -->
   <section id="s0">
@@ -405,6 +422,23 @@
     </div>
     <div class="tscroll"><table><thead><tr id="pgHead"></tr></thead><tbody id="pgBody"></tbody></table></div>
     <p class="note" id="pgNote"></p>
+  </section>
+
+  <!-- 价值通道 (value channel: long-run quality + valuation yields; display only) -->
+  <section id="sVc" aria-labelledby="vcTitle">
+    <h2 id="vcTitle"><span class="step-tag">价</span>价值通道 · 长期质量 + 估值收益率（美股）</h2>
+    <p class="lead" id="vcLead"></p>
+    <p class="small warn">价值通道是和行业成长筛选并列的第二个入口：不要求营收高增长，看过去 5 个财年的 ROE、自由现金流、现金转化和负债，再按质量和估值收益率在通道内排序。排序只表示“按这六个维度先看谁”，没有回测，不是买卖建议；不进入评分、因子、结论、PEG 分层和对比池评分。</p>
+    <div class="toolbar" role="group" aria-label="价值通道筛选">
+      <label class="small" for="vcQ">搜索</label><input type="search" id="vcQ" placeholder="代码或名称" autocomplete="off">
+      <label class="small" for="vcSic">行业（SIC）</label><select id="vcSic"><option value="">全部</option></select>
+      <label class="small"><input type="checkbox" id="vcNotIn"> 只看不在行业筛选里的</label>
+      <label class="small"><input type="checkbox" id="vcCyc"> 包含周期行业（不排名）</label>
+      <span class="small" id="vcCnt" role="status" aria-live="polite"></span>
+    </div>
+    <div class="tscroll vc-t"><table><thead><tr id="vcHead"></tr></thead><tbody id="vcBody"></tbody></table></div>
+    <div class="toolbar"><button type="button" class="btn" id="vcMore">显示更多</button></div>
+    <p class="note" id="vcNote"></p>
   </section>
 
   <!-- 现金流估值参数 (cash-flow valuation reference; display only, computed in this page) -->
@@ -457,7 +491,7 @@
   <div class="sticky">
     <div class="tabs" role="tablist" id="tabs"></div>
     <nav class="steps" aria-label="分析步骤">
-      <a href="#s0">⓪ 全市场热度</a><a href="#sPeg">PEG 筛选</a><a href="#sDcf">估值参数</a><a href="#sLdg">估值台账</a><a href="#sBk">对比池</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
+      <a href="#sLk">速查</a><a href="#s0">⓪ 全市场热度</a><a href="#sPeg">PEG 筛选</a><a href="#sVc">价值通道</a><a href="#sDcf">估值参数</a><a href="#sLdg">估值台账</a><a href="#sBk">对比池</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
     </nav>
   </div>
 
@@ -694,10 +728,10 @@ function jumpCompany(sector, ticker, kind) {
 }
 
 // ---------- left sidebar: sections, sectors (with counts) and the step links of the active sector
-const SECTS = [["s0", "⓪ 全市场热度", 0], ["sPeg", "PEG 筛选", 0], ["sDcf", "估值参数", 0], ["sLdg", "估值台账", 0], ["sBk", "对比池", 0], ["s1", "① 行业总览", 1], ["s2", "② 细分拆解", 1], ["s3", "③ 龙头分析", 1],
+const SECTS = [["sLk", "全市场速查", 0], ["s0", "⓪ 全市场热度", 0], ["sPeg", "PEG 筛选", 0], ["sVc", "价值通道", 0], ["sDcf", "估值参数", 0], ["sLdg", "估值台账", 0], ["sBk", "对比池", 0], ["s1", "① 行业总览", 1], ["s2", "② 细分拆解", 1], ["s3", "③ 龙头分析", 1],
   ["s4", "④ 新兴机会", 1], ["s5", "⑤ 机会清单", 1], ["s6", "数据与方法", 1]];
 const SCNT = D.entries.reduce((a, e) => (a[e.sector] = (a[e.sector] || 0) + 1, a), {});
-let curSec = "s0";
+let curSec = "sLk";
 function renderSide() {
   $("sideSecs").innerHTML = D.sectors.map(s => { const on = s.id === state.sector;
     return `<li><button type="button" class="sl ${on ? "cur" : ""}" data-side-s="${esc(s.id)}" aria-current="${on ? "true" : "false"}"><span>${esc(s.name)}</span><span class="cnt">${SCNT[s.id] || 0}</span></button>
@@ -728,17 +762,25 @@ const secIO = new IntersectionObserver(es => {
 SECTS.forEach(([id]) => $(id) && secIO.observe($(id)));
 
 // ---------- quick company search (debounced; ticker matches rank first)
+// 全市场速查 rows (radar/quality.py lookup: every SEC filer with comparable quarterly revenue) + value channel (D.vc)
+const LK_ROWS = (L => L && L.rows ? L.rows.map(r => Object.fromEntries(L.cols.map((k, i) => [k, r[i]]))) : [])(D.lookup);
+const LK_BY = Object.fromEntries(LK_ROWS.map(r => [r.ticker, r]));
+const VC = D.vc || {}, VCR = VC.rows || [], VC_BY = Object.fromEntries(VCR.map(r => [r.ticker, r]));
 const QIDX = D.entries.map(e => ({e, t: e.ticker.toLowerCase(), k: (e.ticker + " " + (e.name || "")).toLowerCase()}));
+{ const have = new Set(D.entries.map(e => e.ticker));   // every other filer: found too, opens the lookup panel
+  [...LK_ROWS, ...VCR].forEach(r => { if (have.has(r.ticker)) return; have.add(r.ticker);
+    QIDX.push({lk: r, t: r.ticker.toLowerCase(), k: (r.ticker + " " + (r.name || "")).toLowerCase()}); }); }
 let qsHits = [];
 function qsRender() {
   const q = $("qs").value.trim().toLowerCase();
   if (!q) { qsHits = []; $("qsRes").innerHTML = ""; return; }
   const rk = x => x.t === q ? 0 : x.t.startsWith(q) ? 1 : x.k.includes(" " + q) ? 2 : 3;
-  qsHits = QIDX.filter(x => x.k.includes(q)).sort((a, b) => rk(a) - rk(b) || (b.e.d.mcap || 0) - (a.e.d.mcap || 0)).slice(0, 12);
-  $("qsRes").innerHTML = qsHits.map((x, i) => `<button type="button" data-qi="${i}"><b>${esc(x.e.ticker)}</b>${esc((x.e.name || "").slice(0, 22))}<br><span>${esc(SEC[x.e.sector]?.name || x.e.sector)} · ${x.e.kind === "leader" ? "龙头" : "新兴"}</span></button>`).join("")
-    || `<span class="small">没有匹配的公司</span>`;
+  qsHits = QIDX.filter(x => x.k.includes(q)).sort((a, b) => rk(a) - rk(b) || (!!a.lk - !!b.lk) || ((b.e?.d.mcap || b.lk?.mcap || 0) - (a.e?.d.mcap || a.lk?.mcap || 0))).slice(0, 12);
+  $("qsRes").innerHTML = qsHits.map((x, i) => x.e ? `<button type="button" data-qi="${i}"><b>${esc(x.e.ticker)}</b>${esc((x.e.name || "").slice(0, 22))}<br><span>${esc(SEC[x.e.sector]?.name || x.e.sector)} · ${x.e.kind === "leader" ? "龙头" : "新兴"}</span></button>`
+      : `<button type="button" data-qi="${i}"><b>${esc(x.lk.ticker)}</b>${esc((x.lk.name || "").slice(0, 22))}<br><span>${VC_BY[x.lk.ticker] ? "价值通道" : "未进入筛选（速查）"}</span></button>`).join("")
+    || `<span class="small">没有匹配的公司（全市场 ${LK_ROWS.length} 家里也没有，请核对代码）</span>`;
 }
-const qsGo = i => { const x = qsHits[i]; if (!x) return; if (narrow()) sideClose(false); jumpCompany(x.e.sector, x.e.ticker, x.e.kind); };
+const qsGo = i => { const x = qsHits[i]; if (!x) return; if (narrow()) sideClose(false); if (x.e) jumpCompany(x.e.sector, x.e.ticker, x.e.kind); else lkShow(x.lk.ticker, true); };
 $("qs").addEventListener("input", debounce(qsRender, 150));
 $("qs").addEventListener("keydown", ev => {
   if (ev.key === "Enter") { ev.preventDefault(); qsRender(); qsGo(0); }
@@ -751,6 +793,129 @@ $("qsRes").addEventListener("keydown", ev => {
   if (ev.key === "ArrowDown" && i >= 0) { ev.preventDefault(); bs[Math.min(bs.length - 1, i + 1)].focus(); }
   if (ev.key === "ArrowUp" && i >= 0) { ev.preventDefault(); (i ? bs[i - 1] : $("qs")).focus(); }
 });
+
+// ---------- 全市场速查: why a filer is (not) in the sector screens and the value channel
+const LK_WHY = {
+  no_seg: () => "SIC 行业 / 公司名不属于任何已配置的细分环节（本工具只在配置的 14 个行业里做成长筛选）",
+  excluded: () => "命中该行业的排除规则（见行业页“数据与方法”的排除表）",
+  size: () => "TTM 营收不在该环节的规模范围内",
+  prior_q: () => "上年同季营收低于下限（基数太小，同比不可比）",
+  growth: r => `最新季度营收同比 ${r.yoy == null ? "—" : num(r.yoy) + "%"} 不在该环节的增速门槛内（行业筛选是成长筛选）`,
+  other: () => "数据满足环节门槛，但没有进入名单：可能不在 Nasdaq / NYSE 上市、市值超过该环节上限或缺行情（以最近一次抓取为准）",
+};
+const VC_WHY = (V => ({
+  small: `最近财年营收 < ${num((V.rev_min || 0) / 1e8, 0)} 亿美元`, np: "最近财年净利润 ≤ 0", roe_n: `ROE 可计算（权益 > 0）的财年少于 ${V.roe_years_min} 个`,
+  roe_med: `近 5 年 ROE 中位数 < ${V.roe_median_min}%`, roe_min: `近 5 年最低 ROE < ${V.roe_min_min}%`,
+  fcf: `自由现金流为正的财年少于 ${V.fcf_pos_min} 个`, conv: `5 年经营现金流合计 / 净利润合计 < ${V.conv_min}`, shrink: "最近财年营收低于 4 年前",
+  lev: `净负债超过 ${V.nd_fcf_max} 年的平均自由现金流`, exchange: "不在 Nasdaq / NYSE / NYSE American 上市", financial: "金融类（SIC 60–67：银行、保险、券商、REIT），需要不同模型，通道未覆盖"}))(VC.rules || {});
+const segLabel = s => (s || "").split(",").filter(Boolean).map(x => { const [sid, gid] = x.split("."); const sec = SEC[sid];
+  return `${sec?.name || sid} · ${sec?.segments.find(g => g.id === gid)?.name || gid}`; }).join("；");
+function lkLead() {
+  const c = (D.lookup || {}).counts || {}, n = LK_ROWS.length;
+  $("lkLead").innerHTML = n ? `收录最近一次全市场热度快照里有可比季度营收、有代码的美股公司 <b>${n}</b> 家（${esc(((D.lookup || {}).fetched_at || "").slice(0, 10))}），外加价值通道里的公司。进入行业成长筛选（新兴或龙头）<b>${c.screen || 0}</b> 家；没进入的原因：`
+      + [["no_seg", "不属于已配置环节"], ["growth", "增速不在门槛内"], ["size", "规模不在范围"], ["prior_q", "上年基数太小"], ["excluded", "排除规则"], ["other", "交易所 / 市值 / 行情"]]
+        .filter(([k]) => c[k]).map(([k, t]) => `${t} ${c[k]}`).join(" · ")
+      + `（按页面同一套规则重算；一家公司可能命中多个环节，取最接近通过的那个）。速查只做定位和说明，不是评估结论。`
+    : "还没有全市场速查数据：运行 python -m radar heat 后重新构建。";
+}
+function lkSearch() {
+  const q = $("lkQ").value.trim().toLowerCase(), el = $("lkRes");
+  if (!q) { el.innerHTML = ""; return; }
+  const pool = [...new Map([...LK_ROWS, ...VCR].map(r => [r.ticker, r])).values()];
+  const rk = r => r.ticker.toLowerCase() === q ? 0 : r.ticker.toLowerCase().startsWith(q) ? 1 : (r.name || "").toLowerCase().startsWith(q) ? 2 : 3;
+  const hits = pool.filter(r => (r.ticker + " " + (r.name || "")).toLowerCase().includes(q)).sort((a, b) => rk(a) - rk(b) || (b.rev_ttm || 0) - (a.rev_ttm || 0));
+  el.innerHTML = hits.length ? `<div class="lk-hits">${hits.slice(0, 20).map(r => `<button type="button" class="lk-hit" data-lk="${esc(r.ticker)}"><b>${esc(r.ticker)}</b> ${esc((r.name || "").slice(0, 30))}</button>`).join("")}</div>`
+      + (hits.length > 20 ? `<div class="small">共 ${hits.length} 条，只显示前 20 条</div>` : "")
+    : `<div class="small">没有匹配：速查只收录有可比季度营收、在 SEC 报送 XBRL 的公司（外国公司 20-F、无营收公司、ETF 不在其中）。</div>`;
+  if (hits[0] && (hits.length === 1 || rk(hits[0]) === 0)) lkShow(hits[0].ticker, false);
+}
+function lkShow(t, scroll) {
+  const r = LK_BY[t] || {}, v = VC_BY[t], es = D.entries.filter(e => e.ticker === t), name = r.name || v?.name || es[0]?.name || "";
+  const why = (r.why || "").split(",").filter(Boolean), vw = VC.why ? VC.why[t] : undefined;
+  let st;
+  if (es.length) st = `<p><b>在行业成长筛选里</b>：${es.map(e => `${esc(SEC[e.sector]?.name || e.sector)} · ${esc(segName2(e))}（${e.kind === "leader" ? "龙头" : "新兴"}${e.level ? "，" + esc(e.level) : ""}）`).join("；")}。</p>
+      <div class="toolbar">${es.map(e => `<button type="button" class="btn" data-lkjump="${esc(e.sector)}|${esc(e.ticker)}|${esc(e.kind)}">打开评估卡（${esc(SEC[e.sector]?.name || e.sector)}）</button>`).join("")}</div>`;
+  else st = why.length ? `<p><b>未进入行业成长筛选</b>${r.seg ? `（最接近的环节：${esc(segLabel(r.seg))}）` : ""}：</p><ul>${why.map(w => `<li>${esc((LK_WHY[w] || (() => w))(r))}</li>`).join("")}</ul>`
+    : `<p><b>未进入行业成长筛选</b>：不在全市场热度快照里（无可比季度营收）。</p>`;
+  const vt = !VC.file ? "" : v ? `<p><b>在价值通道内</b>${v.rank ? `：通道排名第 ${v.rank} / ${VC.n_ranked}，得分 ${num(v.score, 1)}` : "（周期行业，只列出不排名）"}；近 5 年 ROE 中位数 ${num(v.roe_med, 1)}%，自由现金流为正 ${v.fcf_pos} / ${v.n_fcf} 年。<button type="button" class="btn ghost" data-lkvc="${esc(t)}">在价值通道中查看</button></p>`
+    : vw ? `<p><b>未进入价值通道</b>：${vw.split(",").filter(Boolean).map(w => esc(VC_WHY[w] || w)).join("；")}。</p>`
+    : `<p class="small">价值通道：没有匹配到这家公司的 SEC 年度数据（可能用其他营收 / 现金流标签报送，或是 20-F 外国公司）。</p>`;
+  const kv = [["SIC 行业", r.sic_desc ? `${esc(r.sic)} ${esc(r.sic_desc)}` : v?.sic_desc ? esc(v.sic_desc) : "—"], ["TTM 营收", r.rev_ttm != null ? `${num(r.rev_ttm / 100, 1)} 亿美元` : v?.rev ? `${num(v.rev / 1e8, 1)} 亿美元（财年）` : "—"],
+    ["最新季度营收同比", r.yoy != null ? pc(r.yoy, 1) : "—"], ["毛利率", r.gm != null ? num(r.gm) + "%" : "—"], ["营业利润率", r.opm != null ? num(r.opm) + "%" : "—"],
+    ["市值", v?.mcap ? `${num(v.mcap / 1e8, 0)} 亿美元` : es[0]?.d.mcap ? `${num(es[0].d.mcap / 1e8, 0)} 亿美元` : "—"]];
+  $("lkOne").innerHTML = `<div class="card lk-card"><h3>${esc(t)} ${esc(name)}</h3>${st}${vt}<dl class="lk-kv">${kv.map(([k, x]) => `<div><dt>${esc(k)}</dt><dd>${x}</dd></div>`).join("")}</dl>
+    <p class="small">营收与利润率来自 ${esc(((D.lookup || {}).fetched_at || "").slice(0, 10))} 全市场热度快照（SEC XBRL frames，最新季度口径）。</p></div>`;
+  if (scroll) { $("lkQ").value = t; $("sLk").scrollIntoView({behavior: "smooth", block: "start"}); }
+}
+const segName2 = e => SEC[e.sector]?.segments.find(g => g.id === e.segment)?.name || e.segment;
+$("lkQ").addEventListener("input", debounce(lkSearch, 150));
+$("lkQ").addEventListener("keydown", ev => { if (ev.key === "Enter") { ev.preventDefault(); lkSearch(); const b = $("lkRes").querySelector("[data-lk]"); if (b) lkShow(b.dataset.lk, false); } });
+$("sLk").addEventListener("click", ev => {
+  const h = ev.target.closest("[data-lk]"); if (h) { lkShow(h.dataset.lk, false); return; }
+  const j = ev.target.closest("[data-lkjump]"); if (j) { const [s, t, k] = j.dataset.lkjump.split("|"); jumpCompany(s, t, k); return; }
+  const v = ev.target.closest("[data-lkvc]"); if (v) { const r = VC_BY[v.dataset.lkvc]; $("vcQ").value = v.dataset.lkvc; $("vcSic").value = ""; $("vcNotIn").checked = false;
+    if (r && r.cyclical) $("vcCyc").checked = true; vcS.n = 50; renderVc(); $("sVc").scrollIntoView({behavior: "smooth", block: "start"}); }
+});
+
+// ---------- 价值通道 (radar/quality.py channel(): rows already filtered; ranking inside the channel, cyclical not ranked)
+const VC_F = {roe_med: "ROE 中位数", roe_min: "最低 ROE", conv: "现金转化", fcfy: "FCF 收益率", ey: "盈利收益率", shy: "股东回报率"};
+const vcS = {k: "rank", dir: 1, n: 50};
+const vcP = v => v == null ? "—" : num(v, 1) + "%";
+const vcCo = r => { const e = D.entries.find(x => x.ticker === r.ticker);
+  return `${e ? `<button type="button" class="btn ghost ldg-jump" data-vcjump="${esc(e.sector)}|${esc(e.ticker)}|${esc(e.kind)}">${esc(r.ticker)}</button>` : `<b>${esc(r.ticker)}</b>`} <span class="small">${esc((r.name || "").slice(0, 26))}</span>
+    <div class="small">${e ? `${esc(SEC[e.sector]?.name || e.sector)} · ${e.kind === "leader" ? "龙头" : "新兴"}` : "不在行业筛选"}</div>`; };
+const VC_COLS = [
+  ["rank", "通道排名", r => r.rank ?? (r.cyclical ? '<span class="tag t-cyc">周期</span>' : "—"), r => r.rank ?? 9999, 1],
+  ["ticker", "代码 · 名称", vcCo, r => r.ticker, 1],
+  ["sic_desc", "SIC 行业", r => `<span class="small">${esc(r.sic_desc || "—")}</span>`, r => r.sic_desc || "", 1],
+  ["score", "通道得分", r => r.score != null ? `<span data-tip="${esc(Object.entries(r.f || {}).map(([k, v]) => `${VC_F[k]} ${v == null ? "—" : num(v, 0)}`).join("；"))}">${num(r.score, 1)}</span>` : "—", r => r.score, -1],
+  ["roe_med", `ROE 中位数（${(VC.years || []).at(0) || ""}–${(VC.years || []).at(-1) || ""}）`, r => `${vcP(r.roe_med)}<div class="small">${(r.roe || []).map(x => x == null ? "—" : num(x, 0)).join(" / ")}</div>`, r => r.roe_med, -1],
+  ["roe_min", "最低 ROE", r => vcP(r.roe_min), r => r.roe_min, -1],
+  ["conv", "现金转化（5 年）", r => r.conv != null ? num(r.conv, 2) : "—", r => r.conv, -1],
+  ["fcf_pos", "FCF 为正年数", r => `${r.fcf_pos} / ${r.n_fcf}${r.no_cx ? ' <span class="tag t-warn" title="没有资本开支标签，按 0 计">无 capex</span>' : ""}`, r => r.fcf_pos, -1],
+  ["cagr", "营收 4 年复合增速", r => vcP(r.cagr), r => r.cagr, -1],
+  ["nd_fcf", "净负债 / FCF（年）", r => `${r.nd_fcf != null ? (r.nd_fcf <= 0 ? "净现金" : num(r.nd_fcf, 1)) : "—"}${r.gw_warn ? ' <span class="tag t-warn" title="商誉超过权益 + 有息负债的一半，多来自并购">商誉高</span>' : ""}`, r => r.nd_fcf, 1],
+  ["fcfy", "FCF 收益率", r => vcP(r.fcfy), r => r.fcfy, -1],
+  ["ey", "盈利收益率", r => vcP(r.ey), r => r.ey, -1],
+  ["shy", "股东回报率（分红 + 回购）", r => `${vcP(r.shy)}${(r.shy ?? 0) > 25 || (r.fcfy ?? 0) > 25 ? ' <span class="tag t-warn" title="收益率超过 25%：常见于市值大跌、一次性回购或数据口径问题，先核实">先核实</span>' : ""}<div class="small">其中分红 ${vcP(r.dy)}</div>`, r => r.shy, -1],
+  ["ig", "现价隐含增速 vs 历史", r => r.ig != null ? `${vcP(r.ig)}<div class="small">${r.ig_gap == null ? "" : `比历史 ${r.ig_gap >= 0 ? "高" : "低"} ${num(Math.abs(r.ig_gap), 1)}pt`}</div>`
+      : `<span class="small">${r.igs === "lo" ? "< −30%" : r.igs === "hi" ? "> 100%" : "—"}</span>`, r => r.ig_gap, 1],
+  ["mcap", "市值（亿美元）", r => r.mcap ? num(r.mcap / 1e8, 0) : "—", r => r.mcap, -1],
+];
+function vcList() {
+  const q = $("vcQ").value.trim().toLowerCase(), sic = $("vcSic").value, ni = $("vcNotIn").checked, cy = $("vcCyc").checked;
+  const c = VC_COLS.find(x => x[0] === vcS.k) || VC_COLS[0], g = c[3];
+  return VCR.filter(r => (cy || !r.cyclical) && (!ni || !r.in_screen) && (!sic || (r.sic ? String(r.sic).padStart(4, "0").slice(0, 2) : "") === sic) && (!q || (r.ticker + " " + (r.name || "")).toLowerCase().includes(q)))
+    .sort((a, b) => { const x = g(a), y = g(b); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+      return (typeof x === "string" ? x.localeCompare(y) : x - y) * vcS.dir; });
+}
+function renderVc() {
+  if (!VC.file) { $("vcLead").innerHTML = '<span class="warn">还没有价值通道数据：运行 <code>python -m radar quality</code>（SEC XBRL frames，全市场约 120 次请求，再为通过的公司取行情）后重新构建。</span>';
+    $("vcHead").innerHTML = $("vcBody").innerHTML = ""; $("vcMore").hidden = true; return; }
+  const V = VC.rules, nn = VCR.filter(r => !r.in_screen).length;
+  $("vcLead").innerHTML = `${esc(VC.years[0])}–${esc(VC.years.at(-1))} 五个财年（SEC 年度数据，取于 ${esc((VC.fetched_at || "").slice(0, 10))}）：${num(VC.n_filers, 0)} 家报送 XBRL 的公司里，<b>${VC.n_pass}</b> 家同时满足全部门槛并取到行情，
+    其中 <b>${VC.n_ranked}</b> 家非周期公司参与排序，<b>${nn}</b> 家不在行业成长筛选里。门槛：最近财年营收 ≥ ${num(V.rev_min / 1e8, 0)} 亿美元且盈利；ROE 中位数 ≥ ${V.roe_median_min}%、最低 ≥ ${V.roe_min_min}%；
+    自由现金流为正 ≥ ${V.fcf_pos_min} 年；现金转化 ≥ ${V.conv_min}；营收不收缩；净负债 ≤ ${V.nd_fcf_max} 年自由现金流；Nasdaq / NYSE 上市；非金融。`;
+  if (!$("vcSic").dataset.done) { const m = {}; VCR.forEach(r => { const k = r.sic ? String(r.sic).padStart(4, "0").slice(0, 2) : ""; if (k) m[k] = (m[k] || 0) + 1; });
+    const names = Object.fromEntries((D.heat?.major || []).map(x => [x.code, x.name]));
+    $("vcSic").insertAdjacentHTML("beforeend", Object.entries(m).sort((a, b) => b[1] - a[1]).map(([k, n]) => `<option value="${esc(k)}">${esc(k)} ${esc(names[k] || "")}（${n}）</option>`).join("")); $("vcSic").dataset.done = 1; }
+  $("vcHead").innerHTML = VC_COLS.map(([k, t]) => `<th scope="col" aria-sort="${vcS.k === k ? (vcS.dir > 0 ? "ascending" : "descending") : "none"}"><button type="button" data-vcs="${k}">${esc(t)}${vcS.k === k ? (vcS.dir > 0 ? " ▲" : " ▼") : ""}</button></th>`).join("");
+  const L = vcList();
+  $("vcBody").innerHTML = L.slice(0, vcS.n).map(r => `<tr>${VC_COLS.map(([k, , f]) => `<td${["ticker", "sic_desc"].includes(k) ? "" : ' class="n"'}>${f(r)}</td>`).join("")}</tr>`).join("")
+    || `<tr><td colspan="${VC_COLS.length}" class="small">没有符合条件的公司</td></tr>`;
+  $("vcCnt").textContent = `${Math.min(vcS.n, L.length)} / ${L.length} 家`;
+  $("vcMore").hidden = L.length <= vcS.n;
+  $("vcNote").innerHTML = `得分 = 通道内（非周期）六项百分位的等权平均：${Object.values(VC_F).join("、")}；缺项跳过不补。ROE = 净利润 ÷ 年初年末平均股东权益（权益 ≤ 0 的年份不算，大量回购会让权益变小、ROE 偏高）；FCF = 经营现金流 − 资本开支；
+    FCF 收益率 = 5 年平均 FCF ÷ 市值；盈利收益率 = 最近财年净利润 ÷ 市值；股东回报率 = 最近财年（分红 + 回购）÷ 市值，回购是总额，未扣股权激励发行；负债用“净负债 ÷ 平均 FCF”而不用负债 / 权益，因为回购会压低账面权益。
+    “现价隐含增速”用页面同一套现金流估值引擎反推（营收基数 = 最近财年营收，FCF 利润率 = 近 3 年平均，折现率 = 10 年期国债 ${VC.rf != null ? num(VC.rf, 2) + "%" : "—"} + ${V.erp}%，永续增速 = min(${V.gT}%, 国债利率)），与过去 4 年营收复合增速对比，只描述现价包含的假设，不进入得分。
+    财年按 SEC frames 对齐到日历年（如 1 月结束的财年算作上一年）。周期行业（SIC 10/12/13/29/33/44 和配置里的周期环节）只列出、不排名；金融类暂未覆盖。点代码打开评估卡（只有行业筛选里的公司有评估卡）。`;
+}
+$("vcHead").addEventListener("click", ev => { const b = ev.target.closest("[data-vcs]"); if (!b) return; const k = b.dataset.vcs, c = VC_COLS.find(x => x[0] === k);
+  vcS.dir = vcS.k === k ? -vcS.dir : c[4]; vcS.k = k; renderVc(); $("vcHead").querySelector(`[data-vcs="${k}"]`)?.focus(); });
+$("vcBody").addEventListener("click", ev => { const j = ev.target.closest("[data-vcjump]"); if (j) { const [s, t, k] = j.dataset.vcjump.split("|"); jumpCompany(s, t, k); } });
+["vcQ", "vcSic", "vcNotIn", "vcCyc"].forEach(id => $(id).addEventListener(id === "vcQ" ? "input" : "change", debounce(() => { vcS.n = 50; renderVc(); }, 120)));
+$("vcMore").onclick = () => { vcS.n += 50; renderVc(); };
+lkLead(); renderVc();
 
 // ---------- back to top
 let ttRaf = 0;
