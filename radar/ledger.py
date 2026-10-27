@@ -18,6 +18,10 @@ fixed order: (1) R0 revenue base, (2) FCF margin path (m0 / basis / ramp start),
 base case; contributions are in % of the previous base value and sum to the total change (interaction effects land on the later
 step, so the split depends on the order). Residual income (financial profile): (1) ROE, (2) book value per share, (3) parameters.
 Status changes (e.g. negfcf -> ok) are reported, not attributed; negfcf tracks the required margin, ri the RI value per share.
+
+Rule-based tags (`tags()`, thresholds in config valuation.ledger.tags) are computed from the COMPACT record at record time and
+stored as `tags`; the page's ldgTags recomputes them from the same compact record (so records written before tagging get them
+too). Both implementations must stay identical. Neutral facts only, not a signal.
 """
 import datetime as dt
 import json
@@ -33,6 +37,9 @@ ARCHIVE = os.path.join(LDIR, "archive")
 LC = CFG.get("valuation", {}).get("ledger", {})
 FLAT = float(LC.get("flat_pct", 2.0))
 EMBED_N = int(LC.get("embed_n", 26))
+TAG_DEF = {"chg_big": 15, "chg": 5, "chg_small": 2, "mreq_big": 5, "mreq": 2, "pos_far": 50, "pos": 15,
+           "cmb_base": 5, "cmb_px_flat": 2, "cmb_px": 10, "cmb_base_flat": 2, "cons": 3, "gap": 10}
+TAGS = {**TAG_DEF, **{k: float(v) for k, v in (LC.get("tags") or {}).items() if k in TAG_DEF}}
 STATUS_CN = {"ok": "FCF 三情景", "negfcf": "FCF ≤ 0（只做反向）", "ri": "剩余收益法", "na": "不适用"}
 GSRC_CN = {"cons": "一致预期", "cagr": "3 年 CAGR", "yoy": "营收同比"}
 
@@ -57,7 +64,7 @@ def record(e, data, P, meta):
     revM, revG = o.get("revM") or {}, o.get("revG") or {}
     why = o.get("why") if st == "na" else "基准 FCF 利润率 ≤ 0，只给需要的利润率" if st == "negfcf" else None
     return {**meta, "ticker": e["ticker"], "name": e.get("name"), "sector": e["sector"], "segment": e["segment"], "kind": e["kind"],
-            "profile": e.get("profile"), "price": I.get("price"), "ccy": I.get("ccy"), "status": st, "why": why,
+            "profile": e.get("profile"), "cyclical": bool(e.get("cyclical")), "price": I.get("price"), "ccy": I.get("ccy"), "status": st, "why": why,
             "basis": {"key": B["key"], "why": B["why"], "fb": B["fb"], "mode": P["mbasis"]} if B else None,
             "guard": list(I.get("guard") or []),
             "m_start": B.get("ms") if ramp else None, "ramp_T": B["m0"] if ramp else None, "ramp_N": B.get("N") if ramp else None,
@@ -173,6 +180,77 @@ def tag(ch):
     if abs(bp) < FLAT and (pp is None or abs(pp) < FLAT):
         return "基本不变"
     return ""
+
+
+FUND_KEYS = ("R0", "m0", "g0", "roe", "bvps")
+
+
+def tags(r, T=None):
+    """Rule-based tags of one COMPACT record (see _compact; the page's ldgTags mirrors this exactly -> keep both identical).
+    Fixed thresholds (config valuation.ledger.tags), neutral facts about the model output and the data change; not a signal.
+    Order: change size, valuation position, bear / bull position, combinations, caveats ("注意")."""
+    T = T or TAGS
+    out, x, st = [], r.get("x"), r.get("st")
+    bp = x.get("base_pct") if x else None
+    pp = x.get("price_pct") if x else None
+    # (a) change size: base value change %; negfcf: required FCF margin change (pt)
+    if x and st == "negfcf" and x.get("mreq_pp") is not None:
+        d = x["mreq_pp"]
+        out.append("需要利润率大幅上升" if d >= T["mreq_big"] else "需要利润率上升" if d >= T["mreq"] else
+                   "需要利润率大幅下降" if d <= -T["mreq_big"] else "需要利润率下降" if d <= -T["mreq"] else "基本不变")
+    elif bp is not None:
+        out.append("大幅上调" if bp >= T["chg_big"] else "上调" if bp >= T["chg"] else "大幅下调" if bp <= -T["chg_big"] else
+                   "下调" if bp <= -T["chg"] else "小幅变化" if abs(bp) >= T["chg_small"] else "基本不变")
+    # (b) position of the current record: gap = base / price - 1 (status ok / ri only)
+    g = r.get("gap")
+    if st in ("ok", "ri") and g is not None:
+        g = g * 100
+        out.append("现价远低于基准" if g >= T["pos_far"] else "现价低于基准" if g >= T["pos"] else "现价远高于基准" if g <= -T["pos_far"] else
+                   "现价高于基准" if g <= -T["pos"] else "接近基准")
+    px = r.get("px")
+    if st in ("ok", "ri") and px is not None:
+        if r.get("br") is not None and px < r["br"]:
+            out.append("现价低于熊情景")
+        if r.get("bl") is not None and px > r["bl"]:
+            out.append("现价高于牛情景")
+    # (c) combinations (need a previous record)
+    if x:
+        if bp is not None and pp is not None and bp >= T["cmb_base"] and pp <= T["cmb_px_flat"]:
+            out.append("基本面改善·价格未跟")
+        if bp is not None and pp is not None and pp >= T["cmb_px"] and bp <= T["cmb_base_flat"]:
+            out.append("价格先行")
+        a = x.get("a") or []
+        tot = sum(abs(v) for _, v in a)
+        fund = sum(abs(v) for k, v in a if k in FUND_KEYS)
+        if bp is not None and bp <= -T["cmb_base"] and tot > 0 and fund > tot / 2:
+            out.append("基本面转弱")
+        c = x.get("cons_pp")
+        if c is not None and c >= T["cons"]:
+            out.append("预期上修")
+        if c is not None and c <= -T["cons"]:
+            out.append("预期下修")
+        gp = x.get("gap_pp")
+        if r.get("gap") is not None and gp is not None:
+            gc = r["gap"] * 100
+            d = abs(gc - gp) - abs(gc)          # > 0: |gap| moved toward 0
+            if d >= T["gap"]:
+                out.append("差距收窄")
+            elif d <= -T["gap"]:
+                out.append("差距扩大")
+        if x.get("bf") and x.get("bt") and x["bf"] != x["bt"]:
+            out.append("口径切换")
+    # (d) caveats of the current record
+    if r.get("gd"):
+        out.append("一次性收入")
+    if r.get("cap"):
+        out.append("增速截断")
+    if r.get("mb") == "ramp":
+        out.append("爬坡假设")
+    if r.get("cy"):
+        out.append("周期")
+    if r.get("bs") is not None and r["bs"] <= 0:
+        out.append("估值≤0")
+    return out
 
 
 def _s(v, d=1, u="%"):
@@ -292,6 +370,7 @@ def append(new, path=None):
         p = last.get(c["ticker"])
         ch = change(p, c) if p else None
         c["chg"], c["concl"] = ch, conclude(p, c, ch)
+        c["tags"] = tags(_compact(c))       # stored for audit; the page recomputes the same tags from the compact record
         add.append(c)
         last[c["ticker"]] = c
     if add:
@@ -374,6 +453,13 @@ def _compact(r):
         o.update(ms=_r(r.get("m_start")), rn=r.get("ramp_N"))
     if r.get("guard"):
         o["gd"] = len(r["guard"])
+    if r.get("capped"):
+        o["cap"] = 1
+    # cyclical: stored flag (new records) or the auto-basis reason (older records have no flag; auto mode names the cyclical rule)
+    if r.get("cyclical") or "周期性环节" in (b.get("why") or ""):
+        o["cy"] = 1
+    if r.get("tags") is not None:
+        o["tg"] = r["tags"]                 # tags stored at record time (records before tagging have none; the page computes them)
     return o
 
 
@@ -391,5 +477,5 @@ def embed(path=None, n=None):
         x = runs.setdefault(k, {"k": k, "date": r["date"], "px_date": r.get("px_date"), "run_at": r["run_at"], "n": 0})
         x["n"] += 1
     rl = sorted(runs.values(), key=lambda x: x["run_at"])
-    return {"runs": rl[-n:], "n_runs": len(rl), "latest": rl[-1]["k"], "prev": rl[-2]["k"] if len(rl) > 1 else None, "flat_pct": FLAT,
+    return {"runs": rl[-n:], "n_runs": len(rl), "latest": rl[-1]["k"], "prev": rl[-2]["k"] if len(rl) > 1 else None, "flat_pct": FLAT, "tag_cfg": TAGS,
             "by": {t: [{**_compact(r), "k": r["val_file"] + "|" + r["raw_file"]} for r in v[-n:]] for t, v in by.items()}}

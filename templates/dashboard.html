@@ -223,6 +223,20 @@
   .ldg-ab { vertical-align:middle; } .ldg-lg { display:inline-flex; align-items:center; gap:3px; margin-right:8px; font-size:11.5px; color:var(--muted); }
   .ldg-lg i { display:inline-block; width:10px; height:6px; border-radius:1px; }
   .ldg-jump { padding:0 6px; font-weight:650; }
+  /* ledger tags (rule-based, neutral facts) and filter bar */
+  .ltag { display:inline-block; padding:0 7px; margin:1px 4px 1px 0; border:1px solid var(--line2); border-radius:999px; font-size:11.5px; line-height:18px; color:var(--muted); background:var(--raised); white-space:nowrap; }
+  .ltag.up { color:#9fcfb2; border-color:rgba(70,196,134,.32); background:rgba(70,196,134,.07); }
+  .ltag.dn { color:#d9a9a9; border-color:rgba(220,120,120,.32); background:rgba(220,120,120,.07); }
+  .ltag.cmb { color:#aec3ea; border-color:rgba(91,147,255,.32); background:rgba(91,147,255,.07); }
+  .ltag.warn { color:#9aa6b4; border-style:dashed; background:transparent; } .ltag.warn b { font-weight:600; margin-right:3px; }
+  .ltags { margin-top:4px; } .ltags.sm .ltag { font-size:11px; line-height:16px; padding:0 5px; }
+  .ldg-f input[type=number] { width:5.5em; } .ldg-f input[type=search] { width:12em; }
+  .ldg-tf { margin:4px 0 6px; font-size:12px; } .ldg-tg { display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; margin:3px 0; }
+  .ldg-tg > .small { min-width:5.5em; }
+  .ldg-tf .seg-pick { margin:0; gap:4px; } .ldg-tf .seg-pick button { font-size:11.5px; padding:1px 8px; }
+  .ldg-tf .seg-pick button .n { color:var(--muted); margin-left:3px; font-size:10.5px; }
+  .ldg-all { max-height:560px; overflow:auto; }
+  .ldg-all thead th { position:sticky; top:0; background:var(--panel, var(--bg)); z-index:1; }
 
   /* left sidebar */
   .side { position:fixed; left:0; top:0; bottom:0; width:var(--side); z-index:30; overflow-y:auto; background:var(--side-bg); border-right:1px solid var(--line);
@@ -406,6 +420,7 @@
     <h2 id="ldgTitle"><span class="step-tag">台账</span>估值台账 · 本期变化</h2>
     <p class="lead">每周更新后按<b>默认参数</b>给每家公司记一笔（股价、Bear / Base / Bull、隐含增速、FCF 利润率与口径、起始增速、一致预期），只追加不改写，用来看“这一期数据变了什么、估值因此变了多少”。基准估值的变化按 营收基数 R0 → FCF 利润率路径（m0 / 口径 / 爬坡起点）→ 起始增速 g0 → 净现金与股数 → 参数（rf / ERP / gT / 爬坡 N、T）的固定顺序依次替换做归因，各项相加等于总变化；顺序不同拆分会不同。</p>
     <p class="small warn">台账记录的是模型在默认参数下的输出，用来对比数据变化带来的估值变化；不是目标价，不是买卖建议；方法未回测。</p>
+    <div id="ldgFilt"></div>
     <div id="ldgBody"></div>
     <span class="small" id="ldgMsg" role="status" aria-live="polite"></span>
   </section>
@@ -981,7 +996,7 @@ function bkSync() {
     b.setAttribute("aria-label", `${on ? "从对比池移出" : "把"} ${b.dataset.bkT}${on ? "" : " 加入对比池"}`); b.title = on ? "已在对比池，点击移出" : "加入对比池"; });
   $("bkSideN").textContent = BK.items.length;
 }
-function bkChanged() { bkSave(); bkRender(); bkSync(); }
+function bkChanged() { bkSave(); bkRender(); bkSync(); if (LF.bk) renderLdg(); }   // ledger filter "只看对比池" follows the basket
 function bkToggle(s, t, k) {
   if (bkHas(s, t, k)) { BK.items = BK.items.filter(x => !(x.sector === s && x.ticker === t && x.kind === k)); bkChanged(); bkToast(`已移出对比池（${BK.items.length}/${BKMAX}）`); return; }
   if (BK.items.length >= BKMAX) { bkToast(`对比池已满（${BKMAX}/${BKMAX}），先移除一些再加`); return; }
@@ -1846,13 +1861,74 @@ const LDG = D.ledger || null, LDG_CAV = "台账记录的是模型在默认参数
 const LDG_ST = {ok: "FCF 三情景", negfcf: "FCF ≤ 0", ri: "剩余收益法", na: "不适用"}, LDG_MB = {avg3: "平均", fy: "财年", ttm: "TTM", ramp: "爬坡"};
 const LDG_AK = {R0: "营收基数", m0: "FCF 利润率路径", g0: "起始增速", bs: "净现金与股数", rate: "参数 rf/ERP/gT/N,T", roe: "ROE", bvps: "每股净资产"};
 const ldgM0 = r => r.m0 == null ? "—" : r.mb === "ramp" ? `${dp(r.ms)}→${dp(r.m0)} <span class="small">爬坡 ${r.rn} 年</span>` : `${dp(r.m0)} <span class="small">${esc(LDG_MB[r.mb] || "")}</span>`;
+// ---- rule-based tags: EXACT mirror of radar/ledger.py tags() on the compact record, same thresholds (D.ledger.tag_cfg <- config
+// valuation.ledger.tags). Computed here so records written before tagging get them too; keep both sides identical.
+const LDG_TC = Object.assign({chg_big: 15, chg: 5, chg_small: 2, mreq_big: 5, mreq: 2, pos_far: 50, pos: 15, cmb_base: 5, cmb_px_flat: 2,
+  cmb_px: 10, cmb_base_flat: 2, cons: 3, gap: 10}, (LDG && LDG.tag_cfg) || {});
+const LDG_FK = new Set(["R0", "m0", "g0", "roe", "bvps"]);
+function ldgTags(r) {
+  const T = LDG_TC, out = [], x = r.x, st = r.st, nn = v => v != null;
+  const bp = x ? x.base_pct : null, pp = x ? x.price_pct : null;
+  if (x && st === "negfcf" && nn(x.mreq_pp)) { const d = x.mreq_pp;
+    out.push(d >= T.mreq_big ? "需要利润率大幅上升" : d >= T.mreq ? "需要利润率上升" : d <= -T.mreq_big ? "需要利润率大幅下降" : d <= -T.mreq ? "需要利润率下降" : "基本不变"); }
+  else if (nn(bp)) out.push(bp >= T.chg_big ? "大幅上调" : bp >= T.chg ? "上调" : bp <= -T.chg_big ? "大幅下调" : bp <= -T.chg ? "下调" : Math.abs(bp) >= T.chg_small ? "小幅变化" : "基本不变");
+  if ((st === "ok" || st === "ri") && nn(r.gap)) { const g = r.gap * 100;
+    out.push(g >= T.pos_far ? "现价远低于基准" : g >= T.pos ? "现价低于基准" : g <= -T.pos_far ? "现价远高于基准" : g <= -T.pos ? "现价高于基准" : "接近基准"); }
+  if ((st === "ok" || st === "ri") && nn(r.px)) {
+    if (nn(r.br) && r.px < r.br) out.push("现价低于熊情景");
+    if (nn(r.bl) && r.px > r.bl) out.push("现价高于牛情景");
+  }
+  if (x) {
+    if (nn(bp) && nn(pp) && bp >= T.cmb_base && pp <= T.cmb_px_flat) out.push("基本面改善·价格未跟");
+    if (nn(bp) && nn(pp) && pp >= T.cmb_px && bp <= T.cmb_base_flat) out.push("价格先行");
+    const a = x.a || [], tot = a.reduce((s, [, v]) => s + Math.abs(v), 0), fund = a.reduce((s, [k, v]) => LDG_FK.has(k) ? s + Math.abs(v) : s, 0);
+    if (nn(bp) && bp <= -T.cmb_base && tot > 0 && fund > tot / 2) out.push("基本面转弱");
+    const c = x.cons_pp;
+    if (nn(c) && c >= T.cons) out.push("预期上修");
+    if (nn(c) && c <= -T.cons) out.push("预期下修");
+    const gp = x.gap_pp;
+    if (nn(r.gap) && nn(gp)) { const gc = r.gap * 100, d = Math.abs(gc - gp) - Math.abs(gc);   // > 0: |gap| moved toward 0
+      if (d >= T.gap) out.push("差距收窄"); else if (d <= -T.gap) out.push("差距扩大"); }
+    if (x.bf && x.bt && x.bf !== x.bt) out.push("口径切换");
+  }
+  if (r.gd) out.push("一次性收入");
+  if (r.cap) out.push("增速截断");
+  if (r.mb === "ramp") out.push("爬坡假设");
+  if (r.cy) out.push("周期");
+  if (nn(r.bs) && r.bs <= 0) out.push("估值≤0");
+  return out;
+}
+const ldgT = r => r._t || (r._t = ldgTags(r));
+// tag catalogue: [name, group, colour class, rule text]; groups are OR inside, AND across in the filter
+const LDG_TG = (T => [
+  ["大幅上调", "chg", "up", `基准估值较上期 ≥ +${T.chg_big}%`], ["上调", "chg", "up", `+${T.chg}% ≤ 变化 < +${T.chg_big}%`],
+  ["小幅变化", "chg", "", `${T.chg_small}% ≤ |变化| < ${T.chg}%`], ["基本不变", "chg", "", `|变化| < ${T.chg_small}%（FCF ≤ 0 时：需要的利润率变化 < ${T.mreq}pt）`],
+  ["下调", "chg", "dn", `−${T.chg_big}% < 变化 ≤ −${T.chg}%`], ["大幅下调", "chg", "dn", `≤ −${T.chg_big}%`],
+  ["需要利润率大幅上升", "chg", "", `FCF ≤ 0：需要的 FCF 利润率上升 ≥ ${T.mreq_big}pt`], ["需要利润率上升", "chg", "", `${T.mreq}~${T.mreq_big}pt`],
+  ["需要利润率下降", "chg", "", `下降 ${T.mreq}~${T.mreq_big}pt`], ["需要利润率大幅下降", "chg", "", `下降 ≥ ${T.mreq_big}pt`],
+  ["现价远低于基准", "pos", "up", `基准 / 现价 − 1 ≥ +${T.pos_far}%`], ["现价低于基准", "pos", "up", `+${T.pos}% ~ +${T.pos_far}%`],
+  ["接近基准", "pos", "", `±${T.pos}% 以内`], ["现价高于基准", "pos", "dn", `−${T.pos}% ~ −${T.pos_far}%`], ["现价远高于基准", "pos", "dn", `≤ −${T.pos_far}%`],
+  ["现价低于熊情景", "band", "up", "现价 < Bear 每股价值"], ["现价高于牛情景", "band", "dn", "现价 > Bull 每股价值"],
+  ["基本面改善·价格未跟", "cmb", "cmb", `基准估值 ≥ +${T.cmb_base}% 且股价 ≤ +${T.cmb_px_flat}%`], ["价格先行", "cmb", "cmb", `股价 ≥ +${T.cmb_px}% 且基准估值 ≤ +${T.cmb_base_flat}%`],
+  ["基本面转弱", "cmb", "cmb", `基准估值 ≤ −${T.cmb_base}%，且归因里 营收基数 / FCF 利润率 / 起始增速（金融：ROE / 每股净资产）合计占一半以上`],
+  ["预期上修", "cmb", "cmb", `一致预期营收增速 ≥ +${T.cons}pt`], ["预期下修", "cmb", "cmb", `一致预期营收增速 ≤ −${T.cons}pt`],
+  ["差距收窄", "cmb", "cmb", `|基准相对现价| 向 0 靠近 ≥ ${T.gap}pt`], ["差距扩大", "cmb", "cmb", `|基准相对现价| 远离 0 ≥ ${T.gap}pt`],
+  ["口径切换", "cmb", "cmb", "FCF 利润率口径与上期不同"],
+  ["一次性收入", "warn", "warn", "TTM 疑似含一次性收入，未外推"], ["增速截断", "warn", "warn", "起始增速触到上下限被截断"],
+  ["爬坡假设", "warn", "warn", "利润率爬坡口径：稳态 T 和年数 N 是用户假设"], ["周期", "warn", "warn", "周期性环节：用多年平均利润率"],
+  ["估值≤0", "warn", "warn", "基准每股价值 ≤ 0"]])(LDG_TC);
+const LDG_TGM = Object.fromEntries(LDG_TG.map(x => [x[0], x])), LDG_GRP = {chg: "变化幅度", pos: "估值位置", band: "熊 / 牛情景", cmb: "组合", warn: "注意"};
+const LDG_TNOTE = "标签按固定阈值机械生成，描述模型输出和数据变化，不是买卖信号；方法未回测。";
+const ldgChip = t => { const m = LDG_TGM[t] || [t, "", "", ""];
+  return `<span class="ltag ${m[2]}" title="${esc(`${LDG_GRP[m[1]] || ""}：${m[3]}`)}">${m[1] === "warn" ? "<b>注意</b>" : ""}${esc(t)}</span>`; };
+const ldgChips = (r, sm) => { const ts = ldgT(r); return ts.length ? `<div class="ltags${sm ? " sm" : ""}">${ts.map(ldgChip).join("")}</div>` : ""; };
 // basket column: latest ledger change of this ticker (display only)
 function ldgBkCell(e) {
   const r = (LDG && LDG.by[e.ticker] || []).at(-1);
   if (!r) return `<span class="small">—</span>`;
-  if (!r.x) return `<span class="small" data-tip="${esc(r.c)}">首次记录 ${esc(r.d)}</span>`;
+  if (!r.x) return `<span class="small" data-tip="${esc(r.c)}">首次记录 ${esc(r.d)}</span>${ldgChips(r, 1)}`;
   const t = r.x.base_pct != null ? sgp(r.x.base_pct) : r.x.ps !== r.st ? `${esc(LDG_ST[r.x.ps] || r.x.ps)}→${esc(LDG_ST[r.st] || r.st)}` : "—";
-  return `<span data-tip="${esc(r.c)}">${t}</span><div class="small">${esc(r.x.tag || "")}${r.x.price_pct != null ? ` 股价 ${sgp(r.x.price_pct)}` : ""}</div>`;
+  return `<span data-tip="${esc(r.c)}">${t}</span><div class="small">${esc(r.x.tag || "")}${r.x.price_pct != null ? ` 股价 ${sgp(r.x.price_pct)}` : ""}</div>${ldgChips(r, 1)}`;
 }
 const LDG_AC = {R0: "#5b93ff", m0: "#37c6e0", g0: "#b19cfb", bs: "#9aa6b4", rate: "#e6b450", roe: "#46c486", bvps: "#5b93ff"};
 const ldgRows = t => (LDG && LDG.by[t]) || [];
@@ -1901,6 +1977,7 @@ function ldgBlock(e) {
     <td class="n">${dp(r.g0)}</td><td class="small">${esc(r.c)}</td></tr>`).join("");
   const a = L.x?.a;
   return `<div class="ldg"><div class="ldg-c"><b>估值台账</b> <span class="small">（固定用默认参数，${esc(L.d)}；上方实时估值按你当前的参数）</span>：${esc(L.c)}</div>
+    ${ldgT(L).length ? `${ldgChips(L)}<div class="small muted">${esc(LDG_TNOTE)}</div>` : ""}
     ${a ? `<div class="small ldg-attr">本期归因（占上期基准估值的百分点，按 营收基数 → FCF 利润率路径 → 起始增速 → 净现金与股数 → 参数 的顺序依次替换，相加等于总变化）：${ldgBars(a)} ${ldgLegend(a.map(x => x[0]))}</div>` : ""}
     <details><summary class="small">台账明细：${rs.length} 条记录 · 股价与基准估值走势 · 每期结论</summary>
       ${ldgSvg(rs)}
@@ -1910,7 +1987,61 @@ function ldgBlock(e) {
     </details></div>`;
 }
 // global section: latest run vs the previous run
-const LDGS = {chg: {k: "base_pct", dir: -1}, gap: {k: "gap_pp", dir: -1}, imp: {k: "implied_pp", dir: -1}, snap: {k: "gap", dir: -1}};
+const LDGS = {chg: {k: "base_pct", dir: -1}, gap: {k: "gap_pp", dir: -1}, imp: {k: "implied_pp", dir: -1}, all: {k: "gap", dir: -1}};
+// ---- filters (client side; kept for this tab in sessionStorage). Sector / type match ANY entry of the ticker on this page
+const LFKEY = "industry-radar-ldg-filter-us-v1", LF0 = {q: "", sec: "", kind: "", st: "", mb: "", tags: [], bk: false, gmin: "", gmax: "", dir: ""};
+let LF = {...LF0};
+try { const j = JSON.parse(sessionStorage.getItem(LFKEY) || "null");
+  if (j && typeof j === "object") Object.keys(LF0).forEach(k => { if (typeof j[k] === typeof LF0[k] && (k !== "tags" || Array.isArray(j[k]))) LF[k] = k === "tags" ? j[k].filter(t => LDG_TGM[t]) : j[k]; }); }
+catch (err) { LF = {...LF0}; }
+const lfSave = () => { try { sessionStorage.setItem(LFKEY, JSON.stringify(LF)); } catch (err) { /* storage blocked: filters still work for this view */ } };
+const LDG_EN = D.entries.reduce((m, e) => ((m[e.ticker] = m[e.ticker] || []).push(e), m), {});
+const lfNum = s => { const v = s === "" ? NaN : +s; return isFinite(v) ? v : null; };
+function ldgPass(x) {
+  const r = x.r, f = LF, es = LDG_EN[x.t] || [];
+  if (f.q) { const q = f.q.trim().toLowerCase(); if (q && !(x.t.toLowerCase().includes(q) || (r.nm || "").toLowerCase().includes(q) || es.some(e => (e.name || "").toLowerCase().includes(q)))) return false; }
+  if (f.sec || f.kind) { const ok = e => (!f.sec || e.sector === f.sec) && (!f.kind || e.kind === f.kind);
+    if (!(es.length ? es.some(ok) : ok({sector: r.sec, kind: r.kind}))) return false; }
+  if (f.st && r.st !== f.st) return false;
+  if (f.mb && (f.mb === "cyclical" ? !r.cy : r.mb !== f.mb)) return false;
+  if (f.bk && !BK.items.some(it => it.ticker === x.t)) return false;
+  const lo = lfNum(f.gmin), hi = lfNum(f.gmax);
+  if ((lo != null || hi != null) && (r.gap == null || (lo != null && r.gap * 100 < lo) || (hi != null && r.gap * 100 > hi))) return false;
+  if (f.dir && LDG.n_runs > 1) { const b = r.x?.base_pct, fl = LDG.flat_pct;
+    if (b == null || (f.dir === "up" ? !(b > fl) : f.dir === "dn" ? !(b < -fl) : Math.abs(b) > fl)) return false; }
+  if (f.tags.length) { const ts = ldgT(r), by = {};
+    f.tags.forEach(t => (by[LDG_TGM[t][1]] = by[LDG_TGM[t][1]] || []).push(t));
+    if (!Object.values(by).every(g => g.some(t => ts.includes(t)))) return false; }
+  return true;
+}
+function renderLdgFilt() {
+  const el = $("ldgFilt");
+  if (!LDG) { el.innerHTML = ""; return; }
+  const cur = ldgLatest(), cnt = {}, one = LDG.n_runs < 2, o = (v, l, s) => `<option value="${esc(v)}"${s === v ? " selected" : ""}>${esc(l)}</option>`;
+  cur.forEach(x => ldgT(x.r).forEach(t => cnt[t] = (cnt[t] || 0) + 1));
+  const grp = g => `<div class="ldg-tg"><span class="small">${esc(LDG_GRP[g])}</span><span class="seg-pick" role="group" aria-label="${esc("标签：" + LDG_GRP[g])}">${LDG_TG.filter(t => t[1] === g)
+    .map(t => `<button type="button" data-lf-tag="${esc(t[0])}" aria-pressed="${LF.tags.includes(t[0])}" title="${esc(t[3])}">${esc(t[0])}<span class="n">${cnt[t[0]] || 0}</span></button>`).join("")}</span></div>`;
+  el.innerHTML = `<div class="toolbar ldg-f" role="search" aria-label="台账筛选">
+      <label>搜索 <input type="search" id="lfQ" value="${esc(LF.q)}" placeholder="代码或公司名" autocomplete="off"></label>
+      <label>行业 <select id="lfSec">${o("", "全部", LF.sec)}${D.sectors.map(s => o(s.id, s.name, LF.sec)).join("")}</select></label>
+      <label>类型 <select id="lfKind">${o("", "全部", LF.kind)}${o("leader", "龙头", LF.kind)}${o("emerging", "新兴", LF.kind)}</select></label>
+      <label>估值方式 <select id="lfSt">${o("", "全部", LF.st)}${o("ok", "FCF 三情景", LF.st)}${o("negfcf", "FCF ≤ 0", LF.st)}${o("ri", "剩余收益", LF.st)}${o("na", "不适用", LF.st)}</select></label>
+      <label>FCF 口径 <select id="lfMb">${o("", "全部", LF.mb)}${o("avg3", "多年平均（avg3）", LF.mb)}${o("fy", "最近财年（fy）", LF.mb)}${o("ttm", "TTM", LF.mb)}${o("ramp", "爬坡（ramp）", LF.mb)}${o("cyclical", "周期（多年平均）", LF.mb)}</select></label>
+      <span>估值位置（Base vs 现价）<input type="number" id="lfGmin" step="5" value="${esc(LF.gmin)}" placeholder="最小" aria-label="Base 相对现价下限（%）"> ~ <input type="number" id="lfGmax" step="5" value="${esc(LF.gmax)}" placeholder="最大" aria-label="Base 相对现价上限（%）"> %</span>
+      <label>变化方向 <select id="lfDir"${one ? ' disabled title="只有一期记录，下次更新后可用"' : ""}>${o("", "全部", LF.dir)}${o("up", "上调", LF.dir)}${o("dn", "下调", LF.dir)}${o("flat", "不变", LF.dir)}</select></label>
+      <label><input type="checkbox" id="lfBk"${LF.bk ? " checked" : ""}> 只看对比池</label>
+      <button type="button" class="btn ghost" id="lfReset">清除筛选</button></div>
+    <div class="ldg-tf">${["chg", "pos", "band", "cmb", "warn"].map(grp).join("")}</div>
+    <div class="small muted">${esc(LDG_TNOTE)} 同一组内多选为“任一”，不同组之间为“同时满足”；变化类标签要等有上一期记录后才会出现。</div>
+    <details class="small"><summary>标签规则</summary><ul>${Object.entries(LDG_GRP).map(([g, n]) => `<li><b>${esc(n)}</b>：${LDG_TG.filter(t => t[1] === g).map(t => `${ldgChip(t[0])} ${esc(t[3])}`).join("；")}</li>`).join("")}</ul>
+      <p>阈值在 config/config.json 的 valuation.ledger.tags；radar/ledger.py 记录时按同一规则计算并保存，页面从台账记录重算（老记录也有标签）。位置类只看 FCF 三情景 / 剩余收益的记录；变化与组合类需要上一期记录。</p></details>`;
+}
+const LF_IDS = {lfQ: "q", lfSec: "sec", lfKind: "kind", lfSt: "st", lfMb: "mb", lfGmin: "gmin", lfGmax: "gmax", lfDir: "dir"};
+function lfInput(ev) {
+  const t = ev.target;
+  if (t.id === "lfBk") LF.bk = t.checked; else if (LF_IDS[t.id]) LF[LF_IDS[t.id]] = t.value; else return;
+  lfSave(); renderLdg();
+}
 function ldgLatest() {
   if (!LDG) return [];
   return Object.entries(LDG.by).map(([t, rs]) => ({t, r: rs.at(-1)})).filter(x => x.r.k === LDG.latest);
@@ -1933,32 +2064,51 @@ function ldgChgTable(id, title, list, sel, n = 15) {
 function renderLdg() {
   const el = $("ldgBody");
   if (!LDG) { el.innerHTML = `<p class="small">还没有台账记录：运行 <code>python -m radar ledger</code>（每周更新时在 valuation 之后运行）。</p>`; return; }
-  const cur = ldgLatest(), run = LDG.runs.at(-1), chg = cur.filter(x => x.r.x && x.r.x.base_pct != null);
-  if (LDG.n_runs < 2 || !cur.some(x => x.r.x)) {
-    const get = (x, k) => ({px: x.r.px, bs: x.r.bs, gap: x.r.gap, ig: x.r.ig ?? x.r.iroe, m0: x.r.m0, g0: x.r.g0})[k];
-    const rows = ldgSorted("snap", cur, get).map(x => `<tr><td>${ldgCo(x)}</td><td class="small">${esc(LDG_ST[x.r.st] || x.r.st)}</td><td class="n">${num(x.r.px, 2)} <small>${esc(x.r.ccy || "")}</small></td>
-      <td class="n">${x.r.bs != null ? num(x.r.bs, 2) : "—"}</td><td class="n">${ldgGap(x.r.gap)}</td><td class="n">${ldgImp(x.r)}</td>
-      <td class="n">${ldgM0(x.r)}</td><td class="n">${dp(x.r.g0)}</td></tr>`).join("");
-    el.innerHTML = `<div class="concl">首次记录 ${esc(run.date)}，共 ${cur.length} 家；下次每周更新后显示变化。</div>
-      <h3>本期快照 <span class="small">（默认参数；点表头排序）</span></h3><div class="tscroll"><table><thead><tr><th scope="col">公司</th><th scope="col">估值方式</th>${ldgTh("snap", "px", "股价", 1)}${ldgTh("snap", "bs", "Base", 1)}
-      ${ldgTh("snap", "gap", "Base vs 现价", 1)}${ldgTh("snap", "ig", "隐含增速", 1)}${ldgTh("snap", "m0", "m0（口径）", 1)}${ldgTh("snap", "g0", "g0", 1)}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  const all = ldgLatest(), cur = all.filter(ldgPass), run = LDG.runs.at(-1), chg = cur.filter(x => x.r.x && x.r.x.base_pct != null);
+  const tbl = ldgAllTable(cur, all.length);
+  if (LDG.n_runs < 2 || !all.some(x => x.r.x)) {
+    el.innerHTML = `<div class="concl">首次记录 ${esc(run.date)}，共 ${all.length} 家；下次每周更新后显示变化（变化类和组合类标签、变化方向筛选届时可用）。</div>${tbl}`;
     return;
   }
-  const fl = LDG.flat_pct, up = chg.filter(x => x.r.x.base_pct > fl).length, dn = chg.filter(x => x.r.x.base_pct < -fl).length, flat = chg.length - up - dn;
+  const ca = all.filter(x => x.r.x && x.r.x.base_pct != null);   // the summary line counts the whole run; tables below follow the filters
+  const fl = LDG.flat_pct, up = ca.filter(x => x.r.x.base_pct > fl).length, dn = ca.filter(x => x.r.x.base_pct < -fl).length, flat = ca.length - up - dn;
   const prev = LDG.runs.find(r => r.k === LDG.prev), tags = {};
-  chg.forEach(x => { const t = x.r.x.tag || "其他"; tags[t] = (tags[t] || 0) + 1; });
-  el.innerHTML = `<div class="concl">本期 ${esc(run.date)}（股价 ${esc(run.px_date || "")}）对比上期 ${esc(prev?.date || "—")}（股价 ${esc(prev?.px_date || "")}）：本期 ${cur.length} 家，可比 ${chg.length} 家。
+  ca.forEach(x => { const t = x.r.x.tag || "其他"; tags[t] = (tags[t] || 0) + 1; });
+  el.innerHTML = `<div class="concl">本期 ${esc(run.date)}（股价 ${esc(run.px_date || "")}）对比上期 ${esc(prev?.date || "—")}（股价 ${esc(prev?.px_date || "")}）：本期 ${all.length} 家，可比 ${ca.length} 家。
       估值上调 <b>${up}</b> · 下调 <b>${dn}</b> · 基本不变（±${num(fl, 0)}%）<b>${flat}</b>；${Object.entries(tags).sort((a, b) => b[1] - a[1]).map(([t, c]) => `${esc(t)} ${c}`).join(" · ")}</div>
     ${(sc => sc.length ? `<div class="small">估值方式变化（不做归因）：${sc.map(x => `<button type="button" class="btn ghost ldg-jump" data-ldg-jump="${esc(x.t)}">${esc(x.t)}</button> ${esc(LDG_ST[x.r.x.ps] || x.r.x.ps)} → ${esc(LDG_ST[x.r.st] || x.r.st)}`).join("；")}</div>` : "")(cur.filter(x => x.r.x && x.r.x.ps && x.r.x.ps !== x.r.st))}
     <div class="small">归因颜色：${ldgLegend(["R0", "m0", "g0", "bs", "rate"])}（金融口径：${ldgLegend(["roe", "bvps"])}）</div>
+    ${tbl}
+    ${cur.length < all.length ? `<div class="small">以下三张表按上方筛选（${cur.length} / ${all.length} 家）。</div>` : ""}
     ${ldgChgTable("chg", "基准估值变化最大", chg, "base_pct")}${ldgChgTable("gap", "估值相对现价变化最大", cur.filter(x => x.r.x), "gap_pp")}${ldgChgTable("imp", "隐含增速变化最大", cur.filter(x => x.r.x), "implied_pp")}`;
+}
+// unified result table: every company of the latest run that passes the filters
+function ldgAllTable(list, N) {
+  const get = (x, k) => ({px: x.r.px, bs: x.r.bs, gap: x.r.gap, ig: x.r.ig ?? x.r.iroe, base_pct: x.r.x?.base_pct, price_pct: x.r.x?.price_pct, gap_pp: x.r.x?.gap_pp})[k];
+  const ent = x => (LDG_EN[x.t] || []).find(e => (!LF.sec || e.sector === LF.sec) && (!LF.kind || e.kind === LF.kind)) || (LDG_EN[x.t] || [])[0];
+  const rows = ldgSorted("all", list, get).map(x => { const r = x.r, e = ent(x);
+    return `<tr data-ldg-row="${esc(x.t)}"><td>${ldgCo(x)}</td><td class="small">${esc(SEC[e?.sector || r.sec]?.name || r.sec)}<div>${(e?.kind || r.kind) === "leader" ? "龙头" : "新兴"}</div></td>
+      <td class="small">${esc(LDG_ST[r.st] || r.st)}${r.mb ? `<div>${esc(r.cy ? "周期·多年平均" : LDG_MB[r.mb] || r.mb)}</div>` : ""}</td>
+      <td class="n">${num(r.px, 2)} <small>${esc(r.ccy || "")}</small></td><td class="n">${r.bs != null ? num(r.bs, 2) : "—"}</td><td class="n">${ldgGap(r.gap)}</td><td class="n">${ldgImp(r)}</td>
+      <td class="n">${sgp(r.x?.base_pct)}</td><td class="n">${sgp(r.x?.price_pct)}</td><td class="n">${sgp(r.x?.gap_pp, 1, "pt")}</td>
+      <td>${ldgChips(r, 1) || '<span class="small">—</span>'}</td><td class="small">${esc(r.c)}</td></tr>`; }).join("")
+    || `<tr><td colspan="12" class="small">没有符合筛选条件的公司</td></tr>`;
+  return `<h3>全部公司 <span class="small" id="ldgCnt" data-n="${list.length}">${list.length} / ${N} 家（默认参数；点表头排序；点代码打开评估卡）</span></h3>
+    <div class="tscroll ldg-all"><table id="ldgAll"><thead><tr><th scope="col">公司</th><th scope="col">行业 · 类型</th><th scope="col">估值方式 · 口径</th>${ldgTh("all", "px", "股价", 1)}${ldgTh("all", "bs", "Base", 1)}
+      ${ldgTh("all", "gap", "Base vs 现价", 1)}${ldgTh("all", "ig", "隐含增速", 1)}${ldgTh("all", "base_pct", "基准变化", 1)}${ldgTh("all", "price_pct", "股价变化", 1)}${ldgTh("all", "gap_pp", "相对现价变化", 1)}
+      <th scope="col">标签</th><th scope="col">结论</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 $("sLdg").addEventListener("click", ev => {
   const s = ev.target.closest("[data-ldg-sort]");
   if (s) { const [id, k] = s.dataset.ldgSort.split("|"); LDGS[id] = LDGS[id].k === k ? {k, dir: -LDGS[id].dir} : {k, dir: -1}; renderLdg(); return; }
+  const tg = ev.target.closest("[data-lf-tag]");
+  if (tg) { const t = tg.dataset.lfTag; LF.tags = LF.tags.includes(t) ? LF.tags.filter(y => y !== t) : [...LF.tags, t]; tg.setAttribute("aria-pressed", LF.tags.includes(t)); lfSave(); renderLdg(); return; }
+  if (ev.target.closest("#lfReset")) { LF = {...LF0, tags: []}; lfSave(); renderLdgFilt(); renderLdg(); return; }
   const j = ev.target.closest("[data-ldg-jump]");
-  if (j) { const r = ldgRows(j.dataset.ldgJump).at(-1); if (r && !jumpCompany(r.sec, j.dataset.ldgJump, r.kind)) $("ldgMsg").textContent = "当前数据里找不到这家公司"; }
+  if (j) { const t = j.dataset.ldgJump, r = ldgRows(t).at(-1), e = (LDG_EN[t] || []).find(y => (!LF.sec || y.sector === LF.sec) && (!LF.kind || y.kind === LF.kind));
+    if (r && !(e ? jumpCompany(e.sector, t, e.kind) : jumpCompany(r.sec, t, r.kind))) $("ldgMsg").textContent = "当前数据里找不到这家公司"; }
 });
+$("sLdg").addEventListener("input", lfInput);
 
 // ---- parameter panel
 function dcfPanel() {
@@ -2051,7 +2201,7 @@ $("dcfReset").onclick = () => { const ov = DCFP.ov; try { localStorage.removeIte
 $("dcfOvClear").onclick = () => { const n = Object.keys(DCFP.ov).length; DCFP.ov = {}; dcfSave(); dcfPanel(); dcfRefresh();
   bkToast(n ? `已清除 ${n} 家单独设定` : "没有单独设定"); };
 addEventListener("storage", ev => { if (ev.key === DCF_KEY) { dcfLoad(); dcfPanel(); dcfRefresh(); } });   // another tab changed the parameters
-dcfLoad(); dcfPanel(); renderLdg();
+dcfLoad(); dcfPanel(); renderLdgFilt(); renderLdg();
 
 // ---------- ⑤ opportunities
 function renderOpp() {

@@ -286,6 +286,10 @@ FCF 利润率口径（页面参数，默认"自动"；不需要额外接口，�
 
 `valuation_<ts>.json`：`fetched_at, snap, latest, fiscal_years[5], ytd, ytd_ago, rules, complete, rf{value, date, y2, y5, y30, spread_10_2, source, url, page, check}, sources{report date: {ok, rows, codes, screen}}, items{code: {rev{date: CNY}, ocf{…}, capex{…}, bal{monetaryfunds, trade_finasset, trade_finasset_notfvtpl, short_loan, long_loan, bond_payable, noncurrent_liab_1year, lease_liab} | null}}, http`。约 170 次请求（15 次全市场分页查询 + 国债收益率 1 次）；已结束财年缓存 30 天，最新期 1 天，中断重跑从缓存续上。
 
+## m. 估值台账（`python -m cn ledger`，不联网，只展示）
+
+输入全部是本地文件（最新快照 + valuation + cards + ranges + holders），用默认参数算；输出 `data/cn/ledger/cn_ledger.jsonl`（只追加）。记录字段除估值数值和 `chg`（与上一条的变化、归因、结论）外，新记录带 `tags`（`TAG_RULES` 规则标签；加入标签前写的记录没有此字段，页面从 `tag_input()` 同口径的压缩记录 `ledger.rec` 重算）。页面嵌入 `ledger.rec{code: {s, p, lo, b, hi, gp, ig, igs, mr, mk, mb, gd, cp, cy, ch, bp, pp, gpp, mpp, cgp, lbc, wnd, bsc, ak}}` 和 `ledger.tag_rules`。台账记录的是模型在默认参数下的输出，用来对比数据变化带来的估值变化；不是目标价，不是买卖建议；方法未回测。
+
 ---
 
 ## 请求量参考

@@ -328,6 +328,113 @@ def compute_chg(prev, cur):
     return c
 
 
+# ----------------------------------------------------------------------------- rule-based tags (display only)
+# Mechanical tags from fixed thresholds. They describe the model output and the data change; they are not buy / sell
+# signals; the method is not backtested. The page (templates/cn_dashboard.html, lgTags) mirrors tags() line by line on the
+# same compact record tag_input(); both must give identical lists (checked by the parity script / smoke).
+TAG_RULES = {
+    "chg_pct": {"big": 15.0, "mid": 5.0, "flat": 2.0},      # base value change % (ok -> ok)
+    "mreq_pt": {"big": 5.0, "mid": 2.0},                    # required FCF margin change, pt (negfcf -> negfcf)
+    "gap": {"far": 0.5, "near": 0.15},                      # gap_base = base / price - 1 (status ok)
+    "combo": {"fund_up": 5.0, "price_flat": 2.0, "price_lead": 10.0, "base_flat": 2.0, "fund_dn": 5.0,
+              "fund_keys": ["r0", "m0", "g0"], "cons_pt": 3.0, "gap_pp": 10.0},
+    "note": "标签按固定阈值机械生成，描述模型输出和数据变化，不是买卖信号；方法未回测。",
+}
+
+
+def _dom(attr):
+    """Key of the largest |contribution| (first one on ties), None without attribution."""
+    if not attr:
+        return None
+    best, bv = None, -1.0
+    for a in attr:
+        v = a[2] if a[2] is not None else a[1]
+        if v is not None and abs(v) > bv:
+            best, bv = a[0], abs(v)
+    return best
+
+
+def tag_input(x):
+    """Compact record used by tags() here and lgTags() on the page (None fields omitted)."""
+    ch = x.get("chg")
+    t = {"s": x.get("status"), "p": x.get("price"), "lo": _r(x.get("bear"), 4), "b": _r(x.get("base"), 4), "hi": _r(x.get("bull"), 4),
+         "gp": _r(x.get("gap_base"), 5), "ig": _r(x.get("implied_g"), 3), "igs": x.get("implied_g_status"),
+         "mr": _r(x.get("implied_m"), 6), "mk": x.get("implied_m_kind"), "mb": x.get("basis"),
+         "gd": "".join(x.get("guard") or []) or None, "cp": 1 if x.get("capped") else None, "cy": 1 if x.get("cyclical") else None}
+    if ch:
+        t.update({"ch": 1, "bp": _r(ch.get("base_pct"), 4), "pp": _r(ch.get("price_pct"), 4), "gpp": _r(ch.get("gap_pp"), 4),
+                  "mpp": _r(ch.get("implied_m_pp"), 4), "cgp": _r(ch.get("cons_g_pp"), 4),
+                  "lbc": 1 if ch.get("label") else None, "wnd": ch.get("warn_n_d") or None, "bsc": 1 if ch.get("basis") else None,
+                  "ak": _dom(ch.get("attr")) if ch.get("attr_of") == "base" else None})
+    return {k: v for k, v in t.items() if v is not None}
+
+
+def tags(t, R=TAG_RULES):
+    """[[group, text]] for a compact record; groups: chg (变化幅度), pos (估值位置), cmb (组合信号), note (注意)."""
+    out = []
+    g = t.get
+    bp, pp, s = g("bp"), g("pp"), g("s")
+    if g("ch"):
+        c = R["chg_pct"]
+        if bp is not None:
+            out.append(["chg", "大幅上调" if bp >= c["big"] else "上调" if bp >= c["mid"] else "大幅下调" if bp <= -c["big"]
+                        else "下调" if bp <= -c["mid"] else "小幅变化" if abs(bp) >= c["flat"] else "基本不变"])
+        elif g("mpp") is not None:
+            m, q = g("mpp"), R["mreq_pt"]
+            if m >= q["big"]:
+                out.append(["chg", "需要利润率 大幅上升"])
+            elif m >= q["mid"]:
+                out.append(["chg", "需要利润率 上升"])
+            elif m <= -q["big"]:
+                out.append(["chg", "需要利润率 大幅下降"])
+            elif m <= -q["mid"]:
+                out.append(["chg", "需要利润率 下降"])
+    if s == "ok" and g("gp") is not None:
+        gp, q = g("gp"), R["gap"]
+        out.append(["pos", "现价远低于基准" if gp >= q["far"] else "现价低于基准" if gp >= q["near"] else "接近基准" if gp > -q["near"]
+                    else "现价高于基准" if gp > -q["far"] else "现价远高于基准"])
+        if g("p") is not None and g("lo") is not None and g("p") < g("lo"):
+            out.append(["pos", "现价低于熊情景"])
+        if g("p") is not None and g("hi") is not None and g("p") > g("hi"):
+            out.append(["pos", "现价高于牛情景"])
+    if g("ch"):
+        c = R["combo"]
+        if bp is not None and bp >= c["fund_up"] and pp is not None and pp <= c["price_flat"]:
+            out.append(["cmb", "基本面改善·价格未跟"])
+        if pp is not None and pp >= c["price_lead"] and bp is not None and bp <= c["base_flat"]:
+            out.append(["cmb", "价格先行"])
+        if bp is not None and bp <= -c["fund_dn"] and g("ak") in c["fund_keys"]:
+            out.append(["cmb", "基本面转弱"])
+        if g("cgp") is not None and g("cgp") >= c["cons_pt"]:
+            out.append(["cmb", "预期上修"])
+        if g("cgp") is not None and g("cgp") <= -c["cons_pt"]:
+            out.append(["cmb", "预期下修"])
+        if g("gp") is not None and g("gpp") is not None:
+            cur = g("gp") * 100
+            d = abs(cur) - abs(cur - g("gpp"))
+            if d <= -c["gap_pp"]:
+                out.append(["cmb", "差距收窄"])
+            elif d >= c["gap_pp"]:
+                out.append(["cmb", "差距扩大"])
+        if g("bsc"):
+            out.append(["cmb", "口径切换"])
+        if g("lbc"):
+            out.append(["cmb", "标签变化"])
+        if g("wnd"):
+            out.append(["cmb", "风险门禁变化"])
+    if g("gd"):
+        out.append(["note", "一次性收入"])
+    if g("cp"):
+        out.append(["note", "增速截断"])
+    if g("mb") == "ramp":
+        out.append(["note", "爬坡假设"])
+    if g("cy"):
+        out.append(["note", "周期"])
+    if s == "ok" and g("b") is not None and g("b") <= 0:
+        out.append(["note", "估值≤0"])
+    return out
+
+
 # ----------------------------------------------------------------------------- file
 def load(path=LEDGER_FILE):
     if not os.path.exists(path):
@@ -367,6 +474,7 @@ def run(path=LEDGER_FILE, ctx=None, run_at=None):
         prev = last.get(r["code"])
         rec["chg"] = compute_chg(prev, rec) if prev else None
         rec["conclusion"] = rec["chg"]["conclusion"] if rec["chg"] else first_txt(rec)
+        rec["tags"] = [t[1] for t in tags(tag_input(rec))]
         new.append(rec)
     if new:
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -409,7 +517,7 @@ def _crec(x):
             "mk": x.get("implied_m_kind"),
             "c": ch.get("conclusion") if ch else None, "t": ch.get("tag") if ch else None, "ao": ch.get("attr_of") if ch else None,
             "a": _attr_c(ch), "bp": ch.get("base_pct") if ch else None, "pp": ch.get("price_pct") if ch else None,
-            "gpp": ch.get("gap_pp") if ch else None, "igp": ch.get("implied_g_pp") if ch else None}
+            "gpp": ch.get("gap_pp") if ch else None, "igp": ch.get("implied_g_pp") if ch else None, "x": tag_input(x)}
 
 
 def page_payload(card_codes, screen_codes, snap_file, path=LEDGER_FILE):
@@ -423,11 +531,12 @@ def page_payload(card_codes, screen_codes, snap_file, path=LEDGER_FILE):
         by.setdefault(x["code"], []).append(x)
     keep = LEDGER_RULES["page_keep"]
     cards = {c: [_crec(x) for x in by[c][-keep:]] for c in card_codes if c in by}
-    allc = {}
+    allc, rec = {}, {}
     for c in screen_codes:
         if c not in by:
             continue
         x = by[c][-1]
+        rec[c] = tag_input(x)
         ch = x.get("chg")
         if not ch:
             allc[c] = by[c][0]["date"]          # first record only: its date
@@ -439,4 +548,4 @@ def page_payload(card_codes, screen_codes, snap_file, path=LEDGER_FILE):
     return {"file": os.path.relpath(path, ROOT).replace("\\", "/"), "runs": runs, "n_records": len(recs), "latest": lr,
             "prev": runs[-2] if len(runs) > 1 else None, "matches_snap": lr["snap"] == snap_file, "rules": LEDGER_RULES,
             "order_base": [a[0] for a in ATTR_BASE], "order_mreq": [a[0] for a in ATTR_MREQ],
-            "names": dict(ATTR_BASE + ATTR_MREQ), "cards": cards, "all": allc}
+            "names": dict(ATTR_BASE + ATTR_MREQ), "cards": cards, "all": allc, "rec": rec, "tag_rules": TAG_RULES}

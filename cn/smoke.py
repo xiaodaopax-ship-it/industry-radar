@@ -569,6 +569,31 @@ def ledger_checks(LDG, V, syn):
         worst = max(worst, abs(sum(x[1] for x in c_["attr"]) - (b["base"] - a["base"])) / max(abs(b["base"] - a["base"]), abs(a["base"]), 1e-9))
     check("ledger attribution sweep: random ok->ok pairs (incl. basis switches) sum to the total within 1e-9 relative",
           n_ok >= 50 and n_sw >= 10 and worst < 1e-9, f"pairs={n_ok} switches={n_sw} worst={worst:.1e}")
+    # (7b) rule-based tags (TAG_RULES) on synthetic compact records; boundaries inclusive as documented
+    T = lambda **k: [t[1] for t in LDG.tags(k)]
+    base = dict(s="ok", p=10.0, lo=8.0, b=12.0, hi=16.0, gp=0.2)
+    chg_ok = [T(**base, ch=1, bp=v)[0] for v in (15.0, 14.9, 5.0, 2.0, 1.99, -1.99, -2.0, -5.0, -15.0)]
+    check("ledger tag rules: 变化幅度 thresholds ±15 / ±5 / ±2 (inclusive)",
+          chg_ok == ["大幅上调", "上调", "上调", "小幅变化", "基本不变", "基本不变", "小幅变化", "下调", "大幅下调"]
+          and T(s="negfcf", ch=1, mpp=5.0) == ["需要利润率 大幅上升"] and T(s="negfcf", ch=1, mpp=-2.0) == ["需要利润率 下降"]
+          and T(s="negfcf", ch=1, mpp=1.9) == [] and T(**base, bp=30.0)[0] == "现价低于基准", str(chg_ok))
+    pos = [T(**{**base, "gp": g})[0] for g in (0.5, 0.15, 0.149, -0.149, -0.15, -0.5)]
+    check("ledger tag rules: 估值位置 ±50% / ±15% + 现价低于熊情景 / 现价高于牛情景; status negfcf => no position tag",
+          pos == ["现价远低于基准", "现价低于基准", "接近基准", "接近基准", "现价高于基准", "现价远高于基准"]
+          and "现价低于熊情景" in T(**{**base, "p": 7.0}) and "现价高于牛情景" in T(**{**base, "p": 17.0, "gp": -0.3})
+          and T(s="negfcf", p=10.0, gp=0.2) == [], str(pos))
+    cmb = lambda **k: [x for x in T(**base, ch=1, **k) if x not in ("上调", "大幅上调", "下调", "大幅下调", "小幅变化", "基本不变", "现价低于基准")]
+    check("ledger tag rules: 组合信号 (fund up / price lead / fund weak by r0-m0-g0 only / cons ±3pt / gap ±10pp / basis / label / warn)",
+          cmb(bp=5.0, pp=2.0) == ["基本面改善·价格未跟"] and cmb(bp=5.0, pp=2.1) == [] and cmb(bp=2.0, pp=10.0) == ["价格先行"]
+          and cmb(bp=-5.0, ak="m0") == ["基本面转弱"] and cmb(bp=-5.0, ak="par") == [] and cmb(bp=0, cgp=3.0) == ["预期上修"]
+          and cmb(bp=0, cgp=-3.0) == ["预期下修"] and cmb(bp=0, gpp=-10.0) == ["差距收窄"] and cmb(bp=0, gpp=10.0) == ["差距扩大"]
+          and cmb(bp=0, gpp=9.9) == [] and cmb(bp=0, bsc=1, lbc=1, wnd=-1) == ["口径切换", "标签变化", "风险门禁变化"]
+          and cmb(bp=5.0, pp=0.0) == ["基本面改善·价格未跟"] and T(**base, bp=5.0, pp=0.0) == ["现价低于基准"],
+          str(cmb(bp=-5.0, ak="m0")))
+    check("ledger tag rules: 注意 tags (guard / capped / ramp / cyclical / base <= 0); tag_input from a record with chg; run() stores tags",
+          T(s="ok", p=10.0, b=-1.0, gp=-1.1, gd="ab", cp=1, mb="ramp", cy=1)[-5:] == ["一次性收入", "增速截断", "爬坡假设", "周期", "估值≤0"]
+          and LDG.tag_input({**cur_, "chg": ch})["ch"] == 1 and LDG.tag_input({**cur_, "chg": ch}).get("ak") in ("r0", "m0", "g0", "ncsh", "par")
+          and "ch" not in LDG.tag_input({**cur_, "chg": None}))
     # (8) append: idempotent, append-only, first-record text
     td = tempfile.mkdtemp(prefix="cnledger_")
     tp = os.path.join(td, "t.jsonl")
@@ -582,7 +607,8 @@ def ledger_checks(LDG, V, syn):
         recs = LDG.load(tp)
         check("ledger.run: idempotent per (code, snap, val) (2nd run appends 0), append-only, first record => chg None + first-record text",
               a1[0] == 2 and a2[0] == 0 and a2[1] == 2 and a3[0] == 2 and lines3.startswith(lines1) and len(recs) == 4
-              and recs[0]["chg"] is None and recs[0]["conclusion"] == LDG.first_txt(recs[0]) and recs[2]["chg"] is not None,
+              and recs[0]["chg"] is None and recs[0]["conclusion"] == LDG.first_txt(recs[0]) and recs[2]["chg"] is not None
+              and recs[2]["tags"] == [t[1] for t in LDG.tags(LDG.tag_input(recs[2]))] and "基本不变" in recs[2]["tags"],
               f"{a1[:2]} {a2[:2]} {a3[:2]}")
     finally:
         shutil.rmtree(td, ignore_errors=True)

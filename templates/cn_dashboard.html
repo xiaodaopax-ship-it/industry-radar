@@ -190,6 +190,15 @@
   .lg-bars .lg-ax { stroke:var(--line2); } .lg-bars .lg-up { fill:var(--pos); } .lg-bars .lg-dn { fill:var(--neg); } .lg-bars .lg-bl { fill:var(--muted); font-size:10px; }
   .lg-k { display:flex; gap:16px; font-size:14px; margin:4px 0; } .lg-k b { font-size:20px; } .lg-first { font-size:14px; }
   table.lg-t td { vertical-align:top; }
+  .lg-tags { display:flex; flex-wrap:wrap; gap:2px; margin:3px 0; } .tag.lt { font-size:11px; line-height:17px; padding:0 6px; }
+  .lt-up { background:rgba(120,170,140,.10); color:#a9c4b2; border-color:rgba(120,170,140,.28); }
+  .lt-dn { background:rgba(190,135,135,.10); color:#cdaeae; border-color:rgba(190,135,135,.28); }
+  .lt-pos { background:rgba(125,150,185,.10); color:#b0bfd2; border-color:rgba(125,150,185,.28); }
+  .lt-cmb { background:rgba(160,145,185,.10); color:#bfb4d0; border-color:rgba(160,145,185,.28); }
+  .lt-note { background:rgba(140,140,140,.07); color:#959ba3; border-color:rgba(140,140,140,.2); }
+  .lg-fbar { flex-wrap:wrap; align-items:center; gap:8px 12px; } .lg-tsel { position:relative; } .lg-tsel > summary { cursor:pointer; }
+  .lg-tbox { display:flex; flex-wrap:wrap; gap:6px 16px; padding:8px; margin-top:4px; border:1px solid var(--line); border-radius:6px; max-width:980px; }
+  .lg-tgrp { display:flex; flex-direction:column; gap:2px; } .lg-tck { display:flex; align-items:center; gap:4px; font-size:12px; } .lg-tck.na { opacity:.55; }
   .tip { position:fixed; pointer-events:none; background:rgba(8,11,15,.96); border:1px solid var(--line2); border-radius:6px; padding:6px 9px; font-size:12px; display:none; z-index:60; max-width:320px; box-shadow:0 6px 18px rgba(0,0,0,.4); }
   footer { color:var(--muted); font-size:12px; }
   .addn { font:inherit; font-size:11.5px; line-height:20px; padding:0 8px; border-radius:999px; border:1px dashed var(--line2); background:transparent; color:var(--muted); cursor:pointer; white-space:nowrap; }
@@ -1961,6 +1970,70 @@ function lgBars(attr, of) {
   return `<span class="lg-bars" data-tip="${esc(`<b>归因（顺序替换，按此顺序）</b><br>${tipT}`)}"><svg viewBox="0 0 ${W} 38" width="${W}" height="38" role="img" aria-label="${esc("归因：" + attr.map(a => (LG_NM[a[0]] || a[0]) + " " + (a[2] != null ? lgSg(a[2], 1, u) : lgSg(a[1], 2, " 元"))).join("，"))}"><line x1="0" x2="${W}" y1="13" y2="13" class="lg-ax"/>${svg}${lb}</svg></span>`;
 }
 const lgAttrTxt = (attr, of) => attr ? attr.map(a => `${LG_NM[a[0]] || a[0]} ${a[2] != null ? lgSg(a[2], 2, of === "m_req" ? "pt" : "%") : lgSg(a[1], 2, " 元")}`).join("；") : "";
+// ---------- rule-based tags: line-by-line mirror of cn/ledger.py tags() on the same compact record (tag_input):
+//   LG.rec = {code: compact latest record} (all ② rows), LGC[code][i].x = compact of each card history record, LG.tag_rules = TAG_RULES
+const LGR = LG.rec || {}, TAG_R = LG.tag_rules || {};
+const TAG_NOTE = TAG_R.note || "标签按固定阈值机械生成，描述模型输出和数据变化，不是买卖信号；方法未回测。";
+function lgTags(t) {
+  const out = []; if (!t || !TAG_R.chg_pct) return out;
+  const R = TAG_R, nn = v => v !== undefined && v !== null, bp = t.bp, pp = t.pp, s = t.s;
+  if (t.ch) {
+    const c = R.chg_pct;
+    if (nn(bp)) out.push(["chg", bp >= c.big ? "大幅上调" : bp >= c.mid ? "上调" : bp <= -c.big ? "大幅下调" : bp <= -c.mid ? "下调" : Math.abs(bp) >= c.flat ? "小幅变化" : "基本不变"]);
+    else if (nn(t.mpp)) {
+      const m = t.mpp, q = R.mreq_pt;
+      if (m >= q.big) out.push(["chg", "需要利润率 大幅上升"]); else if (m >= q.mid) out.push(["chg", "需要利润率 上升"]);
+      else if (m <= -q.big) out.push(["chg", "需要利润率 大幅下降"]); else if (m <= -q.mid) out.push(["chg", "需要利润率 下降"]);
+    }
+  }
+  if (s === "ok" && nn(t.gp)) {
+    const gp = t.gp, q = R.gap;
+    out.push(["pos", gp >= q.far ? "现价远低于基准" : gp >= q.near ? "现价低于基准" : gp > -q.near ? "接近基准" : gp > -q.far ? "现价高于基准" : "现价远高于基准"]);
+    if (nn(t.p) && nn(t.lo) && t.p < t.lo) out.push(["pos", "现价低于熊情景"]);
+    if (nn(t.p) && nn(t.hi) && t.p > t.hi) out.push(["pos", "现价高于牛情景"]);
+  }
+  if (t.ch) {
+    const c = R.combo;
+    if (nn(bp) && bp >= c.fund_up && nn(pp) && pp <= c.price_flat) out.push(["cmb", "基本面改善·价格未跟"]);
+    if (nn(pp) && pp >= c.price_lead && nn(bp) && bp <= c.base_flat) out.push(["cmb", "价格先行"]);
+    if (nn(bp) && bp <= -c.fund_dn && c.fund_keys.includes(t.ak)) out.push(["cmb", "基本面转弱"]);
+    if (nn(t.cgp) && t.cgp >= c.cons_pt) out.push(["cmb", "预期上修"]);
+    if (nn(t.cgp) && t.cgp <= -c.cons_pt) out.push(["cmb", "预期下修"]);
+    if (nn(t.gp) && nn(t.gpp)) {
+      const cur = t.gp * 100, d = Math.abs(cur) - Math.abs(cur - t.gpp);
+      if (d <= -c.gap_pp) out.push(["cmb", "差距收窄"]); else if (d >= c.gap_pp) out.push(["cmb", "差距扩大"]);
+    }
+    if (t.bsc) out.push(["cmb", "口径切换"]);
+    if (t.lbc) out.push(["cmb", "标签变化"]);
+    if (t.wnd) out.push(["cmb", "风险门禁变化"]);
+  }
+  if (t.gd) out.push(["note", "一次性收入"]);
+  if (t.cp) out.push(["note", "增速截断"]);
+  if (t.mb === "ramp") out.push(["note", "爬坡假设"]);
+  if (t.cy) out.push(["note", "周期"]);
+  if (s === "ok" && nn(t.b) && t.b <= 0) out.push(["note", "估值≤0"]);
+  return out;
+}
+const LGT = Object.fromEntries(Object.entries(LGR).map(([c, t]) => [c, lgTags(t)]));
+const LG_TGRP = {chg: "变化幅度", pos: "估值位置", cmb: "组合信号", note: "注意"};
+const LG_TALL = [["chg", ["大幅上调", "上调", "小幅变化", "基本不变", "下调", "大幅下调", "需要利润率 大幅上升", "需要利润率 上升", "需要利润率 下降", "需要利润率 大幅下降"]],
+  ["pos", ["现价远低于基准", "现价低于基准", "接近基准", "现价高于基准", "现价远高于基准", "现价低于熊情景", "现价高于牛情景"]],
+  ["cmb", ["基本面改善·价格未跟", "价格先行", "基本面转弱", "预期上修", "预期下修", "差距收窄", "差距扩大", "口径切换", "标签变化", "风险门禁变化"]],
+  ["note", ["一次性收入", "增速截断", "爬坡假设", "周期", "估值≤0"]]];
+const lgTCls = t => t[0] === "chg" ? (/上调$/.test(t[1]) ? "lt-up" : /下调$/.test(t[1]) ? "lt-dn" : "lt-flat") : "lt-" + t[0];
+function lgChips(tags, compact) {
+  let a = tags || []; if (compact) a = a.filter(t => t[0] !== "note").slice(0, 3);
+  return a.map(t => `<span class="tag lt ${lgTCls(t)}" title="${esc(LG_TGRP[t[0]])}">${esc(t[1])}</span>`).join("");
+}
+function lgRulesTxt() {
+  const R = TAG_R; if (!R.chg_pct) return "";
+  const c = R.chg_pct, q = R.mreq_pt, g = R.gap, k = R.combo, P = v => num(v * 100, 0) + "%";
+  return [`<b>变化幅度</b>（需上一条记录；两期都是三情景时看基准估值变化）：≥ +${c.big}% 大幅上调；+${c.mid}%~+${c.big}% 上调；±${c.flat}%~${c.mid}% 小幅变化；绝对值 < ${c.flat}% 基本不变；−${c.mid}%~−${c.big}% 下调；≤ −${c.big}% 大幅下调。两期都是 FCF ≤ 0 时看需要的利润率：变化 ≥ ${q.mid}pt 上升，≥ ${q.big}pt 大幅上升（下降同理）。`,
+    `<b>估值位置</b>（三情景；基准相对现价 = 基准 ÷ 现价 − 1）：≥ +${P(g.far)} 现价远低于基准；+${P(g.near)}~+${P(g.far)} 现价低于基准；±${P(g.near)} 以内 接近基准；−${P(g.near)}~−${P(g.far)} 现价高于基准；≤ −${P(g.far)} 现价远高于基准；另：现价 < 熊情景 → 现价低于熊情景，现价 > 牛情景 → 现价高于牛情景。`,
+    `<b>组合信号</b>（需上一条记录）：基本面改善·价格未跟 = 基准 ≥ +${k.fund_up}% 且股价 ≤ +${k.price_flat}%；价格先行 = 股价 ≥ +${k.price_lead}% 且基准 ≤ +${k.base_flat}%；基本面转弱 = 基准 ≤ −${k.fund_dn}% 且归因最大项是营收基数 / FCF 利润率 / 起始增速；预期上修 / 下修 = 一致预期增速变化 ≥ +${k.cons_pt}pt / ≤ −${k.cons_pt}pt；差距收窄 / 扩大 = |基准相对现价| 向 0 靠近 / 远离 ≥ ${k.gap_pp}pp；口径切换 = FCF 利润率口径变化；标签变化 = 偏价值 / 中性 / 偏博弈 变化；风险门禁变化 = ⚠ 数变化。`,
+    `<b>注意</b>（灰色）：一次性收入 = 一次性收入保护触发；增速截断 = 起始增速被截断；爬坡假设 = 利润率爬坡口径；周期 = 周期行业；估值≤0 = 基准每股价值 ≤ 0。`,
+    esc(TAG_NOTE)].map(x => `<li>${x}</li>`).join("");
+}
 // short form for the 对比池 column
 function lgShort(x) {
   if (!x) return {t: "无记录", tip: "台账中没有这家公司（运行 python -m cn ledger）"};
@@ -1970,7 +2043,8 @@ function lgShort(x) {
   return {t: `${core} · ${tag || ""}`, v: st[0] === "ok" && st[1] === "ok" ? bp : null,
     tip: `<b>${esc(`${pd} → ${LG.latest?.date || ""}`)}</b><br>${esc(concl)}${attr ? `<br>归因：${esc(lgAttrTxt(attr, of))}` : ""}<br>${esc(LG_DISC)}`};
 }
-function lgPoolCell(code) { const s = lgShort(LGA[code]); return `<span class="small" data-tip="${esc(s.tip)}">${esc(s.t)}</span>`; }
+function lgPoolCell(code) { const s = lgShort(LGA[code]), ch = lgChips(LGT[code], 1);
+  return `<span class="small" data-tip="${esc(s.tip)}">${esc(s.t)}</span>${ch ? `<div class="lg-tags">${ch}</div>` : ""}`; }
 const lgPoolSort = code => { const x = LGA[code]; return Array.isArray(x) && x[6][0] === "ok" && x[6][1] === "ok" ? x[1] : null; };
 // time series: price vs base value with the bear-bull band (default parameters)
 function lgChart(rs) {
@@ -2008,8 +2082,10 @@ function lgCardBlock(code) {
     <td class="n nw">${r.s === "ok" ? `${num(r.lo, 2)} / <b>${num(r.b, 2)}</b> / ${num(r.hi, 2)}` : `<span class="na">${esc(LG_S[r.s] || r.s)}</span>`}</td>
     <td class="n nw">${r.s === "ok" ? dcfVs(r.gp * 100) : r.s === "negfcf" ? lgReq(r) : "—"}</td><td class="n">${lgIg(r)}</td>
     <td class="n nw">${lgM(r, code)}</td><td class="n">${r.g == null ? "—" : dcfPct(r.g)}</td>
-    <td class="small" style="white-space:normal;min-width:220px">${r.c ? esc(r.c) + (r.t ? ` <span class="tag">${esc(r.t)}</span>` : "") : `首次记录（${esc(r.d)}）`}${r.a ? `<div>${lgBars(r.a, r.ao)}</div>` : ""}</td></tr>`).join("");
+    <td class="small" style="white-space:normal;min-width:220px">${r.c ? esc(r.c) + (r.t ? ` <span class="tag">${esc(r.t)}</span>` : "") : `首次记录（${esc(r.d)}）`}${r.x ? `<div class="lg-tags">${lgChips(lgTags(r.x))}</div>` : ""}${r.a ? `<div>${lgBars(r.a, r.ao)}</div>` : ""}</td></tr>`).join("");
+  const tg = lgChips(lgTags(last.x));
   return `<div class="lg-card"><div class="small"><b>估值台账（默认参数）：</b>${concl}</div>
+    ${tg ? `<div class="lg-tags" aria-label="规则标签">${tg}</div><div class="small muted">${esc(TAG_NOTE)}</div>` : ""}
     <details class="grp" data-lgd="${esc(code)}" ${LG_OPEN.has(code) ? "open" : ""} style="margin-top:6px"><summary>估值台账 <span class="small">${rs.length} 条记录 · 股价 vs 基准估值 · 熊–牛区间 · 默认参数</span></summary>
     <div class="grp-body"><p class="small" style="margin:0 0 6px">${note}</p>${lgChart(rs)}
       <div class="tscroll" style="margin-top:6px"><table class="lg-t"><thead><tr><th scope="col">日期</th><th scope="col" class="n">股价</th><th scope="col" class="n">熊 / 基准 / 牛</th><th scope="col" class="n">基准 vs 现价</th>
@@ -2050,36 +2126,128 @@ function lgCounts(codes) {
   return c;
 }
 let lgInitDone = false;
+// filter bar (client-side): applies to the unified result table, the top-mover tables and the first-run card table
+const LGF = {q: "", ind: "", scope: "all", st: "", basis: "", tags: new Set(), gmin: "", gmax: "", dir: ""}, LGF_LIM = {n: 60};
+function lgScope() {
+  const codes = LGF.scope === "cards" ? (D.cards || []).map(c => c.code) : LGF.scope === "pool" ? BK.items.map(x => x.code) : D.screen.map(r => r.code);
+  return codes.filter(c => LGR[c]);
+}
+function lgPass(code) {
+  const t = LGR[code]; if (!t) return false;
+  const q = LGF.q.trim();
+  if (q && !code.includes(q) && !lgName(code).includes(q)) return false;
+  if (LGF.ind && (BYCODE[code]?.industry || "") !== LGF.ind) return false;
+  if (LGF.st && t.s !== LGF.st) return false;
+  if (LGF.basis && (LGF.basis === "cyclical" ? !t.cy : t.mb !== LGF.basis)) return false;
+  if (LGF.tags.size && !(LGT[code] || []).some(x => LGF.tags.has(x[1]))) return false;
+  const lo = LGF.gmin === "" ? null : +LGF.gmin, hi = LGF.gmax === "" ? null : +LGF.gmax;
+  if ((lo != null && isFinite(lo)) || (hi != null && isFinite(hi))) {
+    if (t.s !== "ok" || t.gp == null) return false;
+    if (lo != null && isFinite(lo) && t.gp * 100 < lo) return false;
+    if (hi != null && isFinite(hi) && t.gp * 100 > hi) return false;
+  }
+  if (LGF.dir && !LG_ONE) {
+    if (!t.ch || t.bp == null) return false;
+    if (LGF.dir === "up" ? t.bp < LG_FLAT : LGF.dir === "down" ? t.bp > -LG_FLAT : Math.abs(t.bp) >= LG_FLAT) return false;
+  }
+  return true;
+}
+function lgFilterBar() {
+  const inds = [...new Set(Object.keys(LGR).map(c => BYCODE[c]?.industry).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));
+  const cnt = {}; Object.values(LGT).forEach(a => a.forEach(t => { cnt[t[1]] = (cnt[t[1]] || 0) + 1; }));
+  const tagBox = LG_TALL.map(([g, ts]) => `<div class="lg-tgrp"><span class="small">${esc(LG_TGRP[g])}</span>${ts.map(t => `<label class="lg-tck${cnt[t] ? "" : " na"}"><input type="checkbox" data-lgtag="${esc(t)}"> <span class="tag lt ${lgTCls([g, t])}">${esc(t)}</span> <span class="small">${cnt[t] || 0}</span></label>`).join("")}</div>`).join("");
+  const opt = (v, t) => `<option value="${esc(v)}">${esc(t)}</option>`;
+  return `<div class="toolbar lg-fbar" role="search" aria-label="估值台账筛选">
+    <label>搜索 <input type="search" id="lgfQ" placeholder="6 位代码或名称" size="12" autocomplete="off"></label>
+    <label>行业 <select id="lgfInd">${opt("", "全部")}${inds.map(i => opt(i, i)).join("")}</select></label>
+    <label>范围 <select id="lgfScope">${opt("cards", `${(D.cards || []).length} 张评估卡`)}${opt("all", `全部 ${D.screen.length}`)}${opt("pool", "只看对比池")}</select></label>
+    <label>估值方式 <select id="lgfSt">${opt("", "全部")}${opt("ok", "三情景")}${opt("negfcf", "FCF ≤ 0")}${opt("na", "不适用")}</select></label>
+    <label>FCF 口径 <select id="lgfBasis">${opt("", "全部")}${opt("avg3", "近 3 年平均 avg3")}${opt("fy", "最近财年 fy")}${opt("ttm", "TTM")}${opt("ramp", "爬坡 ramp")}${opt("cyclical", "周期 cyclical")}</select></label>
+    <label>估值位置（基准 vs 现价，%） <input type="number" id="lgfGmin" placeholder="最小" step="5" style="width:64px"> ~ <input type="number" id="lgfGmax" placeholder="最大" step="5" style="width:64px"></label>
+    <label>变化方向 <select id="lgfDir" ${LG_ONE ? 'disabled title="只有 1 次记录，下次更新后可用"' : ""}>${opt("", "全部")}${opt("up", "上调")}${opt("down", "下调")}${opt("flat", "不变")}</select></label>
+    <details class="lg-tsel"><summary>标签 <span id="lgfTagN">（任一）</span></summary><div class="lg-tbox">${tagBox}</div></details>
+    <button type="button" class="btn ghost" id="lgfReset">清除筛选</button></div>
+    <p class="small" style="margin:2px 0 6px">${esc(TAG_NOTE)}</p>
+    <details class="grp"><summary>标签规则 <span class="small">固定阈值，见 cn/ledger.py TAG_RULES</span></summary><div class="grp-body"><ul class="small">${lgRulesTxt()}</ul></div></details>`;
+}
+function lgFCols() {
+  const sv = (v, d = 1, u = "%") => `<span class="${lgCls(v)}">${lgSg(v, d, u)}</span>`;
+  return [
+    {k: "code", t: "代码 · 名称", v: e => e.code, f: e => `<button type="button" class="linkbtn" data-lgjump="${esc(e.code)}" aria-label="跳到 ${esc(e.code)} ${esc(e.name)}"><b>${esc(e.code)}</b> ${esc(e.name)}</button>`},
+    {k: "ind", t: "行业", cls: "nw", v: e => e.ind, f: e => `<span class="small">${esc(e.ind)}</span>`},
+    {k: "st", t: "估值方式", cls: "nw", v: e => e.t.s, f: e => `<span class="small">${esc(LG_S[e.t.s] || e.t.s)}${e.t.mb ? ` · ${esc(dcfUsedT(e.t.mb, e.t.cy))}` : ""}</span>`},
+    {k: "p", t: "股价", n: 1, v: e => e.t.p, f: e => num(e.t.p, 2)},
+    {k: "b", t: "基准", n: 1, v: e => e.t.s === "ok" ? e.t.b : null, f: e => e.t.s === "ok" ? num(e.t.b, 2) : e.t.s === "negfcf" && e.t.mr != null ? `<span class="small">${lgReq(e.t)}</span>` : "—"},
+    {k: "gp", t: "基准 vs 现价", n: 1, v: e => e.t.s === "ok" ? e.t.gp : null, f: e => e.t.s === "ok" && e.t.gp != null ? dcfVs(e.t.gp * 100) : "—"},
+    {k: "ig", t: "隐含增速", n: 1, v: e => e.t.igs === "ok" ? e.t.ig : null, f: e => lgIg(e.t)},
+    {k: "bp", t: "基准变化", n: 1, v: e => e.t.bp, f: e => e.t.bp != null ? sv(e.t.bp) : e.t.mpp != null ? `<span class="small">需要利润率 ${lgSg(e.t.mpp, 1, "pt")}</span>` : "—"},
+    {k: "pp", t: "股价变化", n: 1, v: e => e.t.pp, f: e => e.t.pp != null ? sv(e.t.pp) : "—"},
+    {k: "gpp", t: "差距变化（pp）", n: 1, v: e => e.t.gpp, f: e => e.t.gpp != null ? sv(e.t.gpp, 1, "") : "—"},
+    {k: "tags", t: "标签（规则）", nosort: 1, f: e => `<div class="lg-tags">${lgChips(e.tg) || "—"}</div>`},
+    {k: "concl", t: "结论（规则生成）", nosort: 1, f: e => `<span class="small">${esc(Array.isArray(e.x) ? e.x[7] : typeof e.x === "string" ? `首次记录（${e.x}），下次更新后显示变化` : "—")}</span>`},
+  ];
+}
+function lgFirstRows(codes) {
+  return codes.map(code => { const r = (LGC[code] || []).slice(-1)[0]; if (!r) return "";
+    return `<tr><td><button type="button" class="linkbtn" data-lgjump="${esc(code)}"><b>${esc(code)}</b> ${esc(lgName(code))}</button></td><td>${esc(LG_S[r.s] || r.s)}</td><td class="n">${num(r.p, 2)}</td>
+      <td class="n nw">${r.s === "ok" ? `${num(r.lo, 2)} / <b>${num(r.b, 2)}</b> / ${num(r.hi, 2)}` : "—"}</td><td class="n nw">${r.s === "ok" ? dcfVs(r.gp * 100) : r.s === "negfcf" ? lgReq(r) : "—"}</td>
+      <td class="n">${lgIg(r)}</td><td class="n nw">${lgM(r, code)}</td><td class="n">${r.g == null ? "—" : dcfPct(r.g)}</td><td><div class="lg-tags">${lgChips(lgTags(r.x))}</div></td></tr>`; }).join("")
+    || `<tr><td colspan="9" class="small">没有符合筛选的公司</td></tr>`;
+}
+function lgUpdate() {
+  const sc = lgScope(), F = sc.filter(lgPass), Fs = new Set(F);
+  const rows = F.map(c => ({code: c, name: lgName(c), ind: BYCODE[c]?.industry || "", t: LGR[c], tg: LGT[c] || [], x: LGA[c]}));
+  const cols = lgFCols(), sorted = table("lgf", "lgHead_f", "lgBody_f", cols, rows);
+  $("lgBody_f").innerHTML = sorted.slice(0, LGF_LIM.n).map(e => `<tr>${cols.map(c => `<td class="${c.n ? "n" : c.cls || ""}"${c.k === "concl" ? ' style="white-space:normal;min-width:240px"' : c.k === "tags" ? ' style="min-width:150px"' : ""}>${c.f(e)}</td>`).join("")}</tr>`).join("")
+    || `<tr><td colspan="${cols.length}" class="small">没有符合筛选的公司</td></tr>`;
+  $("lgCnt_f").textContent = `${F.length} / ${sc.length} 家`;
+  $("lgMore_f").hidden = sorted.length <= LGF_LIM.n;
+  $("lgfTagN").textContent = LGF.tags.size ? `（已选 ${LGF.tags.size}，任一）` : "（任一）";
+  const cards = (D.cards || []).map(c => c.code).filter(c => Fs.has(c)), all = D.screen.map(r => r.code).filter(c => Fs.has(c));
+  if (LG_ONE) { $("lgFirstBody").innerHTML = lgFirstRows(cards); $("lgFirstCnt").textContent = `${cards.length} 家`; }
+  else { lgTable("c", cards); lgTable("a", all); }
+}
+function lgWire() {
+  const set = (id, k, ev = "change") => { $(id).addEventListener(ev, () => { LGF[k] = $(id).value; LGF_LIM.n = 60; lgUpdate(); }); };
+  set("lgfQ", "q", "input"); set("lgfInd", "ind"); set("lgfScope", "scope"); set("lgfSt", "st"); set("lgfBasis", "basis");
+  set("lgfGmin", "gmin", "input"); set("lgfGmax", "gmax", "input"); set("lgfDir", "dir");
+  $("lgMain").querySelectorAll("input[data-lgtag]").forEach(b => b.addEventListener("change", () => { if (b.checked) LGF.tags.add(b.dataset.lgtag); else LGF.tags.delete(b.dataset.lgtag); LGF_LIM.n = 60; lgUpdate(); }));
+  $("lgfReset").onclick = () => { Object.assign(LGF, {q: "", ind: "", scope: "all", st: "", basis: "", gmin: "", gmax: "", dir: ""}); LGF.tags.clear();
+    ["lgfQ", "lgfInd", "lgfSt", "lgfBasis", "lgfGmin", "lgfGmax", "lgfDir"].forEach(id => { $(id).value = ""; }); $("lgfScope").value = "all";
+    $("lgMain").querySelectorAll("input[data-lgtag]").forEach(b => { b.checked = false; }); lgUpdate(); };
+  $("lgfScope").value = LGF.scope;
+  $("lgMore_f").onclick = () => { LGF_LIM.n += 60; lgUpdate(); };
+}
 function renderLg() {
   const el = $("lgMain"); if (!el) return;
   const cards = (D.cards || []).map(c => c.code), all = D.screen.map(r => r.code);
   if (!LG.file) { el.innerHTML = `<div class="small warn">还没有估值台账（运行 python -m cn ledger 后重新构建）。</div>`; return; }
-  const warn = LG.matches_snap ? "" : `<p class="small warn">台账最新一次（${esc(LG.latest.date)}，${esc(LG.latest.snap)}）不是本页的数据快照；请在构建前运行 python -m cn ledger。</p>`;
-  if (LG_ONE) {
-    if (lgInitDone) return;
-    const tr = cards.map(code => { const r = (LGC[code] || []).slice(-1)[0]; if (!r) return "";
-      return `<tr><td><button type="button" class="linkbtn" data-lgjump="${esc(code)}"><b>${esc(code)}</b> ${esc(lgName(code))}</button></td><td>${esc(LG_S[r.s] || r.s)}</td><td class="n">${num(r.p, 2)}</td>
-        <td class="n nw">${r.s === "ok" ? `${num(r.lo, 2)} / <b>${num(r.b, 2)}</b> / ${num(r.hi, 2)}` : "—"}</td><td class="n nw">${r.s === "ok" ? dcfVs(r.gp * 100) : r.s === "negfcf" ? lgReq(r) : "—"}</td>
-        <td class="n">${lgIg(r)}</td><td class="n nw">${lgM(r, code)}</td><td class="n">${r.g == null ? "—" : dcfPct(r.g)}</td></tr>`; }).join("");
-    el.innerHTML = warn + `<p class="lg-first"><b>首次记录 ${esc(LG.latest.date)}，共 ${esc(LG.latest.n)} 家；下次每周更新后显示变化。</b></p>
-      <h3>当前记录 · ⑤ 评估卡 ${cards.length} 家（默认参数）</h3>
-      <div class="tscroll"><table><thead><tr><th scope="col">代码 · 名称</th><th scope="col">状态</th><th scope="col" class="n">股价</th><th scope="col" class="n">熊 / 基准 / 牛</th><th scope="col" class="n">基准 vs 现价</th><th scope="col" class="n">隐含增速</th><th scope="col" class="n">m0（口径）</th><th scope="col" class="n">g0</th></tr></thead><tbody>${tr}</tbody></table></div>`;
-    lgInitDone = true; return;
-  }
   if (!lgInitDone) {
-    const kp = (t, c) => `<div class="card"><h4>${esc(t)}</h4><div class="lg-k"><span class="pos">上调 <b>${c.up}</b></span><span class="neg">下调 <b>${c.down}</b></span><span>基本不变 <b>${c.flat}</b></span></div>
-      <div class="small">FCF ≤ 0 / 不计算（跟踪需要的利润率）${c.neg} · 状态变化 ${c.st} · 首次记录 ${c.first}${c.none ? ` · 无记录 ${c.none}` : ""}</div></div>`;
-    const tb = (key, h) => `<h3>${esc(h)} <span class="small" id="lgCnt_${key}"></span></h3><div class="tscroll"><table><thead><tr id="lgHead_${key}"></tr></thead><tbody id="lgBody_${key}"></tbody></table></div>
-      <div class="toolbar"><button type="button" class="btn" id="lgMore_${key}">显示更多</button></div>`;
-    el.innerHTML = warn + `<p class="small">本期 ${esc(LG.latest.date)}（${esc(LG.latest.snap)}）vs 上期 ${esc(LG.prev.date)}（${esc(LG.prev.snap)}）。上调 / 下调 = 基准估值变化 ≥ ${LG_FLAT}% / ≤ −${LG_FLAT}%，其余为基本不变（只统计两期都能做三情景的公司）。</p>
-      <div class="grid g2">${kp(`⑤ 评估卡 ${cards.length} 家`, lgCounts(cards))}${kp(`② 全部 ${all.length} 家`, lgCounts(all))}</div>
-      ${tb("c", "变化最大 · ⑤ 评估卡")}${tb("a", "变化最大 · ② 全部筛选公司")}
-      <p class="small">表头可排序（按变动幅度的绝对值）；默认按基准估值变化。归因条：${esc((LG.order_base || []).map(k => LG_NM[k] || k).join(" → "))}（FCF ≤ 0 的公司对“需要的 FCF 利润率”归因：${esc((LG.order_mreq || []).map(k => LG_NM[k] || k).join(" → "))}），绿色向上 = 推高，红色向下 = 拉低；营 = 营收基数，利 = FCF 利润率，增 = 起始增速，现 = 净现金与股本，参 = 参数，价 = 股价；鼠标悬停看数值。</p>`;
-    ["c", "a"].forEach(k => { $(`lgMore_${k}`).onclick = () => { LG_LIM[k] += k === "a" ? 30 : 40; renderLg(); }; });
+    const warn = LG.matches_snap ? "" : `<p class="small warn">台账最新一次（${esc(LG.latest.date)}，${esc(LG.latest.snap)}）不是本页的数据快照；请在构建前运行 python -m cn ledger。</p>`;
+    const res = `<h3>筛选结果 <span class="small" id="lgCnt_f"></span></h3>
+      <div class="tscroll"><table class="lg-t"><thead><tr id="lgHead_f"></tr></thead><tbody id="lgBody_f"></tbody></table></div>
+      <div class="toolbar"><button type="button" class="btn" id="lgMore_f">显示更多</button><span class="small">点击代码跳到评估卡或 ② 筛选表；表头可排序。</span></div>`;
+    if (LG_ONE) {
+      el.innerHTML = warn + `<p class="lg-first"><b>首次记录 ${esc(LG.latest.date)}，共 ${esc(LG.latest.n)} 家；下次每周更新后显示变化。</b></p>` + lgFilterBar() + res +
+        `<h3>当前记录 · ⑤ 评估卡（默认参数） <span class="small" id="lgFirstCnt"></span></h3>
+        <div class="tscroll"><table><thead><tr><th scope="col">代码 · 名称</th><th scope="col">状态</th><th scope="col" class="n">股价</th><th scope="col" class="n">熊 / 基准 / 牛</th><th scope="col" class="n">基准 vs 现价</th><th scope="col" class="n">隐含增速</th><th scope="col" class="n">m0（口径）</th><th scope="col" class="n">g0</th><th scope="col">标签（规则）</th></tr></thead><tbody id="lgFirstBody"></tbody></table></div>`;
+    } else {
+      const kp = (t, c) => `<div class="card"><h4>${esc(t)}</h4><div class="lg-k"><span class="pos">上调 <b>${c.up}</b></span><span class="neg">下调 <b>${c.down}</b></span><span>基本不变 <b>${c.flat}</b></span></div>
+        <div class="small">FCF ≤ 0 / 不计算（跟踪需要的利润率）${c.neg} · 状态变化 ${c.st} · 首次记录 ${c.first}${c.none ? ` · 无记录 ${c.none}` : ""}</div></div>`;
+      const tb = (key, h) => `<h3>${esc(h)} <span class="small" id="lgCnt_${key}"></span></h3><div class="tscroll"><table><thead><tr id="lgHead_${key}"></tr></thead><tbody id="lgBody_${key}"></tbody></table></div>
+        <div class="toolbar"><button type="button" class="btn" id="lgMore_${key}">显示更多</button></div>`;
+      el.innerHTML = warn + `<p class="small">本期 ${esc(LG.latest.date)}（${esc(LG.latest.snap)}）vs 上期 ${esc(LG.prev.date)}（${esc(LG.prev.snap)}）。上调 / 下调 = 基准估值变化 ≥ ${LG_FLAT}% / ≤ −${LG_FLAT}%，其余为基本不变（只统计两期都能做三情景的公司）。</p>
+        <div class="grid g2">${kp(`⑤ 评估卡 ${cards.length} 家`, lgCounts(cards))}${kp(`② 全部 ${all.length} 家`, lgCounts(all))}</div>` + lgFilterBar() + res +
+        `${tb("c", "变化最大 · ⑤ 评估卡（按上方筛选）")}${tb("a", "变化最大 · ② 全部筛选公司（按上方筛选）")}
+        <p class="small">表头可排序（按变动幅度的绝对值）；默认按基准估值变化。归因条：${esc((LG.order_base || []).map(k => LG_NM[k] || k).join(" → "))}（FCF ≤ 0 的公司对“需要的 FCF 利润率”归因：${esc((LG.order_mreq || []).map(k => LG_NM[k] || k).join(" → "))}），绿色向上 = 推高，红色向下 = 拉低；营 = 营收基数，利 = FCF 利润率，增 = 起始增速，现 = 净现金与股本，参 = 参数，价 = 股价；鼠标悬停看数值。</p>`;
+      ["c", "a"].forEach(k => { $(`lgMore_${k}`).onclick = () => { LG_LIM[k] += k === "a" ? 30 : 40; lgUpdate(); }; });
+    }
+    lgWire();
     lgInitDone = true;
   }
-  lgTable("c", cards); lgTable("a", all);
+  lgUpdate();
 }
+state.sort.lgf = LG_ONE ? ["gp", -1] : ["bp", -1];
 state.sort.lgc = ["bp", -1]; state.sort.lga = ["bp", -1];
 document.addEventListener("click", ev => { const t = ev.target.closest && ev.target.closest("[data-lgjump]"); if (!t) return; ev.preventDefault(); jumpCN(t.dataset.lgjump); });
 
