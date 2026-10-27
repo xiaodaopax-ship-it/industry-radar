@@ -458,6 +458,9 @@ def main():
     from . import ledger as LDG
     ledger_checks(LDG, V, syn)
 
+    print("\n[o] forward tracking of the ledger tags (radar/forward.py evaluate, cn/forward.py adapter)")
+    forward_checks(LDG)
+
     print("\n[robustness] failure handling")
     bad = em.financials("1900-01-01")
     check("financials(bad date) returns [] without raising", bad == [])
@@ -630,6 +633,50 @@ def ledger_checks(LDG, V, syn):
               and r688["status"] == "ok", str(r688 and (r688["basis"], r688["guard"])))
     else:
         check("ledger file present (run python -m cn ledger)", False)
+
+
+def forward_checks(LDG):
+    """前向跟踪: horizon windows, excess vs the same-date median, split guard, no samples before a horizon has elapsed,
+    and the real ledger adapter (tags recomputed = the stored tags)."""
+    import datetime as dt
+    from radar import forward as F
+    from . import forward as CF
+    d0 = dt.date(2026, 1, 5)
+    ser = {}
+    for i in range(24):
+        p, sh, pts = 10.0, 1e8, []
+        for w in range(15):
+            if i == 0 and w == 6:
+                sh *= 2.0                                   # 10送10-like: unadjusted price would halve
+                p /= 2
+            pts.append({"d": (d0 + dt.timedelta(days=7 * w)).isoformat(), "p": p, "sh": sh, "grp": "g%d" % (i % 2),
+                        "tags": ["A"] if i < 12 else ["B"]})
+            p *= 1.02 if i < 12 else 0.99
+        ser["%06d" % i] = pts
+    res = F.evaluate(ser)
+    a1 = {a["tag"]: a for a in res["agg"] if a["h"] == 1}
+    a4 = {a["tag"]: a for a in res["agg"] if a["h"] == 4}
+    ex1 = res["excluded"].get("1", {})
+    check("forward: 1w / 4w samples, excess = return - same-date median (A +2%/w vs B -1%/w), split guard excludes the one-week sample "
+          "across the share change, 26 / 52 weeks pending",
+          abs(a1["A"]["med"] - 0.02) < 1e-9 and a1["A"]["mex"] > 0 > a1["B"]["mex"] and a1["A"]["up"] == 1.0 and a1["B"]["up"] == 0.0
+          and abs(a1["全部样本"]["mex"]) < 1e-12 and sum(ex1.values()) == 1 and a4["A"]["nr"] == 11 and 26 not in {a["h"] for a in res["agg"]}
+          and set(res["pending"]) == {"26", "52"} and all(7 * s["h"] - 2 <= s["days"] for s in res["samples"]),
+          f"A1={a1['A']['med']:.4f} ex={ex1} pending={res['pending']}")
+    one = F.evaluate({k: v[:1] for k, v in ser.items()})
+    check("forward: a single start date gives no samples, every horizon pending (no backfill)",
+          one["samples"] == [] and set(one["pending"]) == {"1", "4", "13", "26", "52"})
+    real = LDG.load()
+    if real:
+        s = CF.series(real)
+        # records written after tagging carry `tags`: the forward adapter must recompute exactly those (older records have none)
+        stored = [(x, p) for x in real for p in s[x["code"]] if p["d"] == x["date"] and x.get("tags") is not None]
+        same = all(p["tags"] == x["tags"] for x, p in stored)
+        pg = CF.page_payload()
+        check("forward on the real ledger: one point per (code, date), tags recomputed = stored tags where stored; page payload has rules / pending / note",
+              same and sum(len(v) for v in s.values()) == len({(x["code"], x["date"]) for x in real})
+              and pg is not None and pg["rules"]["horizons"] == [1, 4, 13, 26, 52] and pg.get("note") is not None,
+              f"stored_tags={len(stored)} starts={pg and pg.get('n_starts')} samples={pg and pg.get('n_samples')}")
 
 
 if __name__ == "__main__":

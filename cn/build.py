@@ -624,6 +624,12 @@ def build(path=None):
     except Exception as e:  # noqa: BLE001 - optional block, never break the build
         log(f"WARNING: ledger skipped ({type(e).__name__}: {e})")
         payload["ledger"] = {}
+    if payload["ledger"].get("file"):
+        try:   # 前向跟踪 of the tags (aggregates only, display only); optional
+            from . import forward as fmod
+            payload["ledger"]["fwd"] = fmod.page_payload(os.environ.get("CN_LEDGER_FILE") or lmod.LEDGER_FILE)
+        except Exception as e:  # noqa: BLE001
+            log(f"WARNING: forward tracking skipped ({type(e).__name__}: {e})")
     have = set((cdoc or {}).get("cards", {}))
     payload["cards_meta"] = {"file": os.path.basename(cpath) if cpath else None, "fetched_at": (cdoc or {}).get("fetched_at"),
                              "snap": (cdoc or {}).get("snap"), "rules": cardmod.CARD_RULES,

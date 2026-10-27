@@ -198,6 +198,11 @@
   .lt-note { background:rgba(140,140,140,.07); color:#959ba3; border-color:rgba(140,140,140,.2); }
   .lg-fbar { flex-wrap:wrap; align-items:center; gap:8px 12px; } .lg-tsel { position:relative; } .lg-tsel > summary { cursor:pointer; }
   .lg-tbox { display:flex; flex-wrap:wrap; gap:6px 16px; padding:8px; margin-top:4px; border:1px solid var(--line); border-radius:6px; max-width:980px; }
+  .lg-fwd { margin-top:18px; } .lg-fwd tr.muted td { color:var(--muted); }
+  .lg-fwd .seg-pick { display:flex; gap:6px; flex-wrap:wrap; margin:6px 0 10px; }
+  .lg-fwd .seg-pick button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:999px; padding:2px 12px; font:inherit; font-size:12.5px; cursor:pointer; }
+  .lg-fwd .seg-pick button[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); font-weight:600; }
+  .lg-fwd .seg-pick button:disabled { opacity:.45; cursor:default; }
   .lg-tgrp { display:flex; flex-direction:column; gap:2px; } .lg-tck { display:flex; align-items:center; gap:4px; font-size:12px; } .lg-tck.na { opacity:.55; }
   .tip { position:fixed; pointer-events:none; background:rgba(8,11,15,.96); border:1px solid var(--line2); border-radius:6px; padding:6px 9px; font-size:12px; display:none; z-index:60; max-width:320px; box-shadow:0 6px 18px rgba(0,0,0,.4); }
   footer { color:var(--muted); font-size:12px; }
@@ -465,6 +470,7 @@
     <p class="lead">每次数据更新后，用<b>默认估值参数</b>对 ② 全部筛选公司算一次现金流估值并追加到本地台账（data/cn/ledger/cn_ledger.jsonl，只追加、不改写），再和同一公司的上一条记录比较：股价、基准估值、基准相对现价、隐含增速、一致预期，并把基准估值的变化按固定顺序拆到 营收基数 → FCF 利润率 → 起始增速 → 净现金与股本 → 参数。结论句按规则生成，只描述数字变化。</p>
     <p class="dcf-disc">台账记录的是模型在默认参数下的输出，用来对比数据变化带来的估值变化；不是目标价，不是买卖建议；方法未回测。只展示，不进入 ④ 排序、价值 / 博弈标签、⚠ 数和对比池评分。</p>
     <div id="lgMain"></div>
+    <div id="lgFwd" class="lg-fwd"></div>
   </section>
 
   <section id="s6">
@@ -2247,6 +2253,39 @@ function renderLg() {
   }
   lgUpdate();
 }
+// ---- 前向跟踪: price after a record carried a tag vs the same-date median of all ledger companies (aggregates from cn/forward.py)
+let LGFH = null;
+const lgFP = v => { if (v == null) return "—"; const a = Math.abs(v * 100).toFixed(1); return `${a === "0.0" ? "" : v > 0 ? "+" : "−"}${a}%`; };
+function renderLgFwd() {
+  const el = $("lgFwd"), F = LG.fwd; if (!el) return;
+  if (!F) { el.innerHTML = ""; return; }
+  const R = F.rules, H = R.horizons, have = H.filter(h => F.agg.some(a => a.h === h));
+  if (LGFH == null || !have.includes(LGFH)) LGFH = have[0] ?? H[0];
+  const pend = Object.entries(F.pending || {}).map(([h, d]) => `${h} 周：${esc(d)} 之后的更新`).join("；");
+  const grp = Object.fromEntries(LG_TALL.flatMap(([g, ts]) => ts.map((t, i) => [t, [g, i]]))), gi = Object.keys(LG_TGRP);
+  const head = `<h3>前向跟踪 · 标签之后股价怎么走 <span class="small">（${esc(F.first || "—")} 起 ${F.n_starts || 0} 个起点，截至 ${esc(F.as_of || "—")}）</span></h3>
+    <p class="small">每条台账记录是一个起点：记下当时的标签和股价，等后续记录到了第 ${H.join(" / ")} 周，算这段时间的股价涨跌，再减去同一起点全部公司涨跌的中位数（“相对全样本”，等权，不是指数）；同行业至少 ${R.min_peers} 家时另算“相对同行业”。
+      股价为当时快照的不复权价，不含分红；股本变化超过 ${Math.round((R.split_guard - 1) * 100)}%（疑似送转、拆股、增发）的样本剔除并计数。不回填历史：过去的估值无法不用今天的财报重算，所以从第一次台账开始往后积累。</p>`;
+  if (!have.length) {
+    el.innerHTML = `${head}<p class="lg-first"><b>还没有可计算的样本</b>：目前只有 ${F.n_starts || 0} 个起点。最早出现时间 —— ${esc(pend) || "—"}。</p><p class="dcf-disc">${esc(F.note)}</p>`;
+    return;
+  }
+  const ord = t => t === "全部样本" ? -1 : grp[t] ? gi.indexOf(grp[t][0]) * 100 + grp[t][1] : 9999;
+  const rows = F.agg.filter(a => a.h === LGFH).sort((a, b) => ord(a.tag) - ord(b.tag));
+  const exs = Object.entries(F.excluded?.[String(LGFH)] || {}).map(([w, c]) => `${esc(w)} ${c}`).join("；");
+  const tr = rows.map(a => { const g = grp[a.tag], all = a.tag === "全部样本";
+    return `<tr${a.few ? ' class="muted"' : ""}><td>${all ? "<b>全部样本</b>" : lgChips([[g ? g[0] : "note", a.tag]])}</td><td class="small">${esc(g ? LG_TGRP[g[0]] : "")}</td>
+      <td class="n">${a.n}</td><td class="n">${a.nu}</td><td class="n">${a.nr}</td><td class="n">${lgFP(a.med)}</td><td class="n">${all ? "0（定义）" : lgFP(a.mex)}</td>
+      <td class="n">${lgFP(a.msx)}<div class="small">${a.nsx} 个</div></td><td class="n">${all ? "—" : num(a.up * 100, 0) + "%"}</td>
+      <td class="n small">${lgFP(a.p25)} ~ ${lgFP(a.p75)}</td><td class="small">${a.few ? "样本不足" : ""}</td></tr>`; }).join("");
+  el.innerHTML = `${head}
+    <div class="seg-pick" role="group" aria-label="跟踪期限">${H.map(h => `<button type="button" data-lgfh="${h}" aria-pressed="${h === LGFH}" ${have.includes(h) ? "" : "disabled"}>${h} 周</button>`).join("")}</div>
+    <div class="tscroll"><table id="lgFwdT"><thead><tr><th scope="col">标签（起点时）</th><th scope="col">分组</th><th scope="col" class="n">样本</th><th scope="col" class="n">公司</th><th scope="col" class="n">起点</th>
+      <th scope="col" class="n">涨跌中位数</th><th scope="col" class="n">相对全样本中位数</th><th scope="col" class="n">相对同行业中位数</th><th scope="col" class="n">高于同期中位数的比例</th><th scope="col" class="n">相对全样本 25%~75%</th><th scope="col">状态</th></tr></thead><tbody>${tr}</tbody></table></div>
+    <p class="small">${(b => b ? `${LGFH} 周实际间隔中位数 ${num(b.days, 0)} 天（允许 ${7 * LGFH - R.tol_lo_days}~${7 * LGFH + Math.max(R.tol_hi_min_days, Math.round(7 * LGFH * R.tol_hi_frac))} 天）。` : "")(rows.find(a => a.tag === "全部样本"))}“样本不足”：起点少于 ${R.min_starts} 个或公司少于 ${R.min_companies} 家，数字只作记录。${exs ? `本期限剔除：${exs}。` : ""}${pend ? `尚无样本的期限 —— ${pend}。` : ""}</p>
+    <p class="dcf-disc">${esc(F.note)}</p>`;
+}
+document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest("[data-lgfh]"); if (b && !b.disabled) { LGFH = +b.dataset.lgfh; renderLgFwd(); } });
 state.sort.lgf = LG_ONE ? ["gp", -1] : ["bp", -1];
 state.sort.lgc = ["bp", -1]; state.sort.lga = ["bp", -1];
 document.addEventListener("click", ev => { const t = ev.target.closest && ev.target.closest("[data-lgjump]"); if (!t) return; ev.preventDefault(); jumpCN(t.dataset.lgjump); });
@@ -2509,7 +2548,7 @@ document.addEventListener("click", ev => {
 addEventListener("storage", ev => { if (ev.key === BKEY || ev.key === null) { bkLoad(); bkWSync(); renderBk(); bkSync(); } });   // another tab changed the basket
 bkLoad(); bkInit();
 
-function render() { renderHeat(); renderScreen(); renderPriority(); renderBk(); renderLg(); }
+function render() { renderHeat(); renderScreen(); renderPriority(); renderBk(); renderLg(); renderLgFwd(); }
 function init() {
   renderHeader();
   const inds = [...new Set(D.screen.map(r => r.industry).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));

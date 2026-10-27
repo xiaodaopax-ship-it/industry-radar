@@ -230,6 +230,12 @@ def model(raw, ledger_file=None, with_ledger=True):
         try:   # a broken / foreign ledger file must not break the dashboard build (reported, page shows "no records")
             from . import ledger
             led = ledger.embed(ledger_file)
+            if led is not None:
+                try:   # forward tracking of the tags (aggregates only); optional, never breaks the ledger block
+                    from . import forward
+                    led["fwd"] = forward.embed_us(ledger_file, raw)
+                except Exception as err:  # noqa: BLE001
+                    print(f"forward tracking not embedded: {type(err).__name__}: {err}")
         except Exception as err:  # noqa: BLE001
             print(f"valuation ledger not embedded: {type(err).__name__}: {err}")
             led = None
