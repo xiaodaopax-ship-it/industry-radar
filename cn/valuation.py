@@ -1,5 +1,5 @@
 """现金流估值 (cash-flow valuation reference) inputs for the ② screen rows + a pure-Python mirror of the page's JS engine.
-Display only: nothing here enters the ④ priority score, the 价值 / 博弈 label, warn_n or the 对比池 bkScore.
+Display only: nothing here enters the ③ priority score, the 价值 / 博弈 label, warn_n or the 对比池 bkScore.
 情景估值参考，不是目标价，不是买卖建议.
 
     python -m cn valuation   latest snapshot -> data/cn/valuation_<ts>.json (only the ② screen codes are kept)

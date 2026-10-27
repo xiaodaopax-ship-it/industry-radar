@@ -1,5 +1,5 @@
 """Tracked well-known holders in the top-10 float shareholders (前十大流通股东), last 5 quarterly report dates.
-Display only: nothing here enters the ④ priority score, the 价值 / 博弈 label, warn_n or the 对比池 bkScore.
+Display only: nothing here enters the ③ priority score, the 价值 / 博弈 label, warn_n or the 对比池 bkScore.
 
     python -m cn holders    -> data/cn/holders_<ts>.json
 

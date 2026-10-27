@@ -1,6 +1,6 @@
 """估值台账 (valuation ledger): the 现金流估值 of every ② screen row under the DEFAULT page parameters, one record per code per
 data update, appended to data/cn/ledger/cn_ledger.jsonl (local only, append-only: lines are never rewritten or deleted).
-Display only: nothing here enters the ④ priority score, the 价值 / 博弈 label, warn_n or the 对比池 bkScore.
+Display only: nothing here enters the ③ priority score, the 价值 / 博弈 label, warn_n or the 对比池 bkScore.
 台账记录的是模型在默认参数下的输出，用来对比数据变化带来的估值变化；不是目标价，不是买卖建议；方法未回测.
 
     python -m cn ledger   latest snapshot + valuation + cards + ranges + holders files -> append records (no network)

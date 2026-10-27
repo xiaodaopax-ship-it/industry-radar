@@ -228,7 +228,7 @@ PEG（评估卡参考项，规则与阈值在 `cn/cards.py` 的 `CARD_RULES["peg
 | ① push2his 前复权日 K 线 `em.daily_kline_qfq()` | `push2his.eastmoney.com/api/qt/stock/kline/get?secid=<1=SH / 0=SZ,BJ>.<code>&klt=101&fqt=1&beg=&end=&fields2=f51,f52,f53,f54,f55` | f51 日期，f52 开，f53 收，f54 高，f55 低（前复权，最新一根 = 实际成交价） | 2026-10-22/23 核验：HTTPS 每次 RemoteDisconnected，HTTP 约 30 次只成功 1 次（600519，与下面 ② 的换算结果一致）；push2 / push2delay 返回 502。所以每次运行先用 3 个代码试探，失败则整次改用 ② |
 | ② 数据中心换算 `ranges.derived_qfq_closes()`（实际使用） | RPT_VALUEANALYSIS_DET `(SECURITY_CODE="…")(TRADE_DATE>=…)(TRADE_DATE<=…)` 每代码 1 次 + RPT_SHAREBONUS_DET `(EX_DIVIDEND_DATE>=…)(EX_DIVIDEND_DATE<=…)` 全市场 1 组（约 11 页） | CLOSE_PRICE（未复权）；EX_DIVIDEND_DATE，PRETAX_BONUS_RMB（每 10 股派现）→ cash_per10，BONUS_IT_RATIO（每 10 股送转）→ bonus_it_per10 | 除权除息日之前的每个收盘价 P' = (P − 每股派现) / (1 + 每股送转)。与独立的前复权收盘序列（腾讯 fqkline qfq，仅一次性核对，不接入）对比：600519 / 301396（10 送转 4）/ 688808（10 转 4.8）/ 300475 最大相对误差 ≤ 1e-5。**只有收盘价**，basis=`qfq_close`；配股不在该表里，未调整 |
 
-缓存 ttl 1 天（`em.fetch_json`），串行 + 每代码额外 0.2 s；顺序为评估卡 → ④ → 估值短名单 → 其余 ② 行；每 100 个代码写一次检查点；同一行情日 / 窗口的上一份 ranges 文件中已有结果的代码直接复用（续跑）；连续 8 个代码失败即停止并保存已有结果。
+缓存 ttl 1 天（`em.fetch_json`），串行 + 每代码额外 0.2 s；顺序为评估卡 → ③ → 估值短名单 → 其余 ② 行；每 100 个代码写一次检查点；同一行情日 / 窗口的上一份 ranges 文件中已有结果的代码直接复用（续跑）；连续 8 个代码失败即停止并保存已有结果。
 
 `ranges_<ts>.json`：`fetched_at, basis:"qfq", item_bases, as_of, window_start, snap, rules, complete, requested, ok, failed, stopped_early, push2his_used, items{code: {hi52, lo52, hi_date, lo_date, n_days, first_date, last_date, as_of, window_start, basis, last_close, short_history, stale, basis_mismatch, src_url}}, http`。build 读最新的 ranges 文件；缺失代码显示"—"。派生：pos52 = (price − lo52)/(hi52 − lo52)×100，off_hi = price/hi52 − 1，off_lo = price/lo52 − 1；hi52 = lo52 时 pos52 为空；标记：`short_history`（窗口前无交易且首个交易日晚于窗口起点 14 天以上 → "上市不足 52 周，区间按上市以来"），`stale`（最后交易日早于行情日 3 天以上 → 停牌），`basis_mismatch`（末日前复权收盘与快照价差 > 0.5%），`outside`（现价不在区间内）。
 
@@ -245,7 +245,7 @@ PEG（评估卡参考项，规则与阈值在 `cn/cards.py` 的 `CARD_RULES["peg
 
 ## k. 机构动向：跟踪机构在前十大流通股东中的 12 个月变化（`python -m cn holders`，只展示）
 
-核验时间 2026-10-23。**不进入** ④ 综合分、价值 / 博弈标签、warn_n 和对比池 bkScore；build 在 `analyze()` 之后才挂到 ② 行（`r.inst`）和评估卡（`c.inst`）。
+核验时间 2026-10-23。**不进入** ③ 综合分、价值 / 博弈标签、warn_n 和对比池 bkScore；build 在 `analyze()` 之后才挂到 ② 行（`r.inst`）和评估卡（`c.inst`）。
 
 | 接口 | 参数 | 字段 → 输出键 | 结果 |
 |---|---|---|---|
@@ -269,7 +269,7 @@ PEG（评估卡参考项，规则与阈值在 `cn/cards.py` 的 `CARD_RULES["peg
 
 ## l. 现金流估值（情景参考）输入（`python -m cn valuation`，只展示）
 
-核验时间 2026-10-26。情景估值参考，不是目标价，不是买卖建议。**不进入** ④ 综合分、价值 / 博弈标签、warn_n 和对比池 bkScore；build 在 `analyze()` 之后才把紧凑输入挂到 ② 行（`r.dcf`）和评估卡（`c.dcf_g`），DCF 本身在页面 JS 里按用户参数计算（`dcfEngine` / `dcfReverse` / `dcfCase`），`cn/valuation.py` 有同逻辑的 Python 镜像（smoke 测试）。
+核验时间 2026-10-26。情景估值参考，不是目标价，不是买卖建议。**不进入** ③ 综合分、价值 / 博弈标签、warn_n 和对比池 bkScore；build 在 `analyze()` 之后才把紧凑输入挂到 ② 行（`r.dcf`）和评估卡（`c.dcf_g`），DCF 本身在页面 JS 里按用户参数计算（`dcfEngine` / `dcfReverse` / `dcfCase`），`cn/valuation.py` 有同逻辑的 Python 镜像（smoke 测试）。
 
 | 接口 | 参数 | 字段 → 用途 | 结果 |
 |---|---|---|---|

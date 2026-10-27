@@ -2,7 +2,7 @@
 
     python -m cn ranges [N]   latest snapshot -> data/cn/ranges_<ts>.json (N = only the first N codes in order)
 
-Order: evaluation-card stocks, ④ research priority, valuation shortlist, then the rest of the ② screen by revenue
+Order: evaluation-card stocks, ③ research priority, valuation shortlist, then the rest of the ② screen by revenue
 growth, so a partial run still covers the rows that matter most. Serial, cached (em.fetch_json, ttl 1 day), polite
 (em rate limiter + an extra sleep per code), resumable (items of the latest ranges file with the same quote date and
 window are reused; a checkpoint file is written every 100 codes).

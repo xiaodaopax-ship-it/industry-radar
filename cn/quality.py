@@ -1,7 +1,7 @@
 """价值通道 (value channel): a second entry to the A-share funnel that does NOT require revenue growth >= 20%.
 Research tooling, not investment advice. The channel lists companies with long-run quality (multi-year ROE, free cash
 flow, cash conversion, moderate leverage) and ranks them on quality + simple valuation yields. It does not change the ②
-growth screen, the 价值 / 博弈 label, warn_n, the ④ priority list or the 对比池 score.
+growth screen, the 价值 / 博弈 label, warn_n, the ③ priority list or the 对比池 score.
 
     python -m cn quality   market-wide fiscal-year fundamentals (5 years) + cash dividends -> data/cn/quality_<ts>.json
 
@@ -18,7 +18,7 @@ Channel rules (VALUE_RULES; fiscal-year data only, so a company is judged on 5 c
          median ROE >= 10%, minimum ROE >= 5%, FCF (OCF - capex) > 0 in >= 4 of 5 fiscal years, 5-year sum OCF / sum
          parent NP >= 0.8, revenue FY(y) >= FY(y-4) (not shrinking), interest-bearing debt / parent equity <= 0.8,
          goodwill / parent equity <= 30% (latest fiscal year).
-  ranking (non-cyclical passers only; cyclical industries are listed separately, same rule as ④): equal-weight mean of
+  ranking (non-cyclical passers only; cyclical industries are listed separately, same rule as ③): equal-weight mean of
          percentiles inside the channel of median ROE, minimum ROE (stability), cash conversion, FCF yield (5-year mean FCF /
          total mcap), earnings yield (1 / PE TTM, PE > 0) and dividend yield (latest fiscal year cash dividends / total mcap).
   display only (not in the score): reverse DCF "现价隐含增速" with the same engine as the page (cn/valuation.dcf_reverse):

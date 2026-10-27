@@ -1,6 +1,6 @@
 """前向跟踪 (forward tracking) of the A-share ledger tags: price return after each ledger record vs the same-date median.
     python -m cn forward   data/cn/ledger/cn_ledger.jsonl -> data/cn/ledger/cn_forward.json (samples + aggregates), offline
-Display / research only: nothing here enters the ④ priority score, the 价值 / 博弈 label, warn_n or the 对比池 bkScore.
+Display / research only: nothing here enters the ③ priority score, the 价值 / 博弈 label, warn_n or the 对比池 bkScore.
 The statistics are radar/forward.py evaluate() (one implementation for both markets; method and caveats documented there).
 A-share specifics:
   * start date = the record's quote date; price = the unadjusted snapshot quote (not 前复权), dividends not included;
