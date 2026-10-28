@@ -175,6 +175,9 @@ def main():
     check("ranges.summarize hi/lo/dates (pre-window bar excluded)", it["hi52"] == 15 and it["lo52"] == 9.5
           and it["hi_date"] == "2026-03-02" and it["lo_date"] == "2025-10-23" and it["n_days"] == 3, json.dumps(it)[:200])
     check("ranges.summarize flags clean", not it["short_history"] and not it["stale"] and not it["basis_mismatch"])
+    wk = ranges.weekly_closes([{"date": "2026-10-19", "close": 1}, {"date": "2026-10-21", "close": 2}, {"date": "2026-10-26", "close": 3}])
+    check("ranges.weekly_closes keeps the last close of each week", wk == {"d": ["2026-10-21", "2026-10-26"], "c": [2, 3]}
+          and it["wk"]["c"] == [10, 14, 12], json.dumps(wk))
     it2 = ranges.summarize(syn[2:3], "2025-10-23", "2026-10-21", "qfq_hl", "x", 14)
     check("ranges.summarize short history + stale flagged", it2["short_history"] and it2["stale"])
     rows_ = [{"code": "X", "price": 12}]

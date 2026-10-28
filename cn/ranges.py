@@ -39,6 +39,7 @@ RANGE_RULES = {
     "max_consecutive_fail": 8,  # stop (and save what we have) after this many codes fail in a row
     "ttl": 1.0,                # cache lifetime, days
     "checkpoint_every": 100,
+    "kline_fail_switch": 5,    # push2his failures in a row before the rest of the run uses datacenter closes only
 }
 
 
@@ -114,6 +115,20 @@ def bonus_events(beg, end, ttl):
     return out, ok
 
 
+def weekly_closes(win):
+    """Last qfq close of every calendar week in the window, for the 1-year sparkline (display only).
+    {"d": [week-end trade dates], "c": [closes]} oldest first; None when there are no closes."""
+    wk = {}
+    for b in win:
+        if b.get("close") is not None:
+            y, w, _ = dt.date.fromisoformat(b["date"]).isocalendar()
+            wk[(y, w)] = b
+    if not wk:
+        return None
+    bs = [wk[k] for k in sorted(wk)]
+    return {"d": [b["date"] for b in bs], "c": [round(b["close"], 3) for b in bs]}
+
+
 def summarize(bars, start, as_of, basis, src_url, price=None):
     """hi52 / lo52 item from bars (oldest first) covering [start - pre_days, as_of]. Pure function (tested in smoke)."""
     R = RANGE_RULES
@@ -130,6 +145,7 @@ def summarize(bars, start, as_of, basis, src_url, price=None):
                "first_date": win[0]["date"], "last_date": win[-1]["date"],
                "last_close": None if win[-1].get("close") is None else round(win[-1]["close"], 4)})
     d0, d1, a = (dt.date.fromisoformat(x) for x in (start, win[0]["date"], as_of))
+    it["wk"] = weekly_closes(win)
     it["short_history"] = not pre and (d1 - d0).days > R["short_gap_days"]
     it["stale"] = (a - dt.date.fromisoformat(win[-1]["date"])).days > R["stale_days"]
     if price and it["last_close"] and not it["stale"]:
@@ -163,7 +179,8 @@ def fetch_ranges(limit=None, snap_path=None):
     prev, prev_path = load_latest()
     reuse = {}
     if prev and prev.get("as_of") == as_of and prev.get("window_start") == start:
-        reuse = {c: it for c, it in (prev.get("items") or {}).items() if it.get("hi52") is not None}
+        # items saved before the weekly-close series existed are fetched again
+        reuse = {c: it for c, it in (prev.get("items") or {}).items() if it.get("hi52") is not None and "wk" in it}
     log(f"ranges: {len(codes)} codes (cards+priority+shortlist first), window {start}..{as_of} (quote date), "
         f"reusable from {os.path.basename(prev_path) if reuse else 'none'}: {sum(1 for c in codes if c in reuse)}")
 
@@ -178,7 +195,7 @@ def fetch_ranges(limit=None, snap_path=None):
     use_kline = bool(probe) and all(em.daily_kline_qfq(c, beg, as_of, ttl=R["ttl"], quiet=True)[1] for c in probe)
     log(f"  push2his kline probe on {len(probe)} codes: {'ok -> intraday qfq high/low' if use_kline else 'failed -> datacenter closes adjusted to qfq'}")
 
-    items, fails, consec, stopped, net_before = {}, [], 0, False, em.STATS["network"]
+    items, fails, consec, stopped, net_before, k_fail = {}, [], 0, False, em.STATS["network"], 0
 
     def save(complete):
         n_ok = sum(1 for it in items.values() if it.get("hi52") is not None)
@@ -203,6 +220,11 @@ def fetch_ranges(limit=None, snap_path=None):
             bars, ok = em.daily_kline_qfq(code, beg, as_of, ttl=R["ttl"], quiet=True)
             if ok and bars:
                 it = summarize(bars, start, as_of, "qfq_hl", em.kline_url(code, beg, as_of), price)
+            # push2his drops connections in bursts; after a run of failures stop trying it (each failure costs ~8 s)
+            k_fail = 0 if ok else k_fail + 1
+            if k_fail >= R["kline_fail_switch"]:
+                use_kline = False
+                log(f"  push2his failed {k_fail} times in a row at {i}/{len(codes)}: datacenter closes (qfq) for the rest")
         if it is None:
             bars, ok, url = derived_qfq_closes(code, beg, as_of, events.get(code, []), R["ttl"])
             it = summarize(bars, start, as_of, "qfq_close", url, price) if ok else None

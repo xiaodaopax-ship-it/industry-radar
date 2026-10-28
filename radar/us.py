@@ -35,6 +35,44 @@ def _merged(tags, period):
 
 SHARES = "WeightedAverageNumberOfDilutedSharesOutstanding"
 
+# Margin sources in order of preference. Many filers stopped tagging GrossProfit / OperatingIncomeLoss and only tag a
+# cost line, so the margin is derived as (revenue - cost) / revenue from the same calendar-quarter frames.
+# "xda" = cost excludes depreciation and amortization, so the derived gross margin reads high (flagged on the page).
+GM_SOURCES = (("gp", "GrossProfit", False), ("cor", "CostOfRevenue", True), ("cogs", "CostOfGoodsAndServicesSold", True),
+              ("xda", "CostOfGoodsAndServiceExcludingDepreciationDepletionAndAmortization", True))
+OPM_SOURCES = (("op", "OperatingIncomeLoss", False), ("cae", "CostsAndExpenses", True))
+
+
+def _margins(sources, P):
+    """{src_key: {"q0": frame, "q0_ly": frame}, ...} plus the cost flag, for margin_pair()."""
+    return [(k, cost, {p: _frame(tag, P[p]) for p in ("q0", "q0_ly")}) for k, tag, cost in sources]
+
+
+def margin_pair(cik, srcs, q0, q0ly, cap_low=None):
+    """(m0, m_ly, src) in percent. One source per filer so the year-over-year change compares like with like:
+    the first source with both quarters wins; otherwise the first source with either quarter."""
+    def one(cost, fr, p, rv):
+        x = fr[p].get(cik, {}).get("val")
+        if x is None or not rv or rv <= 0:
+            return None
+        if cost:
+            if x < 0:
+                return None
+            x = rv - x
+        m = round(x / rv * 100, 1)
+        if cap_low is not None and cost and m < cap_low:   # a cost line far above revenue is a different scope, not a margin
+            return None
+        return m if m <= 100 else None
+    got = [(k, one(c, fr, "q0", q0), one(c, fr, "q0_ly", q0ly)) for k, c, fr in srcs]
+    for k, a, b in got:
+        if a is not None and b is not None:
+            return a, b, k
+    a = next(((x, k) for k, x, _ in got if x is not None), (None, None))
+    b = next(((x, k) for k, _, x in got if x is not None), (None, None))
+    if a[0] is not None:
+        return a[0], (b[0] if b[1] == a[1] else None), a[1]
+    return None, b[0], b[1]
+
 
 def _qlab(y, q, back=0):
     i = y * 4 + q - 1 - back
@@ -239,8 +277,8 @@ def fundamentals(financial=False):
     P = periods(CFG["current_quarter"])
     rev = {k: _merged(CFG["revenue_tags"], p) for k, p in P.items()}
     ni = {k: _frame("NetIncomeLoss", p) for k, p in P.items()}
-    gp = {k: _frame("GrossProfit", P[k]) for k in ("q0", "q0_ly")}
-    op = {k: _frame("OperatingIncomeLoss", P[k]) for k in ("q0", "q0_ly")}
+    gms, opms = _margins(GM_SOURCES, P), _margins(OPM_SOURCES, P)
+    op = opms[0][2]
     sh = {k: _frame("WeightedAverageNumberOfDilutedSharesOutstanding", P[k], "shares") for k in ("q0", "q0_ly")}
     cash = _frame("CashAndCashEquivalentsAtCarryingValue", P["q0"] + "I")
     v = lambda d, cik: d.get(cik, {}).get("val")
@@ -257,13 +295,14 @@ def fundamentals(financial=False):
         if not q0ly or q0ly <= 0:
             continue
         s0, sly = v(sh["q0"], cik), v(sh["q0_ly"], cik)
+        gm0, gmly, gsrc = margin_pair(cik, gms, q0, q0ly, cap_low=-100)
+        om0, omly, osrc = margin_pair(cik, opms, q0, q0ly)
         rows.append({
             "market": "US", "cik": cik, "name": r0["entityName"], "loc": r0.get("loc"), "q_end": r0["end"], "basis": "quarter",
             "rev_q": q0, "rev_q_ly": q0ly, "yoy": round((q0 / q0ly - 1) * 100, 1),
             "yoy_prev": round((q1 / q1ly - 1) * 100, 1) if q1 and q1ly and q1ly > 0 else None,
             "rev_ttm": ttm(rev, cik), "ni_ttm": ttm(ni, cik),
-            "gm": pct(v(gp["q0"], cik), q0), "gm_ly": pct(v(gp["q0_ly"], cik), q0ly),
-            "opm": pct(v(op["q0"], cik), q0), "opm_ly": pct(v(op["q0_ly"], cik), q0ly),
+            "gm": gm0, "gm_ly": gmly, "gm_src": gsrc, "opm": om0, "opm_ly": omly, "opm_src": osrc,
             "dilution": round((s0 / sly - 1) * 100, 1) if s0 and sly else None, "cash": v(cash, cik),
             "eps_h": hist.get(cik),
         })

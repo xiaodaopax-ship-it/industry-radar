@@ -79,6 +79,12 @@
   .tscroll { max-height:72vh; overflow:auto; border:1px solid var(--line); border-radius:var(--r2); margin:6px 0; }
   .tscroll thead th { position:sticky; top:0; z-index:1; background:var(--raised); }
   .tscroll tbody tr:last-child > td { border-bottom:none; }
+  /* frozen company-name column: freezeTables() marks the name cell of every wide table with .fz (sticky while scrolling sideways) */
+  th.fz, td.fz { position:sticky; left:0; box-shadow:inset -1px 0 0 var(--line2); }
+  thead th.fz { z-index:3; }
+  tbody tr > td.fz { z-index:2; background:var(--panel); }
+  tbody tr:nth-child(even) > td.fz { background:linear-gradient(rgba(255,255,255,.022), rgba(255,255,255,.022)) var(--panel); }
+  tbody tr:hover > td.fz { background:linear-gradient(rgba(55,198,224,.065), rgba(55,198,224,.065)) var(--panel); }
 
   /* tags / pills */
   .tag { display:inline-block; padding:0 8px; border-radius:999px; font-size:12px; line-height:19px; white-space:nowrap; background:rgba(154,166,180,.13); color:#c5cdd7; border:1px solid rgba(154,166,180,.22); }
@@ -594,7 +600,7 @@
     <div class="grid g2">
       <div><h3>筛选漏斗</h3><table><tbody id="funnel"></tbody></table><h3>本行业已排除的公司</h3><table><tbody id="excl"></tbody></table></div>
       <div>
-        <p class="note">美国公司：营收、毛利、营业利润、净利润、股数、现金来自 SEC XBRL frames（金融类环节另取税前利润、股东权益、信用损失拨备和净利息收入；金融类龙头的这几项来自 Yahoo 财务时间序列）；行业代码、股票代码、Form 4 来自 SEC submissions。本看板只保留美国上市公司（config.json markets.us_only = true；台湾、日本、韩国、欧洲上市的公司不抓取也不显示，改回 false 可恢复）。在美上市的 ADR 若只交 20-F，部分财务来自 Yahoo 财务时间序列。股价、市值、EPS 实际与预期、一致预期、财报日、分析师人数来自 Yahoo Finance（非官方接口）。</p>
+        <p class="note">美国公司：营收、毛利、营业利润、净利润、股数、现金来自 SEC XBRL frames（金融类环节另取税前利润、股东权益、信用损失拨备和净利息收入；金融类龙头的这几项来自 Yahoo 财务时间序列）；行业代码、股票代码、Form 4 来自 SEC submissions。本看板只保留美国上市公司（config.json markets.us_only = true；台湾、日本、韩国、欧洲上市的公司不抓取也不显示，改回 false 可恢复）。在美上市的 ADR 若只交 20-F，部分财务来自 Yahoo 财务时间序列。毛利率优先用 GrossProfit；公司不申报毛利时按“营收 − 营业成本”推算（CostOfRevenue / CostOfGoodsAndServicesSold，再退到不含折旧摊销的成本，数值偏高），营业利润率缺 OperatingIncomeLoss 时按“营收 − 成本费用合计（CostsAndExpenses）”推算；推算值带 ≈ 标记，同一家公司今年和去年用同一口径，悬停看来源。油气开采、REIT、公用事业、银行保险和部分药企既不申报毛利也不申报营业成本，仍显示“—”。股价、市值、EPS 实际与预期、一致预期、财报日、分析师人数来自 Yahoo Finance（非官方接口）。</p>
         <p class="note">研究优先池：先剔除周期性环节、缺市值、稀释超过 50%、亏损且现金不足 6 个季度、营收同比超过 300% 的公司，再按 10 个因子在本行业候选中的百分位排名取平均。权重相同，没有经过回测，只用来排研究顺序。</p>
         <div class="note" id="pegNote"></div>
         <div class="note" id="dcfNote">
@@ -1644,8 +1650,12 @@ const pp1 = (v, warn) => v == null ? "—" : `<span class="${warn ? "warn" : v <
 const midCells = e => { const d = e.d;
   return isFin(e) ? `<td class="n">${d.pretax_m != null ? `<span class="${d.pretax_m < 0 ? "neg" : ""}">${num(d.pretax_m)}%</span>` : "—"}</td><td class="n">${pp1(d.pretax_trend)}</td>
     <td class="n">${d.roe != null ? `<span class="${d.roe < 0 ? "neg" : ""}">${num(d.roe)}%</span>` : "—"}</td><td class="n">${num(d.pb)}</td>`
-  : `<td class="n">${e.gm != null ? num(e.gm) + "%" : "—"}</td><td class="n">${pp1(d.gm_trend, d.gm_trend != null && d.gm_trend >= D.cfg.flags.gm_jump_warn_pp)}</td>
-    <td class="n">${e.opm != null ? `<span class="${e.opm < 0 ? "neg" : ""}">${num(e.opm)}%</span>` : "—"}</td><td class="n">${num(d.ps)}</td>`; };
+  : `<td class="n">${e.gm != null ? num(e.gm) + "%" + srcMark(e.gm_src) : "—"}</td><td class="n">${pp1(d.gm_trend, d.gm_trend != null && d.gm_trend >= D.cfg.flags.gm_jump_warn_pp)}</td>
+    <td class="n">${e.opm != null ? `<span class="${e.opm < 0 ? "neg" : ""}">${num(e.opm)}%</span>` + srcMark(e.opm_src) : "—"}</td><td class="n">${num(d.ps)}</td>`; };
+// margins derived from revenue minus a cost line (the filer does not tag GrossProfit / OperatingIncomeLoss)
+const SRC_TIP = { cor: "公司未申报毛利，按 营收 − 营业成本(CostOfRevenue) 推算", cogs: "公司未申报毛利，按 营收 − 销售成本(CostOfGoodsAndServicesSold) 推算",
+  xda: "公司未申报毛利，按 营收 − 不含折旧摊销的成本 推算，数值偏高", cae: "公司未申报营业利润，按 营收 − 成本费用合计(CostsAndExpenses) 推算" };
+function srcMark(s) { return SRC_TIP[s] ? `<sup class="small" title="${SRC_TIP[s]}" aria-label="${SRC_TIP[s]}">${s === "xda" ? "≈↑" : "≈"}</sup>` : ""; }
 function renderHead() {
   $("thead").innerHTML = COLS().map(([k, t, n]) => `<th scope="col" class="${n ? "n" : ""}"><button type="button" data-k="${k}">${t}</button></th>`).join("");
   document.querySelectorAll("#thead button").forEach(b => b.onclick = () => { state.dir = state.sort === b.dataset.k ? -state.dir : -1; state.sort = b.dataset.k; renderEmerging(); });
@@ -2749,6 +2759,33 @@ $("hmClear").onclick = () => { hs.major = ""; renderHeatInd(); };
 renderHeat();
 bkRender(); bkSync();   // after the PEG helpers (pgUp) exist; the basket table uses them
 $("foot").textContent = `数据：SEC EDGAR、Yahoo Finance。Form 4 统计自 ${D.form4_since} 起。研究用工具，不构成投资建议。`;
+// ---- frozen name column: in every wide table the company-name column stays visible while scrolling sideways.
+// The column is found from the header text (名称 / 公司 / 代码 / 行业); tables inside evaluation cards and DCF blocks are left alone.
+// Cells spanning several columns (detail rows, group headers, empty-state rows) are never frozen.
+const FZ_RE = [/名称/, /^公司/, /^代码/, /^行业$/, /^行业（/, /^大类$/, /^Ticker/i];
+function freezeTables() {
+  document.querySelectorAll("table").forEach(t => {
+    if (t.closest(".card, details.ec, .dcf, [data-nofz]")) return;
+    const hs = [...(t.tHead?.rows[0]?.cells || [])];
+    let i = -1;
+    for (const re of FZ_RE) { i = hs.findIndex(h => re.test(h.textContent.trim())); if (i >= 0) break; }
+    if (i < 0) return;
+    hs.forEach((h, j) => h.classList.toggle("fz", j === i));
+    for (const b of t.tBodies) for (const tr of b.rows) {
+      let col = 0;
+      for (const c of tr.cells) {
+        const span = c.colSpan || 1;
+        const hit = col === i && span === 1;
+        if (hit !== c.classList.contains("fz")) c.classList.toggle("fz", hit);
+        col += span;
+      }
+    }
+  });
+}
+let fzPending = false;
+new MutationObserver(() => { if (!fzPending) { fzPending = true; requestAnimationFrame(() => { fzPending = false; freezeTables(); }); } })
+  .observe(document.body, {childList: true, subtree: true});
+freezeTables();
 </script>
 </body>
 </html>

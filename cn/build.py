@@ -694,7 +694,15 @@ def build(path=None):
             log(f"dividend screen: groups={payload['dividend']['n']}")
         payload["longdiv"] = dmod.long_term(snap, res, qdoc, ((vdoc or {}).get("rf") or {}).get("value"))
         if payload["longdiv"].get("file"):
-            log(f"long-term dividend view: groups={payload['longdiv']['n']}")
+            # display only: weekly qfq closes for the 1-year sparkline (from the ranges file) and the 52-week position
+            items = (rdoc or {}).get("items") or {}
+            pos = {r["code"]: r for r in res["screen"] + res["extra_rows"]}
+            for r in payload["longdiv"]["rows"]:
+                it = items.get(r["code"]) or {}
+                r["wk"] = it.get("wk")
+                r["pos52"] = (pos.get(r["code"]) or {}).get("pos52")
+            log(f"long-term dividend view: groups={payload['longdiv']['n']} "
+                f"sparkline={sum(1 for r in payload['longdiv']['rows'] if r.get('wk'))}/{len(payload['longdiv']['rows'])}")
         else:
             log(f"long-term dividend view: skipped ({payload['longdiv'].get('why_none', 'no quality file')})")
     except Exception as e:  # noqa: BLE001

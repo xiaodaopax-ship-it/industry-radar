@@ -94,7 +94,8 @@ def collect(log=print):
         tk = sub["tickers"][0] if sub.get("tickers") else None
         out.append({"cik": r["cik"], "ticker": tk, "name": r["name"], "sic": sub["sic"], "sic_desc": sub.get("sic_desc"),
                     "yoy": r["yoy"], "yoy_prev": r["yoy_prev"], "rev_q": r["rev_q"], "rev_q_ly": r["rev_q_ly"], "rev_ttm": r["rev_ttm"],
-                    "gm": r["gm"], "gm_ly": r["gm_ly"], "opm": r["opm"], "opm_ly": r["opm_ly"]})
+                    "gm": r["gm"], "gm_ly": r["gm_ly"], "opm": r["opm"], "opm_ly": r["opm_ly"],
+                    "gm_src": r.get("gm_src"), "opm_src": r.get("opm_src")})
         if (i + 1) % 250 == 0:
             log(f"  {i + 1}/{len(rows)}")
     path = os.path.join(DATA, f"heat_{dt.datetime.now():%Y%m%d_%H%M%S}.json")

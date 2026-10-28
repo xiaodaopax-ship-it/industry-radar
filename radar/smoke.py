@@ -30,6 +30,16 @@ def main():
     check("fails: revenue below $200M is the only failing rule of the synthetic company", Q.fails(m) == ["small"], str(Q.fails(m)))
     m2 = Q.metrics({**it, "2025": {**it["2025"], "ni": -1.0}}, ys)
     check("fails: a loss in the latest fiscal year fails 'np'", "np" in Q.fails(m2), str(Q.fails(m2)))
+    from .us import margin_pair
+    fr = lambda d: {"q0": {k: {"val": v} for k, v in d.get("q0", {}).items()}, "q0_ly": {k: {"val": v} for k, v in d.get("q0_ly", {}).items()}}
+    srcs = [("gp", False, fr({"q0": {1: 40}, "q0_ly": {3: 30}})), ("cor", True, fr({"q0": {1: 70, 2: 60, 3: 50}, "q0_ly": {1: 65, 2: 55, 3: 45}}))]
+    a, b, c = margin_pair(1, srcs, 100, 100), margin_pair(2, srcs, 100, 100), margin_pair(3, srcs, 100, 100)
+    check("margin_pair: one source per filer (both quarters first), revenue minus cost when the margin tag is missing",
+          a == (30.0, 35.0, "cor") and b == (40.0, 45.0, "cor") and c == (50.0, 55.0, "cor")
+          and margin_pair(1, srcs[:1], 100, 100) == (40.0, None, "gp") and margin_pair(9, srcs, 100, 100) == (None, None, None),
+          str((a, b, c)))
+    big = [("cor", True, fr({"q0": {1: 900}, "q0_ly": {1: 120}}))]
+    check("margin_pair: a cost line far above revenue is dropped (different scope)", margin_pair(1, big, 100, 100, cap_low=-100)[0] is None)
     doc, path = Q.latest()
     if not doc:
         check("quality file present (run python -m radar quality)", False)

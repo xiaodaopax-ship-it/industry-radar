@@ -78,6 +78,12 @@
   .tscroll { max-height:72vh; overflow:auto; border:1px solid var(--line); border-radius:var(--r2); margin:6px 0; }
   .tscroll thead th { position:sticky; top:0; z-index:1; background:var(--raised); }
   .tscroll tbody tr:last-child > td { border-bottom:none; }
+  /* frozen company-name column: freezeTables() marks the name cell of every wide table with .fz (sticky while scrolling sideways) */
+  th.fz, td.fz { position:sticky; left:0; box-shadow:inset -1px 0 0 var(--line2); }
+  thead th.fz { z-index:3; }
+  tbody tr > td.fz { z-index:2; background:var(--panel); }
+  tbody tr:nth-child(even) > td.fz { background:linear-gradient(rgba(255,255,255,.022), rgba(255,255,255,.022)) var(--panel); }
+  tbody tr:hover > td.fz { background:linear-gradient(rgba(55,198,224,.065), rgba(55,198,224,.065)) var(--panel); }
   tbody tr.detail > td, tbody tr.detail:hover > td { background:var(--raised); }
   .dwrap { position:sticky; left:8px; max-width:min(1100px, calc(100vw - 360px)); }
   tr.hl > td { box-shadow:inset 0 1px 0 rgba(55,198,224,.5), inset 0 -1px 0 rgba(55,198,224,.5); }
@@ -236,6 +242,8 @@
   tr.bk-gh > td, tr.bk-gh:hover > td { background:var(--raised2); color:var(--text); font-weight:650; font-size:12.5px; }
   tr.bk-gh .small { font-weight:400; }
   tr.bk-miss > td { color:var(--muted); }
+  .lt-spark { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; } .lt-spark svg { display:block; }
+  #bkLtWrap { margin-top:14px; }
   td.bk-best { box-shadow:inset 0 -2px 0 rgba(70,196,134,.55); }
   td.bk-worst { box-shadow:inset 0 -2px 0 rgba(242,114,107,.55); }
   .bk-score { font-size:14px; font-weight:650; }
@@ -502,7 +510,7 @@
   <section id="sLt" aria-labelledby="ltTitle">
     <h2 id="ltTitle"><span class="step-tag">10Y</span>长期红利 · 10 个财年的分红持续性</h2>
     <p class="lead" id="ltLead"></p>
-    <p class="dcf-disc">问的是“这份分红能不能撑过一个完整周期、还会不会增长”，而不是“现在股息率多高”。数据只能说明过去 10 年；未来 10 年生意还在不在，要靠下面的人工核实清单。只缩小研究范围，不是推荐，规则没有回测；不进入 ③ 排序、标签、⚠ 数和对比池评分。</p>
+    <p class="dcf-disc">问的是“这份分红能不能撑过一个完整周期、还会不会增长”，而不是“现在股息率多高”。数据只能说明过去 10 年；未来 10 年生意还在不在，要靠下面的人工核实清单。只缩小研究范围，不是推荐，规则没有回测；不进入 ③ 排序、标签和 ⚠ 数。点“＋对比”可以加入对比池，在单独的“长期红利对比”表里横向比较（不参与 ② 公司的池内评分）。</p>
     <div class="toolbar" role="group" aria-label="长期红利筛选">
       <label class="small" for="ltGrp">分组</label><select id="ltGrp"><option value="stable">非金融</option><option value="fin">金融（银行、保险）</option></select>
       <label class="small" for="ltQ">搜索</label><input type="search" id="ltQ" placeholder="代码或名称" autocomplete="off">
@@ -533,8 +541,8 @@
 
   <section id="sBk" aria-labelledby="bkTitle">
     <h2 id="bkTitle" tabindex="-1"><span class="step-tag">⇄</span>对比池 · <span id="bkN">0</span> / 30 家</h2>
-    <p class="lead">把想放在一起看的公司加进来（② 筛选表、③ 研究优先级与周期行业单列、⑤ 评估卡里的“＋对比”），在同一张表里比较增长、现金流、估值位置和风险门禁。名单只保存在本浏览器（localStorage），重新构建页面不会丢失。</p>
-    <div id="bkEmpty" class="bk-empty">对比池还是空的。在 ② 新兴筛选、③ 研究优先级（含周期行业单列）或 ⑤ 个股评估卡里点“＋对比”加入公司，最多 30 家；再点一次“✓ 对比”移出。<span class="warn" id="bkEmptyErr"></span></div>
+    <p class="lead">把想放在一起看的公司加进来（② 筛选表、③ 研究优先级与周期行业单列、10Y 长期红利表、⑤ 评估卡里的“＋对比”），在同一张表里比较增长、现金流、估值位置和风险门禁。名单只保存在本浏览器（localStorage），重新构建页面不会丢失。</p>
+    <div id="bkEmpty" class="bk-empty">对比池还是空的。在 ② 新兴筛选、③ 研究优先级（含周期行业单列）、10Y 长期红利或 ⑤ 个股评估卡里点“＋对比”加入公司，最多 30 家；再点一次“✓ 对比”移出。<span class="warn" id="bkEmptyErr"></span></div>
     <div id="bkMain" hidden>
       <div class="toolbar">
         <button type="button" class="btn primary" id="bkRank" aria-describedby="bkDisc">评分排序</button>
@@ -545,7 +553,13 @@
       </div>
       <div class="bk-ws" role="group" aria-label="评分维度权重"><span class="gt">维度权重</span><span id="bkWs"></span>
         <button type="button" class="btn ghost" id="bkWReset">恢复默认权重</button></div>
-      <div class="tscroll"><table><thead><tr id="bkHead"></tr></thead><tbody id="bkBody"></tbody></table></div>
+      <div class="tscroll" id="bkMainT"><table><thead><tr id="bkHead"></tr></thead><tbody id="bkBody"></tbody></table></div>
+      <div id="bkLtWrap" hidden>
+        <h3 id="bkLtTitle">长期红利对比 · <span id="bkLtN">0</span> 家 <span class="small">（池内属于 10Y 长期红利的公司，按 10 年口径比较）</span></h3>
+        <p class="small" id="bkLtMeta"></p>
+        <div class="tscroll"><table aria-labelledby="bkLtTitle"><thead><tr id="bkLtHead"></tr></thead><tbody id="bkLtBody"></tbody></table></div>
+        <p class="note">组内排名和组内得分来自 10Y 长期红利（全市场通过者之间的百分位），非金融与金融分开；绿色 / 红色下划线 = 这一列在池内同组里最好 / 最差。股价、走势和 52 周位置只展示，不计分。这张表不参与上面 ② 公司的池内评分，不是买卖建议。</p>
+      </div>
       <p class="note" id="bkDisc">池内相对排序：只反映所选这几家在下列口径上的相对位置，换一批公司分数就会变。不是买卖建议，不预测股价；PEG 只展示、不计分。“Base 估值 vs 现价”“隐含增速”两列是现金流估值（情景估值参考，不是目标价，不是买卖建议），只展示、不计分。“台账：本期变化”列来自估值台账（默认参数），只展示、不计分。</p>
       <details class="grp"><summary>评分规则 <span class="small">维度 · 方向 · 百分位 · 加权 · 分组</span></summary><div class="grp-body rule" id="bkRules" style="margin:0"></div></details>
     </div>
@@ -688,7 +702,7 @@ const LK_ROWS = (L => L && L.rows ? L.rows.map(r => Object.fromEntries(L.cols.ma
 const LK_BY = Object.fromEntries(LK_ROWS.map(r => [r.code, r]));
 const GATES = [["ocf", "现金流/净利"], ["ar", "应收增速"], ["inv", "存货增速"], ["goodwill", "商誉/权益"], ["pledge", "质押比例"],
   ["selling", "6 月净增减持"], ["unlock", "90 天解禁"], ["reg", "监管类标题"], ["val", "PE 分位"], ["fc", "业绩预告"]];
-const state = {indAll: false, ind: "", lb: "", w: "", q: "", inst: "", instS: "", limit: 150, open: new Set(), hl: "", sideIndAll: false, sort: {ind: ["revenue", -1], sc: ["rev_yoy", -1], p: ["rank", 1], bk: ["added", 1]}};
+const state = {indAll: false, ind: "", lb: "", w: "", q: "", inst: "", instS: "", limit: 150, open: new Set(), hl: "", sideIndAll: false, sort: {ind: ["revenue", -1], sc: ["rev_yoy", -1], p: ["rank", 1], bk: ["added", 1], bklt: ["added", 1]}};
 const debounce = (fn, ms) => { let t = 0; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 const narrow = () => matchMedia("(max-width:1099.98px)").matches;
 // scroll to a section; setting the same hash again would not scroll, so fall back to scrollIntoView
@@ -1275,7 +1289,7 @@ function evalCardCN(c) {
       <span class="ec-nums"><span class="np">股价 <b>${f.price != null ? num(f.price, 2) + " 元" : "—"}</b></span><span class="np" data-tip="${esc(rngTip(c.range, f))}">52 周位置 <b>${rngOk(c.range) ? num(c.range.pos52, 0) + "%" : "—"}</b>${rngFlags(c.range).length ? '<span class="tag">注</span>' : ""}</span><span class="np">总市值 <b>${yi(f.mcap)} 亿</b></span><span class="np">PE(TTM) <b>${num(f.pe_ttm)}</b></span>
         <span class="np ${vs === "warn" ? "unrel" : vs === "ok" ? "good" : ""}">PE 分位 <b>${f.pe_pct == null ? "—" : num(f.pe_pct, 0) + "%"}</b></span>${pegNp}
         <span class="np ${c.warn_n ? "unrel" : "good"}" data-tip="前 8 项风险门槛中触发提示的项数">⚠ <b>${esc(c.warn_n)}</b></span>
-        ${noteCtl(c.code)}${BYCODE[c.code] ? bkCtl(c.code) : ""}</span></summary>
+        ${noteCtl(c.code)}${BYCODE[c.code] || LT_BY[c.code] ? bkCtl(c.code) : ""}</span></summary>
     <div class="ec-body">${ltr ? ltCardBlock(ltr, c) : ""}
     <div class="ec-head"><div class="one">${esc(c.oneliner) || '<span class="muted">没有取到主营业务描述</span>'}</div>
       <div class="concl"><b>结论（规则生成）：</b>${esc(c.conclusion)}</div></div>
@@ -2647,7 +2661,9 @@ function renderBk() {
   $("bkEmpty").hidden = n > 0; $("bkMain").hidden = !n;
   if (!n) { $("bkHead").innerHTML = ""; $("bkBody").innerHTML = ""; bkView = []; $("bkEmptyErr").textContent = bkErr ? " " + bkErr : ""; return; }
   const all = BK.items.map((x, i) => ({x, i: i + 1, r: BYCODE[x.code] || null}));
-  const found = all.filter(e => e.r), miss = all.filter(e => !e.r);
+  const found = all.filter(e => e.r), miss = all.filter(e => !e.r && !LT_BY[e.x.code]);
+  renderBkLt(all.filter(e => LT_BY[e.x.code]).map(e => ({x: e.x, i: e.i, r: LT_BY[e.x.code]})));
+  $("bkMainT").hidden = !found.length && !miss.length;
   const S = bkScore(found.map(e => e.r), BK.weights); found.forEach(e => e.s = S[e.r.code]);
   if (!bkScored && ["score", "rank", "cov"].includes(state.sort.bk[0])) state.sort.bk = ["added", 1];
   const cols = bkCols(), sorted = table("bk", "bkHead", "bkBody", cols, found), span = cols.length;
@@ -2667,6 +2683,48 @@ function renderBk() {
   $("bkRank").textContent = bkScored ? "重新按总分排序" : "评分排序";
   $("bkMeta").textContent = (bkScored ? `池内相对评分：非周期 ${main.length} 家参与，周期 ${cyc.length} 家不参与${miss.length ? `，${miss.length} 家已不在本次数据中` : ""}。绿色下划线 = 该维度池内最好，红色 = 最差。`
     : `共 ${n} / ${BK_MAX} 家${miss.length ? `（${miss.length} 家已不在本次数据中）` : ""}。点“评分排序”在池内做相对排序。`) + (bkErr ? " " + bkErr : "");
+}
+// 长期红利对比: every pool item that is in the 10Y long-term dividend view (in ② or not). Group ranks / scores come from
+// cn/dividend.long_term (market-wide percentiles); within-pool best / worst is marked per group. Display only, no new score.
+const BKLT_HL = {dy: 1, div_cagr: 1, max_cut: 1, roe_min: 1, cover: 1, payout: 0, rev_cagr: 1, gm_sd: -1, exp_ret: 1};
+function renderBkLt(items) {
+  $("bkLtWrap").hidden = !items.length; $("bkLtN").textContent = items.length;
+  if (!items.length) { $("bkLtHead").innerHTML = $("bkLtBody").innerHTML = ""; return; }
+  const ext = {};
+  ["stable", "fin"].forEach(g => { const rs = items.filter(e => e.r.group === g).map(e => e.r);
+    Object.entries(BKLT_HL).forEach(([k, d]) => { if (!d || rs.length < 2) return; const v = rs.map(r => r[k]).filter(bkFin); if (v.length < 2) return;
+      ext[g + k] = d > 0 ? [Math.max(...v), Math.min(...v)] : [Math.min(...v), Math.max(...v)]; }); });
+  const hl = (e, k) => { const x = ext[e.r.group + k], v = e.r[k]; return !x || !bkFin(v) || x[0] === x[1] ? "" : v === x[0] ? " bk-best" : v === x[1] ? " bk-worst" : ""; };
+  const cols = [
+    {k: "added", t: "#", n: 1, v: e => e.i, f: e => esc(e.i)},
+    {k: "code", t: "代码 · 名称", cls: "nw", v: e => e.r.code, f: e => `<button type="button" class="linkbtn" data-bkjump="${esc(e.r.code)}" aria-label="跳到 ${esc(e.r.code)} ${esc(e.r.name)} 的评估卡"><b>${esc(e.r.code)}</b> ${esc(e.r.name)}</button>${e.r.in2 ? ' <span class="tag">② 内</span>' : ""}`},
+    {k: "group", t: "分组", cls: "nw", v: e => e.r.group, f: e => `<span class="small">${e.r.group === "fin" ? "金融" : "非金融"}</span>`},
+    {k: "industry", t: "行业", cls: "nw", v: e => e.r.industry, f: e => `<span class="small">${esc(e.r.industry)}</span>${e.r.util ? ' <span class="tag">公用事业</span>' : ""}`},
+    {k: "rank", t: "组内排名", n: 1, v: e => e.r.rank, f: e => esc(e.r.rank ?? "—")},
+    {k: "score", t: "组内得分", n: 1, v: e => e.r.score, f: e => num(e.r.score, 1)},
+    {k: "dy", t: "股息率", n: 1, f: e => vcP(e.r.dy)},
+    {k: "div_cagr", t: "10 年分红复合增速", n: 1, f: e => vcP(e.r.div_cagr)},
+    {k: "max_cut", t: "最大一次削减", n: 1, f: e => e.r.max_cut == null ? "—" : e.r.max_cut >= 0 ? "从未下降" : num(e.r.max_cut, 0) + "%"},
+    {k: "roe_min", t: "ROE 最低 / 中位数", n: 1, f: e => `${vcP(e.r.roe_min)} / ${vcP(e.r.roe_med)}`},
+    {k: "payout", t: "分红率（中位数）", n: 1, f: e => e.r.payout != null ? num(e.r.payout * 100, 0) + "%" : "—"},
+    {k: "cover", t: "覆盖倍数", n: 1, f: e => e.r.cover != null ? num(e.r.cover, 2) + "×" : "—"},
+    {k: "rev_cagr", t: "10 年营收复合增速", n: 1, f: e => vcP(e.r.rev_cagr)},
+    {k: "gm_sd", t: "毛利率波动", n: 1, f: e => e.r.gm_sd != null ? num(e.r.gm_sd, 1) + "pt" : "—"},
+    {k: "exp_ret", t: "参考：股息率 + 分红增速", n: 1, f: e => vcP(e.r.exp_ret)},
+    {k: "pe", t: "PE / PB", n: 1, f: e => `${num(e.r.pe)} / ${num(e.r.pb, 2)}`},
+    {k: "ytd_np_yoy", t: "年初至今净利同比", n: 1, f: e => pc(e.r.ytd_np_yoy, 0)},
+    {k: "price", t: "当前股价", n: 1, f: e => priceCell(e.r)},
+    {k: "spark", t: "近一年走势", cls: "nw", v: e => ltChg(e.r), f: e => ltSpark(e.r)},
+    {k: "pos52", t: "52 周位置", cls: "nw", v: e => rowOf(e.r.code)?.pos52 ?? null, f: e => rowOf(e.r.code) ? miniRange(rowOf(e.r.code), rowOf(e.r.code)) : "—"},
+    {k: "card", t: "评估卡", nosort: 1, cls: "nw", f: e => CARDS[e.r.code] ? `<a href="#card-${esc(e.r.code)}" data-card="${esc(e.r.code)}">打开</a>` : '<span class="na">—</span>'},
+    {k: "rm", t: "移除", nosort: 1, cls: "nw", f: e => `<button type="button" class="btn ghost" data-bkrm="${esc(e.r.code)}" aria-label="把 ${esc(e.r.code)} ${esc(e.r.name)} 移出对比池">移除</button>`},
+  ];
+  const sorted = table("bklt", "bkLtHead", "bkLtBody", cols, items), span = cols.length;
+  const tr = e => `<tr>${cols.map(c => `<td class="${c.n ? "n" : c.cls || ""}${BKLT_HL[c.k] !== undefined ? hl(e, c.k) : ""}">${c.f(e)}</td>`).join("")}</tr>`;
+  const st = sorted.filter(e => e.r.group !== "fin"), fn = sorted.filter(e => e.r.group === "fin");
+  $("bkLtBody").innerHTML = (st.length && fn.length ? `<tr class="bk-gh"><td colspan="${span}">非金融（${st.length} 家）</td></tr>` : "") + st.map(tr).join("")
+    + (fn.length ? (st.length ? `<tr class="bk-gh"><td colspan="${span}">金融（${fn.length} 家） <span class="small">银行、保险：覆盖倍数 = 净利润 ÷ 分红，没有毛利率</span></td></tr>` : "") + fn.map(tr).join("") : "");
+  $("bkLtMeta").textContent = `${st.length} 家非金融、${fn.length} 家金融。其中 ${items.filter(e => e.r.in2).length} 家也在 ② 内，同时出现在上面的表里。`;
 }
 function bkWSync() { document.querySelectorAll("#bkWs select[data-bkw]").forEach(s => s.value = String(bkW(s.dataset.bkw))); }
 function bkCsv() {
@@ -2882,7 +2940,21 @@ $("dvGrp").addEventListener("change", () => { dvS.k = "rank"; dvS.dir = 1; dvS.n
 ["dvQ", "dvInd", "dvMin"].forEach(id => $(id).addEventListener(id === "dvQ" ? "input" : "change", debounce(() => { dvS.n = 50; renderDv(); }, 120)));
 $("dvMore").onclick = () => { dvS.n += 50; renderDv(); };
 // ---------- 长期红利 (cn/dividend.py long_term(): 10 fiscal years; ranked inside each group)
-const LT = D.longdiv || {}, LTR = LT.rows || [];
+const LT = D.longdiv || {}, LTR = LT.rows || [], LT_BY = Object.fromEntries(LTR.map(r => [r.code, r]));
+// 1-year change from the weekly qfq closes (display only)
+const ltChg = r => { const c = r.wk?.c || []; return c.length >= 2 && c[0] > 0 ? (c.at(-1) / c[0] - 1) * 100 : null; };
+// compact 1-year sparkline for table cells: weekly qfq closes (ranges file), last point = latest close; display only
+function ltSpark(r) {
+  const w = r.wk, c = w?.c || [];
+  if (c.length < 8) return '<span class="na" data-tip="没有一年的周收盘数据（运行 python -m cn ranges 后重新构建）">—</span>';
+  const W = 120, H = 30, lo = Math.min(...c), hi = Math.max(...c), k = hi > lo ? (H - 4) / (hi - lo) : 0;
+  const pts = c.map((v, i) => `${(i / (c.length - 1) * (W - 2) + 1).toFixed(1)},${(H - 2 - (v - lo) * k).toFixed(1)}`).join(" ");
+  const ch = ltChg(r), last = pts.split(" ").at(-1).split(",");
+  const tip = `近一年（${w.d[0]} – ${w.d.at(-1)}）每周最后一个交易日收盘价，前复权；最低 ${num(lo, 2)}，最高 ${num(hi, 2)}；区间涨跌 ${ch == null ? "—" : (ch > 0 ? "+" : "") + num(ch, 1) + "%"}。只展示，不计分`;
+  return `<span class="lt-spark" data-tip="${esc(tip)}"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(tip)}">
+    <polyline fill="none" stroke="var(--accent)" stroke-width="1.4" points="${pts}"/><circle cx="${last[0]}" cy="${last[1]}" r="2" fill="var(--accent)"/></svg>
+    <span class="small">${pc(ch, 1)}</span></span>`;
+}
 const LT_F = {dy: "股息率", div_cagr: "10 年分红增速", roe_min: "10 年最低 ROE", cover: "覆盖倍数", gm_sdn: "毛利率稳定"};
 const LT_WHY = (R0 => ({d_st: "ST / *ST", d_nodata: "没有财年数据", l_cyc: "周期或易受冲击的行业（长期视图不纳入）", l_small: `总市值 < ${num((R0.mcap_min || 0) / 1e8, 0)} 亿`,
   l_years: `10 个财年里不是每年都有现金分红`, l_cut: `某一年分红比上一年下降超过 ${-R0.max_cut}%`, l_recent_cut: "最近一年分红明显低于前 3 年平均",
@@ -2909,7 +2981,11 @@ const LT_COLS = [
   ["exp_ret", "参考：股息率 + 分红增速", r => `<span data-tip="${esc("历史延续的粗略假设：当前股息率 + 10 年分红复合增速（封顶 " + (LT.rules?.growth_cap ?? "") + "%），不考虑估值变化，不是预测")}">${vcP(r.exp_ret)}</span>`, r => r.exp_ret, -1],
   ["pe", "PE / PB", r => `${r.pe != null ? num(r.pe) : "—"} / ${r.pb != null ? num(r.pb, 2) : "—"}`, r => r.pe, 1],
   ["ytd", "年初至今净利同比", r => pc(r.ytd_np_yoy, 0), r => r.ytd_np_yoy, -1],
-  ["bk", "对比", r => r.in2 ? bkCtl(r.code) : '<span class="small">—</span>', null, 0],
+  // display only: price (quote date), 1-year weekly sparkline and 52-week position; never part of the long-term score
+  ["price", `当前股价（${D.quote_date || ""}）`, r => priceCell(r), r => r.price, -1],
+  ["spark", "近一年走势（周收盘，前复权）", r => ltSpark(r), r => ltChg(r), -1],
+  ["pos52", "52 周位置", r => rowOf(r.code) ? miniRange(rowOf(r.code), rowOf(r.code)) : "—", r => rowOf(r.code)?.pos52 ?? null, 1],
+  ["bk", "对比", r => bkCtl(r.code), null, 0],
 ];
 function renderLt() {
   if (!LT.file) { $("ltLead").innerHTML = `<span class="warn">还没有 10 年数据：运行 <code>python -m cn quality</code>（10 个财年）后重新构建。</span>`; $("ltHead").innerHTML = $("ltBody").innerHTML = ""; return; }
@@ -2923,7 +2999,7 @@ function renderLt() {
     .sort((a, b) => { const x = get(a), y = get(b); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
       return (typeof x === "string" ? x.localeCompare(y, "zh-CN") : x - y) * ltS.dir; });
   $("ltHead").innerHTML = LT_COLS.map(([k, t, , gt]) => gt ? `<th scope="col" aria-sort="${ltS.k === k ? (ltS.dir > 0 ? "ascending" : "descending") : "none"}"><button type="button" class="sortbtn" data-lts="${k}">${esc(t)}${ltS.k === k ? (ltS.dir > 0 ? " ▲" : " ▼") : ""}</button></th>` : `<th scope="col">${esc(t)}</th>`).join("");
-  $("ltBody").innerHTML = L.map(r => `<tr>${LT_COLS.map(([k, , f]) => `<td${["code", "industry", "bk", "div"].includes(k) ? "" : ' class="n"'}>${f(r)}</td>`).join("")}</tr>`).join("")
+  $("ltBody").innerHTML = L.map(r => `<tr>${LT_COLS.map(([k, , f]) => `<td${["code", "industry", "bk", "div", "spark", "pos52"].includes(k) ? "" : ' class="n"'}>${f(r)}</td>`).join("")}</tr>`).join("")
     || `<tr><td colspan="${LT_COLS.length}" class="small">没有符合条件的公司</td></tr>`;
   $("ltCnt").textContent = `${L.length} 家`;
   $("ltChecks").innerHTML = (LT.checks || []).map(x => `<li>${esc(x)}</li>`).join("");
@@ -2956,6 +3032,33 @@ function init() {
   if (location.hash.startsWith("#card-")) openCard(decodeURIComponent(location.hash.slice(6)), true);
 }
 init();
+// ---- frozen name column: in every wide table the company-name column stays visible while scrolling sideways.
+// The column is found from the header text (名称 / 公司 / 代码 / 行业); tables inside evaluation cards and DCF blocks are left alone.
+// Cells spanning several columns (detail rows, group headers, empty-state rows) are never frozen.
+const FZ_RE = [/名称/, /^公司/, /^代码/, /^行业$/, /^行业（/, /^大类$/, /^Ticker/i];
+function freezeTables() {
+  document.querySelectorAll("table").forEach(t => {
+    if (t.closest(".card, details.ec, .dcf, [data-nofz]")) return;
+    const hs = [...(t.tHead?.rows[0]?.cells || [])];
+    let i = -1;
+    for (const re of FZ_RE) { i = hs.findIndex(h => re.test(h.textContent.trim())); if (i >= 0) break; }
+    if (i < 0) return;
+    hs.forEach((h, j) => h.classList.toggle("fz", j === i));
+    for (const b of t.tBodies) for (const tr of b.rows) {
+      let col = 0;
+      for (const c of tr.cells) {
+        const span = c.colSpan || 1;
+        const hit = col === i && span === 1;
+        if (hit !== c.classList.contains("fz")) c.classList.toggle("fz", hit);
+        col += span;
+      }
+    }
+  });
+}
+let fzPending = false;
+new MutationObserver(() => { if (!fzPending) { fzPending = true; requestAnimationFrame(() => { fzPending = false; freezeTables(); }); } })
+  .observe(document.body, {childList: true, subtree: true});
+freezeTables();
 </script>
 </body>
 </html>
