@@ -9,6 +9,8 @@
                              valuation files to data/ledger/us_ledger.jsonl (append-only, idempotent), then rebuild
     python -m radar forward  forward tracking of the ledger tags: price return after each record vs the same-date median
                              (offline, from the ledger only) -> data/ledger/us_forward.json; display only
+    python -m radar px       1-year weekly closes for the intersection view (Yahoo chart, value channel and screen), then
+                             rebuild; display only
     python -m radar research extract filing evidence (10-K, 8-K, XBRL R&D, Yahoo profile) for
                              research-priority pools, leaders and companies with research files
 """
@@ -41,6 +43,11 @@ def main():
         build(latest_raw())
     elif cmd == "quality":
         from .quality import run
+        from .build import build, latest_raw
+        run()
+        build(latest_raw())
+    elif cmd == "px":
+        from .px import run
         from .build import build, latest_raw
         run()
         build(latest_raw())

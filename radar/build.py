@@ -248,8 +248,18 @@ def model(raw, ledger_file=None, with_ledger=True):
         lk = Qm.lookup(out, heat.latest())
     except Exception as err:  # noqa: BLE001
         print(f"value channel / lookup not embedded: {type(err).__name__}: {err}")
+    # 1-year weekly closes for the 交集 view (optional; `python -m radar px`). Display only.
+    pxw = {}
+    try:
+        from . import px as PXm
+        pdoc = PXm.latest() or {}
+        vct = {r["ticker"] for r in (vc or {}).get("rows") or []}
+        pxw = {t: v for t, v in (pdoc.get("items") or {}).items() if t in vct and any(e["ticker"] == t for e in out)}
+        print(f"intersection price series: {len(pxw)} tickers from {pdoc.get('fetched_at', 'none')}")
+    except Exception as err:  # noqa: BLE001
+        print(f"price series not embedded: {type(err).__name__}: {err}")
 
-    data = {"heat": hm, "vc": vc, "lookup": lk, "sector_names": sec_names, "val": val, "ledger": led,
+    data = {"heat": hm, "vc": vc, "lookup": lk, "px_w": pxw, "sector_names": sec_names, "val": val, "ledger": led,
             "built_at": dt.datetime.now().strftime("%Y-%m-%d %H:%M"), "fetched_at": raw["fetched_at"], "periods": raw["periods"],
             "fx": raw.get("fx"), "funnel": [f for f in raw["funnel"] if not US_ONLY or f["step"].startswith("美国")], "us_only": US_ONLY, "form4_since": raw["form4_since"], "sectors": secs, "entries": out,
             "overview": overview, "excluded": [x for x in raw["excluded"] if not US_ONLY or "." not in (x.get("ticker") or "")], "notes": notes, "factor_cn": S.FACTOR_CN,

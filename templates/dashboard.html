@@ -462,7 +462,7 @@
       <label class="small" for="xSort">排序</label><select id="xSort"><option value="gap">估值差距</option><option value="vc">价值通道排名</option><option value="roe">ROE 中位数</option></select>
       <span class="small" id="xCnt" role="status" aria-live="polite"></span>
     </div>
-    <div class="tscroll"><table><thead><tr><th scope="col">公司</th><th scope="col">行业 · 类型 · 结论</th><th scope="col">价值通道</th><th scope="col" class="n">ROE 中位数</th>
+    <div class="tscroll"><table><thead><tr><th scope="col">公司</th><th scope="col">行业 · 类型 · 结论</th><th scope="col" class="n">股价</th><th scope="col">近一年走势（周收盘）</th><th scope="col">52 周位置</th><th scope="col">价值通道</th><th scope="col" class="n">ROE 中位数</th>
       <th scope="col" class="n">FCF 收益率 / 市净率</th><th scope="col" class="n">Base 估值 vs 现价</th><th scope="col" class="n">隐含增速 / ROE</th><th scope="col">提示</th><th scope="col">对比</th></tr></thead><tbody id="xBody"></tbody></table></div>
     <p class="note" id="xNote"></p>
   </section>
@@ -1013,6 +1013,14 @@ function vcCard(r) {
       <a href="https://finance.yahoo.com/quote/${encodeURIComponent(r.ticker)}" target="_blank" rel="noopener noreferrer">Yahoo</a></div>
     <p class="small">简化评估卡：只有 SEC 年度数据和行情，没有行业环节、风险门禁、台账和现金流估值参数；排名和收益率不是买卖建议。</p></div>`;
 }
+// 1-year sparkline for the 交集 table: weekly closes (Yahoo chart, split-adjusted, not dividend-adjusted); display only
+function xSpark(t) {
+  const w = (D.px_w || {})[t], c = w?.c || [];
+  if (c.length < 8) return '<span class="small" data-tip="没有一年的周收盘数据（运行 python -m radar px 后重新构建）">—</span>';
+  const ch = c[0] > 0 ? (c.at(-1) / c[0] - 1) * 100 : null;
+  const tip = `近一年（${w.d[0]} – ${w.d.at(-1)}）每周最后一个交易日收盘价（已按拆股调整，未按分红调整）；最低 ${num(Math.min(...c), 2)}，最高 ${num(Math.max(...c), 2)}；区间涨跌 ${ch == null ? "—" : (ch > 0 ? "+" : "") + num(ch, 1) + "%"}。只展示，不计分`;
+  return `<span data-tip="${esc(tip)}" role="img" aria-label="${esc(tip)}" style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">${spark(c)}<span class="small">${ch == null ? "—" : pc(ch)}</span></span>`;
+}
 // ---------- 交集: sector growth screen ∩ value channel ∩ base valuation above the price (live 估值参数, the same numbers as the cards)
 function renderX() {
   const thr = +$("xThr").value / 100, grp = $("xGrp").value, cyc = $("xCyc").checked, hide = $("xHide").checked, srt = $("xSort").value;
@@ -1036,10 +1044,11 @@ function renderX() {
   $("xBody").innerHTML = L.map(x => { const e = x.e, v = x.v, fin = (v.group || "std") === "fin";
     return `<tr><td><button type="button" class="btn ghost ldg-jump" data-xjump="${esc(e.sector)}|${esc(e.ticker)}|${esc(e.kind)}">${esc(e.ticker)}</button><div class="small">${esc((e.name || "").slice(0, 26))}</div></td>
       <td class="small">${esc(SEC[e.sector]?.name || e.sector)} · ${e.kind === "leader" ? "龙头" : "新兴"}${e.level ? `<div><span class="tag lv-${esc(e.level)}">${esc(e.level)}</span></div>` : ""}</td>
+      <td class="n">${e.d?.price ? num(e.d.price, 2) : "—"}<div class="small">${esc(e.d?.ccy || "")}</div></td><td>${xSpark(e.ticker)}</td><td>${pgPosCell(e)}</td>
       <td class="small">${fin ? "金融口径" : "标准口径"} · ${v.rank ? `第 ${v.rank} / ${fin ? VC.n_ranked_fin : VC.n_ranked}` : "周期不排名"}<div><button type="button" class="btn ghost" data-xvc="${esc(e.ticker)}">简化卡</button></div></td>
       <td class="n">${vcP(v.roe_med)}</td><td class="n">${fin ? `P/B ${num(v.pb, 2)}` : vcP(v.fcfy)}</td>
       <td class="n">${dcfBaseCell(e)}</td><td class="n">${dcfImpliedCell(e)}</td><td>${flags(x)}</td><td>${bkBtn(e)}</td></tr>`; }).join("")
-    || `<tr><td colspan="9" class="small">没有符合条件的公司（可以降低比例或包含周期）</td></tr>`;
+    || `<tr><td colspan="12" class="small">没有符合条件的公司（可以降低比例或包含周期）</td></tr>`;
   $("xCnt").textContent = `${L.length} 家`;
   $("xNote").innerHTML = `“Base 估值”是情景参考，不是目标价：对折现率、永续增速和利润率口径很敏感，换参数结论就会变；差距越大越要先查原因。价值通道和成长筛选各自的规则见对应分节；三者交集只是缩小研究范围，规则没有回测，不是买卖建议。`;
   bkSync();
