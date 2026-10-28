@@ -141,11 +141,14 @@ def panel(snap, res, qdoc, rf=None):
 LONG_RULES = {"n_years": 10, "years_paid": 10, "max_cut": -30.0, "cut_ratio": 0.8, "roe_min": 8.0, "roe_med": 12.0,
               "roe_min_fin": 6.0, "roe_med_fin": 10.0, "payout_lo": 0.2, "payout_hi": 0.75, "payout_hi_fin": 0.5,
               "cover_min": 1.0, "fcf_years": 8, "rev_cagr_min": 2.0, "div_cagr_min": 0.0, "gm_sd_max": 8.0, "dy_min": 2.5,
-              "ytd_np_yoy_min": -20.0, "de_max": 0.8, "gw_max_pct": 30.0, "mcap_min": 5e9, "growth_cap": 10.0}
+              "ytd_np_yoy_min": -20.0, "de_max": 0.8, "de_max_util": 1.5, "gw_max_pct": 30.0, "mcap_min": 5e9, "growth_cap": 10.0}
 # industries whose profits and dividends swing with a cycle or are exposed to disruption / policy beyond the ones in
 # cn/build.RULES cyclical_industries; excluded from the long-term view (they can still pass the 5-year dividend screen)
 LONG_CYCLICAL_EXTRA = ["光伏设备", "电池", "汽车零部件", "乘用车", "商用车", "房地产开发", "房地产服务", "航空机场", "化学制品",
                        "证券Ⅱ", "风电设备", "半导体", "消费电子"]
+# regulated / concession businesses (power, gas, toll roads and railways): stable cash flows financed with debt by design,
+# so the debt / equity limit is de_max_util instead of de_max (every other rule unchanged)
+LONG_UTILITY = ["电力", "燃气Ⅱ", "铁路公路"]
 LONG_KEYS = ("dy", "div_cagr", "roe_min", "cover", "gm_sdn")
 LONG_CHECKS = ["护城河：品牌、渠道、牌照、成本或网络效应是否可持续，10 年后会不会被替代",
                "行业趋势：需求是否在结构性萎缩，是否依赖单一政策、单一客户或单一产品",
@@ -158,7 +161,7 @@ def _cagr(a, b, n):
     return ((b / a) ** (1 / n) - 1) * 100 if a and b and a > 0 and b > 0 and n > 0 else None
 
 
-def long_eval(it, years, q, f, fin):
+def long_eval(it, years, q, f, fin, util=False):
     R = LONG_RULES
     ys = [it.get(y) or {} for y in years]
     div = [d.get("div") or 0.0 for d in ys]
@@ -201,7 +204,7 @@ def long_eval(it, years, q, f, fin):
         w.append("l_divgrowth")
     if not fin and (m["gm_sd"] is None or m["gm_sd"] > R["gm_sd_max"]):
         w.append("l_gm")
-    if not fin and ((m["de"] is not None and m["de"] > R["de_max"]) or (m["gw_pct"] is not None and m["gw_pct"] > R["gw_max_pct"])):
+    if not fin and ((m["de"] is not None and m["de"] > (R["de_max_util"] if util else R["de_max"])) or (m["gw_pct"] is not None and m["gw_pct"] > R["gw_max_pct"])):
         w.append("l_balance")
     if m["dy"] is None or m["dy"] < R["dy_min"]:
         w.append("l_yield")
@@ -235,12 +238,13 @@ def long_term(snap, res, qdoc, rf=None):
             why[code] = "d_nodata"
             continue
         fin = (bool(f) and not f.get("has_balance_sheet")) or any(w in ind for w in FIN_INDUSTRY_WORDS)
-        m, w = long_eval(it, years, q, f, fin)
+        util = ind in LONG_UTILITY
+        m, w = long_eval(it, years, q, f, fin, util)
         why[code] = ",".join(w)
         if w:
             continue
         g = min(m["div_cagr"], LONG_RULES["growth_cap"])
-        rows.append({"code": code, "name": name, "industry": ind, "group": "fin" if fin else "stable", "price": q.get("price"),
+        rows.append({"code": code, "name": name, "industry": ind, "group": "fin" if fin else "stable", "util": util, "price": q.get("price"),
                      "mcap": m["mcap"], "dy": _r(m["dy"]), "div": [_r(x / 1e8, 2) for x in m["div"]], "div_cagr": _r(m["div_cagr"], 1),
                      "max_cut": _r(m["max_cut"], 1), "roe_min": _r(m["roe_min"], 1), "roe_med": _r(m["roe_med"], 1),
                      "payout": _r(m["payout"], 3), "cover": _r(m["cover"]), "rev_cagr": _r(m["rev_cagr"], 1), "gm_sd": _r(m["gm_sd"], 1),
@@ -267,4 +271,4 @@ def long_term(snap, res, qdoc, rf=None):
         for k in (w.split(",") if w else ["pass"]):
             cnt[k] = cnt.get(k, 0) + 1
     return {"file": qdoc.get("_path") and qdoc["_path"].replace("\\", "/").split("/")[-1], "years": years, "rules": LONG_RULES,
-            "cyclical_extra": LONG_CYCLICAL_EXTRA, "checks": LONG_CHECKS, "rf": rf, "rows": rows, "n": n_rank, "why": why, "counts": cnt}
+            "cyclical_extra": LONG_CYCLICAL_EXTRA, "utility": LONG_UTILITY, "checks": LONG_CHECKS, "rf": rf, "rows": rows, "n": n_rank, "why": why, "counts": cnt}

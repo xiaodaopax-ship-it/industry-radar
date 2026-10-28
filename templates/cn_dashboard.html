@@ -2869,13 +2869,13 @@ const LT_WHY = (R0 => ({d_st: "ST / *ST", d_nodata: "没有财年数据", l_cyc:
   l_roe: `10 年 ROE 最低 < ${R0.roe_min}% 或中位数 < ${R0.roe_med}%（金融 ${R0.roe_min_fin}% / ${R0.roe_med_fin}%）`,
   l_payout: `分红率中位数不在 ${num((R0.payout_lo || 0) * 100, 0)}%–${num((R0.payout_hi || 0) * 100, 0)}%（金融 ≤ ${num((R0.payout_hi_fin || 0) * 100, 0)}%）`,
   l_cash: "10 年自由现金流合计不足以覆盖 10 年分红", l_growth: `10 年营收复合增速 < ${R0.rev_cagr_min}%（跑不赢通胀）`, l_divgrowth: "10 年分红没有增长",
-  l_gm: `毛利率 10 年波动（标准差）> ${R0.gm_sd_max}pt`, l_balance: `有息负债 / 权益 > ${R0.de_max} 或商誉 / 权益 > ${R0.gw_max_pct}%`,
+  l_gm: `毛利率 10 年波动（标准差）> ${R0.gm_sd_max}pt`, l_balance: `有息负债 / 权益 > ${R0.de_max}（公用事业 > ${R0.de_max_util}）或商誉 / 权益 > ${R0.gw_max_pct}%`,
   l_yield: `当前股息率 < ${R0.dy_min}%`, l_recent: `年初至今亏损或净利同比 < ${R0.ytd_np_yoy_min}%`}))(LT.rules || {});
 const ltS = {k: "rank", dir: 1};
 const LT_COLS = [
   ["rank", "组内排名", r => r.rank, r => r.rank, 1],
   ["code", "代码 · 名称", r => `${CARDS[r.code] ? codeCell(r.code) : r.in2 ? `<a href="#s2" data-lgjump="${esc(r.code)}">${esc(r.code)}</a>` : esc(r.code)} ${esc(r.name)}<div class="small">${[r.in2 ? "② 内" : "", VC_BY[r.code] ? "价值通道" : "", DV_BY[r.code] ? "红利筛选" : ""].filter(Boolean).join(" · ") || "—"}</div>`, r => r.code, 1],
-  ["industry", "行业", r => `<span class="small">${esc(r.industry)}</span>`, r => r.industry, 1],
+  ["industry", "行业", r => `<span class="small">${esc(r.industry)}</span>${r.util ? ` <span class="tag" title="公用事业：负债门槛放宽到 ${LT.rules?.de_max_util}">公用事业</span>` : ""}`, r => r.industry, 1],
   ["score", "组内得分", r => r.score != null ? `<span data-tip="${esc(Object.entries(r.f || {}).map(([k, v]) => `${LT_F[k]} ${v == null ? "—" : num(v, 0)}`).join("；"))}">${num(r.score, 1)}</span>` : "—", r => r.score, -1],
   ["dy", "股息率", r => vcP(r.dy), r => r.dy, -1],
   ["div", `现金分红（亿，${(LT.years || []).at(0) || ""}–${(LT.years || []).at(-1) || ""}）`, r => `<span class="small">${(r.div || []).map(x => x == null ? "—" : num(x, x >= 100 ? 0 : 1)).join(" ")}</span>`, null, 0],
@@ -2896,7 +2896,7 @@ function renderLt() {
   const R0 = LT.rules, n = LT.n || {}, g = $("ltGrp").value, q = $("ltQ").value.trim().toLowerCase();
   $("ltLead").innerHTML = `${esc(LT.years[0])}–${esc(LT.years.at(-1))} 十个财年：全市场 <b>${(n.stable || 0) + (n.fin || 0)}</b> 家通过（非金融 <b>${n.stable || 0}</b>、金融 <b>${n.fin || 0}</b>）。
     门槛：10 年每年现金分红，没有任何一年比上一年下降超过 ${-R0.max_cut}%，最近一年不低于前 3 年平均的 ${num(R0.cut_ratio * 100, 0)}%；10 年 ROE 最低 ≥ ${R0.roe_min}%、中位数 ≥ ${R0.roe_med}%（金融 ${R0.roe_min_fin}% / ${R0.roe_med_fin}%）；
-    分红率中位数 ${num(R0.payout_lo * 100, 0)}%–${num(R0.payout_hi * 100, 0)}%（金融 ≤ ${num(R0.payout_hi_fin * 100, 0)}%）；非金融：10 年自由现金流 ≥ 10 年分红、毛利率波动 ≤ ${R0.gm_sd_max}pt、有息负债 / 权益 ≤ ${R0.de_max}、商誉 / 权益 ≤ ${R0.gw_max_pct}%；
+    分红率中位数 ${num(R0.payout_lo * 100, 0)}%–${num(R0.payout_hi * 100, 0)}%（金融 ≤ ${num(R0.payout_hi_fin * 100, 0)}%）；非金融：10 年自由现金流 ≥ 10 年分红、毛利率波动 ≤ ${R0.gm_sd_max}pt、有息负债 / 权益 ≤ ${R0.de_max}（公用事业 ${esc((LT.utility || []).join("、"))} ≤ ${R0.de_max_util}）、商誉 / 权益 ≤ ${R0.gw_max_pct}%；
     营收 10 年复合增速 ≥ ${R0.rev_cagr_min}%、分红不下降；当前股息率 ≥ ${R0.dy_min}%；年初至今盈利且净利同比 > ${R0.ytd_np_yoy_min}%；总市值 ≥ ${num(R0.mcap_min / 1e8, 0)} 亿；排除周期和易受冲击的行业（${esc([...(R.cyclical_industries || []), ...(LT.cyclical_extra || [])].join("、"))}）。`;
   const c = LT_COLS.find(x => x[0] === ltS.k && x[3]) || LT_COLS[0], get = c[3];
   const L = LTR.filter(r => r.group === g && (!q || (r.code + " " + r.name).toLowerCase().includes(q)))
