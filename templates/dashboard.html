@@ -365,7 +365,7 @@
   </div>
   <div><div class="gt">全市场</div>
     <ul><li><a class="sl" href="#sLk" data-sec="sLk">全市场速查</a></li><li><a class="sl" href="#s0" data-sec="s0">⓪ 全市场热度</a></li><li><a class="sl" href="#sPeg" data-sec="sPeg">PEG 筛选</a></li>
-      <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li>
+      <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li><li><a class="sl" href="#sX" data-sec="sX">交集：成长 × 价值 × 低估</a></li>
       <li><a class="sl" href="#sDcf" data-sec="sDcf">估值参数（DCF）</a></li>
       <li><a class="sl" href="#sLdg" data-sec="sLdg">估值台账 · 本期变化</a></li>
       <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li></ul></div>
@@ -444,6 +444,23 @@
     <p class="note" id="vcNote"></p>
   </section>
 
+  <!-- 交集: in the sector growth screen AND the value channel AND price below the base valuation (live parameters) -->
+  <section id="sX" aria-labelledby="xTitle">
+    <h2 id="xTitle"><span class="step-tag">∩</span>交集 · 成长 × 价值 × 现价低于估值</h2>
+    <p class="lead" id="xLead"></p>
+    <div class="toolbar" role="group" aria-label="交集筛选">
+      <label class="small" for="xThr">基准估值高于现价至少</label><select id="xThr"><option value="0">0%</option><option value="15" selected>15%</option><option value="30">30%</option><option value="50">50%</option></select>
+      <label class="small" for="xGrp">口径</label><select id="xGrp"><option value="">全部</option><option value="std">标准</option><option value="fin">金融</option></select>
+      <label class="small"><input type="checkbox" id="xCyc"> 包含周期</label>
+      <label class="small"><input type="checkbox" id="xHide"> 隐藏差距 &gt; 200% 的（多半是模型假设不适用）</label>
+      <label class="small" for="xSort">排序</label><select id="xSort"><option value="gap">估值差距</option><option value="vc">价值通道排名</option><option value="roe">ROE 中位数</option></select>
+      <span class="small" id="xCnt" role="status" aria-live="polite"></span>
+    </div>
+    <div class="tscroll"><table><thead><tr><th scope="col">公司</th><th scope="col">行业 · 类型 · 结论</th><th scope="col">价值通道</th><th scope="col" class="n">ROE 中位数</th>
+      <th scope="col" class="n">FCF 收益率 / 市净率</th><th scope="col" class="n">Base 估值 vs 现价</th><th scope="col" class="n">隐含增速 / ROE</th><th scope="col">提示</th><th scope="col">对比</th></tr></thead><tbody id="xBody"></tbody></table></div>
+    <p class="note" id="xNote"></p>
+  </section>
+
   <!-- 现金流估值参数 (cash-flow valuation reference; display only, computed in this page) -->
   <section id="sDcf" aria-labelledby="dcfTitle">
     <h2 id="dcfTitle"><span class="step-tag">DCF</span>估值参数 · 现金流估值（情景参考）</h2>
@@ -494,7 +511,7 @@
   <div class="sticky">
     <div class="tabs" role="tablist" id="tabs"></div>
     <nav class="steps" aria-label="分析步骤">
-      <a href="#sLk">速查</a><a href="#s0">⓪ 全市场热度</a><a href="#sPeg">PEG 筛选</a><a href="#sVc">价值通道</a><a href="#sDcf">估值参数</a><a href="#sLdg">估值台账</a><a href="#sBk">对比池</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
+      <a href="#sLk">速查</a><a href="#s0">⓪ 全市场热度</a><a href="#sPeg">PEG 筛选</a><a href="#sVc">价值通道</a><a href="#sX">交集</a><a href="#sDcf">估值参数</a><a href="#sLdg">估值台账</a><a href="#sBk">对比池</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
     </nav>
   </div>
 
@@ -731,7 +748,7 @@ function jumpCompany(sector, ticker, kind) {
 }
 
 // ---------- left sidebar: sections, sectors (with counts) and the step links of the active sector
-const SECTS = [["sLk", "全市场速查", 0], ["s0", "⓪ 全市场热度", 0], ["sPeg", "PEG 筛选", 0], ["sVc", "价值通道", 0], ["sDcf", "估值参数", 0], ["sLdg", "估值台账", 0], ["sBk", "对比池", 0], ["s1", "① 行业总览", 1], ["s2", "② 细分拆解", 1], ["s3", "③ 龙头分析", 1],
+const SECTS = [["sLk", "全市场速查", 0], ["s0", "⓪ 全市场热度", 0], ["sPeg", "PEG 筛选", 0], ["sVc", "价值通道", 0], ["sX", "交集", 0], ["sDcf", "估值参数", 0], ["sLdg", "估值台账", 0], ["sBk", "对比池", 0], ["s1", "① 行业总览", 1], ["s2", "② 细分拆解", 1], ["s3", "③ 龙头分析", 1],
   ["s4", "④ 新兴机会", 1], ["s5", "⑤ 机会清单", 1], ["s6", "数据与方法", 1]];
 const SCNT = D.entries.reduce((a, e) => (a[e.sector] = (a[e.sector] || 0) + 1, a), {});
 let curSec = "sLk";
@@ -990,6 +1007,42 @@ function vcCard(r) {
       <a href="https://finance.yahoo.com/quote/${encodeURIComponent(r.ticker)}" target="_blank" rel="noopener noreferrer">Yahoo</a></div>
     <p class="small">简化评估卡：只有 SEC 年度数据和行情，没有行业环节、风险门禁、台账和现金流估值参数；排名和收益率不是买卖建议。</p></div>`;
 }
+// ---------- 交集: sector growth screen ∩ value channel ∩ base valuation above the price (live 估值参数, the same numbers as the cards)
+function renderX() {
+  const thr = +$("xThr").value / 100, grp = $("xGrp").value, cyc = $("xCyc").checked, hide = $("xHide").checked, srt = $("xSort").value;
+  const seen = new Set(), all = [];
+  D.entries.forEach(e => { if (seen.has(e.ticker) || !VC_BY[e.ticker]) return; seen.add(e.ticker);
+    const v = VC_BY[e.ticker], o = dcfValue(e); all.push({e, v, o, gap: o.baseDiff, cy: !!(v.cyclical || e.cyclical)}); });
+  const L = all.filter(x => x.gap != null && isFinite(x.gap) && x.gap >= thr && (!grp || (x.v.group || "std") === grp) && (cyc || !x.cy) && (!hide || x.gap <= 2))
+    .sort((a, b) => srt === "vc" ? (a.v.rank ?? 9999) - (b.v.rank ?? 9999) : srt === "roe" ? (b.v.roe_med ?? -1) - (a.v.roe_med ?? -1) : b.gap - a.gap);
+  const both = all.length, below = all.filter(x => x.gap != null && x.gap >= 0).length;
+  $("xLead").innerHTML = `同时满足三条：① 在行业成长筛选里（新兴或龙头）；② 在价值通道里（5 年 ROE、自由现金流 / 金融口径门槛都通过）；③ 按当前“估值参数”算出的基准每股价值高于现价至少所选比例（金融口径用剩余收益法）。
+    两个通道都在的公司 <b>${both}</b> 家，其中基准估值高于现价的 <b>${below}</b> 家。数字和评估卡里的现金流估值一致，改“估值参数”后自动重算。`;
+  const flags = x => { const f = [], lk = LK_BY[x.e.ticker] || {};
+    if (x.gap > 2) f.push(['t-warn', "差距 > 200%：多半是默认假设不适用（一次性利润、周期高点、商业模式特殊），先核实"]);
+    if (x.cy) f.push(["t-cyc", "周期：盈利高点时估值显得便宜"]);
+    if (x.v.gw_warn) f.push(["t-warn", "商誉高"]);
+    if (lk.yoy != null && lk.yoy <= -10) f.push(["t-warn", `最新季度营收同比 ${num(lk.yoy)}%`]);
+    if ((x.v.roe_med || 0) > 100) f.push(["t-warn", "ROE 极高：多为回购压低了账面权益"]);
+    if (x.e.gate) f.push(["", "评分门槛：" + x.e.gate]);
+    (x.o.warn || []).forEach(w => f.push(["", String(w)]));
+    return f.map(([c, t]) => `<span class="tag ${c}" title="${esc(t)}">${esc(t.length > 14 ? t.slice(0, 14) + "…" : t)}</span>`).join(" ") || '<span class="small">—</span>'; };
+  $("xBody").innerHTML = L.map(x => { const e = x.e, v = x.v, fin = (v.group || "std") === "fin";
+    return `<tr><td><button type="button" class="btn ghost ldg-jump" data-xjump="${esc(e.sector)}|${esc(e.ticker)}|${esc(e.kind)}">${esc(e.ticker)}</button><div class="small">${esc((e.name || "").slice(0, 26))}</div></td>
+      <td class="small">${esc(SEC[e.sector]?.name || e.sector)} · ${e.kind === "leader" ? "龙头" : "新兴"}${e.level ? `<div><span class="tag lv-${esc(e.level)}">${esc(e.level)}</span></div>` : ""}</td>
+      <td class="small">${fin ? "金融口径" : "标准口径"} · ${v.rank ? `第 ${v.rank} / ${fin ? VC.n_ranked_fin : VC.n_ranked}` : "周期不排名"}<div><button type="button" class="btn ghost" data-xvc="${esc(e.ticker)}">简化卡</button></div></td>
+      <td class="n">${vcP(v.roe_med)}</td><td class="n">${fin ? `P/B ${num(v.pb, 2)}` : vcP(v.fcfy)}</td>
+      <td class="n">${dcfBaseCell(e)}</td><td class="n">${dcfImpliedCell(e)}</td><td>${flags(x)}</td><td>${bkBtn(e)}</td></tr>`; }).join("")
+    || `<tr><td colspan="9" class="small">没有符合条件的公司（可以降低比例或包含周期）</td></tr>`;
+  $("xCnt").textContent = `${L.length} 家`;
+  $("xNote").innerHTML = `“Base 估值”是情景参考，不是目标价：对折现率、永续增速和利润率口径很敏感，换参数结论就会变；差距越大越要先查原因。价值通道和成长筛选各自的规则见对应分节；三者交集只是缩小研究范围，规则没有回测，不是买卖建议。`;
+  bkSync();
+}
+["xThr", "xGrp", "xCyc", "xHide", "xSort"].forEach(id => $(id).addEventListener("change", renderX));
+$("xBody").addEventListener("click", ev => {
+  const j = ev.target.closest("[data-xjump]"); if (j) { const [s, t, k] = j.dataset.xjump.split("|"); jumpCompany(s, t, k); return; }
+  const v = ev.target.closest("[data-xvc]"); if (v) vcOpenCard(v.dataset.xvc);
+});
 function vcOpenCard(t) {
   const r = VC_BY[t]; if (!r) return;
   $("vcGrp").value = r.group || "std"; $("vcQ").value = t; $("vcSic").value = ""; $("vcNotIn").checked = false; if (r.cyclical) $("vcCyc").checked = true;
@@ -1417,7 +1470,7 @@ $("bkCsv").onclick = () => {
 };
 addEventListener("storage", ev => { if (ev.key === BKKEY) { bkLoad(); bkRenderW(); bkRender(); bkSync(); } });   // another tab changed the basket
 bkLoad(); bkRenderW();
-lkLead(); renderVc();   // after the basket state exists (the value-channel table carries ＋对比 buttons)
+lkLead(); renderVc(); setTimeout(renderX, 0);   // after the basket state exists; renderX needs the DCF engine defined further down (the value-channel table carries ＋对比 buttons)
 
 // ---------- ① overview
 function renderOverview() {
@@ -2481,7 +2534,7 @@ function dcfOvRender() {
 const dcfRefresh = debounce(() => {
   DCFV++; DCFMEMO.clear();
   document.querySelectorAll("[data-dcf]").forEach(el => { const e = BKIDX.get(el.dataset.dcf); if (e) el.innerHTML = dcfBody(e); });
-  dcfOvRender(); dcfPanelText(); renderPegBody(); bkRender(); bkSync();
+  dcfOvRender(); dcfPanelText(); renderPegBody(); bkRender(); renderX(); bkSync();
 }, 150);
 // per-company override inputs live in evaluation cards anywhere on the page: delegated handlers
 document.addEventListener("change", ev => {

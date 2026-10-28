@@ -378,6 +378,7 @@
       <li><a class="sl" href="#s1" data-sec="s1">① 行业热度</a></li>
       <li><a class="sl" href="#s2" data-sec="s2">② 新兴筛选</a></li>
       <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li>
+      <li><a class="sl" href="#sX" data-sec="sX">交集：成长 × 价值 × 低估</a></li>
       <li><a class="sl" href="#s4" data-sec="s4">③ 研究优先级</a><div class="substeps"><a class="sl" href="#s4cy">周期行业单列</a></div></li>
       <li><a class="sl" href="#s3" data-sec="s3">④ 基本面·交易</a></li>
       <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li>
@@ -400,7 +401,7 @@
 
   <div class="sticky">
     <nav class="steps" aria-label="页面分节">
-      <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#sVc">价值通道</a><a href="#s4">③ 研究优先级</a><a href="#s3">④ 基本面 / 交易标签</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
+      <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#sVc">价值通道</a><a href="#sX">交集</a><a href="#s4">③ 研究优先级</a><a href="#s3">④ 基本面 / 交易标签</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
     </nav>
   </div>
 
@@ -459,6 +460,23 @@
     <div class="tscroll vc-t"><table><thead><tr id="vcHead"></tr></thead><tbody id="vcBody"></tbody></table></div>
     <div class="toolbar"><button type="button" class="btn" id="vcMore">显示更多</button></div>
     <p class="note" id="vcNote"></p>
+  </section>
+
+  <section id="sX" aria-labelledby="xTitle">
+    <h2 id="xTitle"><span class="step-tag">∩</span>交集 · 成长 × 价值 × 现价低于估值</h2>
+    <p class="lead" id="xLead"></p>
+    <div class="toolbar" role="group" aria-label="交集筛选">
+      <label class="small" for="xThr">基准估值高于现价至少</label><select id="xThr"><option value="0">0%</option><option value="15" selected>15%</option><option value="30">30%</option><option value="50">50%</option></select>
+      <label class="small"><input type="checkbox" id="xCyc"> 包含周期</label>
+      <label class="small"><input type="checkbox" id="xTrade" checked> 排除“交易驱动”</label>
+      <label class="small"><input type="checkbox" id="xDrop" checked> 排除“近期下滑”</label>
+      <label class="small"><input type="checkbox" id="xHide"> 隐藏差距 &gt; 200% 的</label>
+      <label class="small" for="xSort">排序</label><select id="xSort"><option value="gap">估值差距</option><option value="vc">价值通道排名</option><option value="roe">ROE 中位数</option></select>
+      <span class="small" id="xCnt" role="status" aria-live="polite"></span>
+    </div>
+    <div class="tscroll"><table><thead><tr><th scope="col">代码 · 名称</th><th scope="col">行业 · 标签</th><th scope="col">价值通道</th><th scope="col" class="n">ROE 中位数</th><th scope="col" class="n">FCF 收益率 / 股息率</th>
+      <th scope="col" class="n">营收同比（② 口径）</th><th scope="col" class="n">Base 估值 vs 现价</th><th scope="col" class="n">现价隐含增速 vs 历史</th><th scope="col">提示</th><th scope="col">对比</th></tr></thead><tbody id="xBody"></tbody></table></div>
+    <p class="note" id="xNote"></p>
   </section>
 
   <section id="s4">
@@ -1286,7 +1304,7 @@ function jumpCN(code) {
 }
 
 // ---------- left sidebar: section links with scroll-spy, industries (by number of screened companies)
-const SECTS = [["sLk", "全市场速查"], ["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["sVc", "价值通道"], ["s4", "③ 研究优先级"], ["s3", "④ 基本面·交易"], ["sBk", "对比池"], ["sLg", "估值台账"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
+const SECTS = [["sLk", "全市场速查"], ["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["sVc", "价值通道"], ["sX", "交集"], ["s4", "③ 研究优先级"], ["s3", "④ 基本面·交易"], ["sBk", "对比池"], ["sLg", "估值台账"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
 let curSec = "s1";
 function markSec() {
   document.querySelectorAll("#side a[data-sec], .steps a").forEach(a => { const on = (a.dataset.sec || a.getAttribute("href").slice(1)) === curSec;
@@ -2015,6 +2033,7 @@ function dcfFill() {
 }
 function dcfRefresh() {
   DCF_CACHE = {};
+  if ($("xBody")) renderX();
   document.querySelectorAll("[data-dcfc]").forEach(el => { const c = CARDS[el.dataset.dcfc]; if (c) el.innerHTML = dcfCardInner(c); });
   renderBk();
 }
@@ -2718,7 +2737,37 @@ $("vcHead").addEventListener("click", ev => { const b = ev.target.closest("[data
   vcS.dir = vcS.k === k ? -vcS.dir : c[4]; vcS.k = k; renderVc(); $("vcHead").querySelector(`[data-vcs="${k}"]`)?.focus(); });
 ["vcQ", "vcInd", "vcNot2", "vcCyc"].forEach(id => $(id).addEventListener(id === "vcQ" ? "input" : "change", debounce(() => { vcS.n = 50; renderVc(); }, 120)));
 $("vcMore").onclick = () => { vcS.n += 50; renderVc(); };
-function render() { renderHeat(); renderScreen(); renderPriority(); renderVc(); renderBk(); renderLg(); renderLgFwd(); }
+// ---------- 交集: ② growth screen ∩ value channel ∩ base valuation above the price (live 估值参数, same numbers as the cards / 对比池)
+function renderX() {
+  const thr = +$("xThr").value, cyc = $("xCyc").checked, tr = $("xTrade").checked, dr = $("xDrop").checked, hide = $("xHide").checked, srt = $("xSort").value;
+  const all = VCR.filter(v => v.in2 && BYCODE[v.code]).map(v => { const s = BYCODE[v.code], o = dcfOf(v.code);
+    return {v, s, o, gap: o.status === "ok" ? o.sc.base.vs : null, cy: !!(v.cyclical || s.cyclical)}; });
+  const L = all.filter(x => x.gap != null && isFinite(x.gap) && x.gap >= thr && (cyc || !x.cy) && (!tr || x.s.label !== "偏博弈") && (!dr || !x.v.recent_drop) && (!hide || x.gap <= 200))
+    .sort((a, b) => srt === "vc" ? (a.v.rank ?? 9999) - (b.v.rank ?? 9999) : srt === "roe" ? (b.v.roe_med ?? -1) - (a.v.roe_med ?? -1) : b.gap - a.gap);
+  $("xLead").innerHTML = `同时满足三条：① 在 ② 新兴筛选里（营收同比 ≥ ${num(R.growth_yoy_min, 0)}% 等）；② 在价值通道里（5 个财年 ROE、自由现金流、现金转化、负债、商誉门槛都通过）；③ 按当前“估值参数”算出的基准每股价值高于现价至少所选比例。
+    两个通道都在的公司 <b>${all.length}</b> 家，其中基准估值高于现价的 <b>${all.filter(x => x.gap != null && x.gap >= 0).length}</b> 家。数字和评估卡、对比池里的现金流估值一致，改“估值参数”后自动重算。`;
+  const flags = x => { const f = [];
+    if (x.gap > 200) f.push(["t-warn", "差距 > 200%：多半是默认假设不适用（一次性利润、周期高点、商业模式特殊），先核实"]);
+    if (x.cy) f.push(["t-cyc", "周期：盈利高点时估值显得便宜"]);
+    if (x.s.label === "偏博弈") f.push(["t-warn", "交易驱动：" + (x.s.reasons || []).join("；")]);
+    if (x.v.recent_drop) f.push(["t-warn", `近期下滑：年初至今净利润同比 ${num(x.v.np_yoy, 0)}%`]);
+    if (x.s.warn_n) f.push(["", `风险门禁 ⚠ ${x.s.warn_n} 项`]);
+    if (x.o.mm && x.o.mm.guard && x.o.mm.guard.length) f.push(["t-warn", "疑似一次性收入"]);
+    return f.map(([c, t]) => `<span class="tag ${c}" title="${esc(t)}">${esc(t.length > 14 ? t.slice(0, 14) + "…" : t)}</span>`).join(" ") || '<span class="small">—</span>'; };
+  $("xBody").innerHTML = L.map(x => { const v = x.v, s = x.s, pr = PRIO_RANK[v.code];
+    return `<tr><td>${CARDS[v.code] ? codeCell(v.code) : `<a href="#s2" data-lgjump="${esc(v.code)}" title="在 ② 筛选表中定位">${esc(v.code)}</a>`} ${esc(v.name)}${pr ? `<div class="small">③ 第 ${pr} 名</div>` : ""}</td>
+      <td class="small">${esc(v.industry)}<div><span class="tag lb-${esc(s.label)}">${esc(lbT(s.label))}</span></div></td>
+      <td class="small">${v.rank ? `第 ${v.rank} / ${VC.n_ranked}，得分 ${num(v.score, 1)}` : "周期不排名"}</td>
+      <td class="n">${vcP(v.roe_med)}</td><td class="n">${vcP(v.fcfy)}<div class="small">股息 ${vcP(v.dy)}</div></td><td class="n">${pc(s.rev_yoy, 1)}</td>
+      <td class="n">${dcfVs(x.gap)}<div class="small">${num(x.o.sc.base.vps, 2)} 元</div></td>
+      <td class="n">${v.ig != null ? `${vcP(v.ig)}<div class="small">历史 ${vcP(v.cagr)}</div>` : "—"}</td><td>${flags(x)}</td><td>${bkCtl(v.code)}</td></tr>`; }).join("")
+    || `<tr><td colspan="10" class="small">没有符合条件的公司（可以降低比例或放宽排除项）</td></tr>`;
+  $("xCnt").textContent = `${L.length} 家`;
+  $("xNote").innerHTML = `“Base 估值”是情景参考，不是目标价：对折现率、永续增速和利润率口径很敏感，换参数结论就会变；差距越大越要先查原因。点代码打开评估卡或在 ② 中定位。三者交集只是缩小研究范围，规则没有回测，不是买卖建议；不进入 ③ 排序、标签、⚠ 数和对比池评分。`;
+  bkSync();
+}
+["xThr", "xCyc", "xTrade", "xDrop", "xHide", "xSort"].forEach(id => $(id).addEventListener("change", renderX));
+function render() { renderHeat(); renderScreen(); renderPriority(); renderVc(); renderX(); renderBk(); renderLg(); renderLgFwd(); }
 function init() {
   renderHeader();
   const inds = [...new Set(D.screen.map(r => r.industry).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));
