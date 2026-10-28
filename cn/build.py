@@ -684,6 +684,11 @@ def build(path=None):
         payload["dividend"] = dmod.panel(snap, res, qdoc, ((vdoc or {}).get("rf") or {}).get("value"))
         if payload["dividend"].get("file"):
             log(f"dividend screen: groups={payload['dividend']['n']}")
+        payload["longdiv"] = dmod.long_term(snap, res, qdoc, ((vdoc or {}).get("rf") or {}).get("value"))
+        if payload["longdiv"].get("file"):
+            log(f"long-term dividend view: groups={payload['longdiv']['n']}")
+        else:
+            log(f"long-term dividend view: skipped ({payload['longdiv'].get('why_none', 'no quality file')})")
     except Exception as e:  # noqa: BLE001
         log(f"WARNING: value channel skipped ({type(e).__name__}: {e})")
         payload["value"] = {"file": None}

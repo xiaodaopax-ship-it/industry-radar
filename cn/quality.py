@@ -38,16 +38,18 @@ from . import em
 
 ROOT = em.ROOT
 DATA_DIR = os.path.join(ROOT, "data", "cn")
-VALUE_RULES = {"n_fy": 5, "roe_years_min": 4, "roe_median_min": 10.0, "roe_min_min": 5.0, "fcf_pos_min": 4,
+# n_fy: fiscal years fetched (10, for the long-term dividend view); the value channel itself is judged on the last 5 (RULE_YEARS)
+RULE_YEARS = 5
+VALUE_RULES = {"n_fy": 10, "roe_years_min": 4, "roe_median_min": 10.0, "roe_min_min": 5.0, "fcf_pos_min": 4,
                "conv_min": 0.8, "de_max": 0.8, "goodwill_max_pct": 30.0, "top": 30, "erp": 5.0, "gT": 2.5,
                "recent_np_drop": -30.0,     # display flag: latest YTD parent NP YoY <= -30% (not a rule, not in the score)
                "sleep": 0.3, "ttl_closed": 30.0}
 DIV_COLS = "SECURITY_CODE,REPORT_DATE,PRETAX_BONUS_RMB,TOTAL_SHARES,ASSIGN_PROGRESS"
 DIV_SKIP = ("取消", "未通过", "不分配", "终止")
 FY_KEYS = ("revenue", "parent_net_profit", "roe_pct", "operating_cash_flow", "capex", "parent_equity", "cash",
-           "interest_bearing_debt", "goodwill")
+           "interest_bearing_debt", "goodwill", "gross_margin_pct")
 SHORT = {"revenue": "rev", "parent_net_profit": "np", "roe_pct": "roe", "operating_cash_flow": "ocf", "capex": "cx",
-         "parent_equity": "eq", "cash": "cash", "interest_bearing_debt": "ibd", "goodwill": "gw"}
+         "parent_equity": "eq", "cash": "cash", "interest_bearing_debt": "ibd", "goodwill": "gw", "gross_margin_pct": "gm"}
 
 
 def log(msg):
@@ -172,7 +174,7 @@ def channel(snap, res, qdoc, rf=None):
     from .build import RULES, FIN_INDUSTRY_WORDS, pct_rank
     if not qdoc:
         return {"file": None}
-    years = qdoc["fiscal_years"]
+    years = qdoc["fiscal_years"][-RULE_YEARS:]      # the channel rules use the last 5 fiscal years
     R = VALUE_RULES
     Q = {r["code"]: r for r in snap["quotes"]}
     fl = {r["code"]: r for r in snap["fin"]["latest"]}

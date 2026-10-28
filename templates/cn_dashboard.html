@@ -380,6 +380,7 @@
       <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li>
       <li><a class="sl" href="#sX" data-sec="sX">交集：成长 × 价值 × 低估</a></li>
       <li><a class="sl" href="#sDv" data-sec="sDv">红利筛选</a></li>
+      <li><a class="sl" href="#sLt" data-sec="sLt">长期红利（10 年）</a></li>
       <li><a class="sl" href="#s4" data-sec="s4">③ 研究优先级</a><div class="substeps"><a class="sl" href="#s4cy">周期行业单列</a></div></li>
       <li><a class="sl" href="#s3" data-sec="s3">④ 基本面·交易</a></li>
       <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li>
@@ -402,7 +403,7 @@
 
   <div class="sticky">
     <nav class="steps" aria-label="页面分节">
-      <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#sVc">价值通道</a><a href="#sX">交集</a><a href="#sDv">红利</a><a href="#s4">③ 研究优先级</a><a href="#s3">④ 基本面 / 交易标签</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
+      <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#sVc">价值通道</a><a href="#sX">交集</a><a href="#sDv">红利</a><a href="#sLt">长期红利</a><a href="#s4">③ 研究优先级</a><a href="#s3">④ 基本面 / 交易标签</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
     </nav>
   </div>
 
@@ -494,6 +495,20 @@
     <div class="tscroll vc-t"><table><thead><tr id="dvHead"></tr></thead><tbody id="dvBody"></tbody></table></div>
     <div class="toolbar"><button type="button" class="btn" id="dvMore">显示更多</button></div>
     <p class="note" id="dvNote"></p>
+  </section>
+
+  <section id="sLt" aria-labelledby="ltTitle">
+    <h2 id="ltTitle"><span class="step-tag">10Y</span>长期红利 · 10 个财年的分红持续性</h2>
+    <p class="lead" id="ltLead"></p>
+    <p class="dcf-disc">问的是“这份分红能不能撑过一个完整周期、还会不会增长”，而不是“现在股息率多高”。数据只能说明过去 10 年；未来 10 年生意还在不在，要靠下面的人工核实清单。只缩小研究范围，不是推荐，规则没有回测；不进入 ③ 排序、标签、⚠ 数和对比池评分。</p>
+    <div class="toolbar" role="group" aria-label="长期红利筛选">
+      <label class="small" for="ltGrp">分组</label><select id="ltGrp"><option value="stable">非金融</option><option value="fin">金融（银行、保险）</option></select>
+      <label class="small" for="ltQ">搜索</label><input type="search" id="ltQ" placeholder="代码或名称" autocomplete="off">
+      <span class="small" id="ltCnt" role="status" aria-live="polite"></span>
+    </div>
+    <div class="tscroll vc-t"><table><thead><tr id="ltHead"></tr></thead><tbody id="ltBody"></tbody></table></div>
+    <h3>每家都要人工核实的五件事</h3><ol class="small" id="ltChecks"></ol>
+    <p class="note" id="ltNote"></p>
   </section>
 
   <section id="s4">
@@ -1321,7 +1336,7 @@ function jumpCN(code) {
 }
 
 // ---------- left sidebar: section links with scroll-spy, industries (by number of screened companies)
-const SECTS = [["sLk", "全市场速查"], ["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["sVc", "价值通道"], ["sX", "交集"], ["sDv", "红利筛选"], ["s4", "③ 研究优先级"], ["s3", "④ 基本面·交易"], ["sBk", "对比池"], ["sLg", "估值台账"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
+const SECTS = [["sLk", "全市场速查"], ["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["sVc", "价值通道"], ["sX", "交集"], ["sDv", "红利筛选"], ["sLt", "长期红利"], ["s4", "③ 研究优先级"], ["s3", "④ 基本面·交易"], ["sBk", "对比池"], ["sLg", "估值台账"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
 let curSec = "s1";
 function markSec() {
   document.querySelectorAll("#side a[data-sec], .steps a").forEach(a => { const on = (a.dataset.sec || a.getAttribute("href").slice(1)) === curSec;
@@ -1437,7 +1452,10 @@ function lkShow(code, scroll) {
   const dw = (D.dividend || {}).why ? D.dividend.why[code] : undefined, dr = (D.dividend || {}).rows ? D.dividend.rows.find(x => x.code === code) : null;
   const dtxt = dr ? `<p><b>在红利筛选内</b>（${esc(DV_GRP[dr.group])}）：组内第 ${dr.rank} 名，股息率 ${num(dr.dy, 2)}%，分红率中位数 ${num(dr.payout * 100, 0)}%。</p>`
     : dw ? `<p><b>未进入红利筛选</b>：${dw.split(",").filter(Boolean).map(w => esc(DV_WHY[w] || w)).join("；")}。</p>` : "";
-  $("lkOne").innerHTML = `<div class="card lk-card"><h3>${esc(r.code)} ${esc(r.name)} <span class="small">${esc(r.industry || "—")} · ${esc(BOARD_CN[r.board] || r.board || "")}</span></h3>${st}${vtxt}${dtxt}
+  const lw = (D.longdiv || {}).why ? D.longdiv.why[code] : undefined, lr = (D.longdiv || {}).rows ? D.longdiv.rows.find(x => x.code === code) : null;
+  const ltxt = lr ? `<p><b>在长期红利（10 年）内</b>：组内第 ${lr.rank} 名，10 年分红复合增速 ${num(lr.div_cagr, 1)}%，最大一次削减 ${lr.max_cut >= 0 ? "无" : num(lr.max_cut, 0) + "%"}。</p>`
+    : lw ? `<p><b>未进入长期红利（10 年）</b>：${lw.split(",").filter(Boolean).map(w => esc(LT_WHY[w] || DV_WHY[w] || w)).join("；")}。</p>` : "";
+  $("lkOne").innerHTML = `<div class="card lk-card"><h3>${esc(r.code)} ${esc(r.name)} <span class="small">${esc(r.industry || "—")} · ${esc(BOARD_CN[r.board] || r.board || "")}</span></h3>${st}${vtxt}${dtxt}${ltxt}
     <dl class="lk-kv">${kv.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join("")}</dl>
     <p class="small">数字来自 ${esc(D.quote_date || "—")} 行情快照和 ${esc(D.periods.latest)} 财报（年初至今累计）。速查只做定位和说明，不是评估结论。</p></div>`;
   if (scroll) { $("lkQ").value = code; $("sLk").scrollIntoView({behavior: "smooth", block: "start"}); }
@@ -2843,7 +2861,61 @@ $("dvHead").addEventListener("click", ev => { const b = ev.target.closest("[data
 $("dvGrp").addEventListener("change", () => { dvS.k = "rank"; dvS.dir = 1; dvS.n = 50; $("dvInd").value = ""; renderDv(); });
 ["dvQ", "dvInd", "dvMin"].forEach(id => $(id).addEventListener(id === "dvQ" ? "input" : "change", debounce(() => { dvS.n = 50; renderDv(); }, 120)));
 $("dvMore").onclick = () => { dvS.n += 50; renderDv(); };
-function render() { renderHeat(); renderScreen(); renderPriority(); renderVc(); renderX(); renderDv(); renderBk(); renderLg(); renderLgFwd(); }
+// ---------- 长期红利 (cn/dividend.py long_term(): 10 fiscal years; ranked inside each group)
+const LT = D.longdiv || {}, LTR = LT.rows || [];
+const LT_F = {dy: "股息率", div_cagr: "10 年分红增速", roe_min: "10 年最低 ROE", cover: "覆盖倍数", gm_sdn: "毛利率稳定"};
+const LT_WHY = (R0 => ({d_st: "ST / *ST", d_nodata: "没有财年数据", l_cyc: "周期或易受冲击的行业（长期视图不纳入）", l_small: `总市值 < ${num((R0.mcap_min || 0) / 1e8, 0)} 亿`,
+  l_years: `10 个财年里不是每年都有现金分红`, l_cut: `某一年分红比上一年下降超过 ${-R0.max_cut}%`, l_recent_cut: "最近一年分红明显低于前 3 年平均",
+  l_roe: `10 年 ROE 最低 < ${R0.roe_min}% 或中位数 < ${R0.roe_med}%（金融 ${R0.roe_min_fin}% / ${R0.roe_med_fin}%）`,
+  l_payout: `分红率中位数不在 ${num((R0.payout_lo || 0) * 100, 0)}%–${num((R0.payout_hi || 0) * 100, 0)}%（金融 ≤ ${num((R0.payout_hi_fin || 0) * 100, 0)}%）`,
+  l_cash: "10 年自由现金流合计不足以覆盖 10 年分红", l_growth: `10 年营收复合增速 < ${R0.rev_cagr_min}%（跑不赢通胀）`, l_divgrowth: "10 年分红没有增长",
+  l_gm: `毛利率 10 年波动（标准差）> ${R0.gm_sd_max}pt`, l_balance: `有息负债 / 权益 > ${R0.de_max} 或商誉 / 权益 > ${R0.gw_max_pct}%`,
+  l_yield: `当前股息率 < ${R0.dy_min}%`, l_recent: `年初至今亏损或净利同比 < ${R0.ytd_np_yoy_min}%`}))(LT.rules || {});
+const ltS = {k: "rank", dir: 1};
+const LT_COLS = [
+  ["rank", "组内排名", r => r.rank, r => r.rank, 1],
+  ["code", "代码 · 名称", r => `${CARDS[r.code] ? codeCell(r.code) : r.in2 ? `<a href="#s2" data-lgjump="${esc(r.code)}">${esc(r.code)}</a>` : esc(r.code)} ${esc(r.name)}<div class="small">${[r.in2 ? "② 内" : "", VC_BY[r.code] ? "价值通道" : "", DV_BY[r.code] ? "红利筛选" : ""].filter(Boolean).join(" · ") || "—"}</div>`, r => r.code, 1],
+  ["industry", "行业", r => `<span class="small">${esc(r.industry)}</span>`, r => r.industry, 1],
+  ["score", "组内得分", r => r.score != null ? `<span data-tip="${esc(Object.entries(r.f || {}).map(([k, v]) => `${LT_F[k]} ${v == null ? "—" : num(v, 0)}`).join("；"))}">${num(r.score, 1)}</span>` : "—", r => r.score, -1],
+  ["dy", "股息率", r => vcP(r.dy), r => r.dy, -1],
+  ["div", `现金分红（亿，${(LT.years || []).at(0) || ""}–${(LT.years || []).at(-1) || ""}）`, r => `<span class="small">${(r.div || []).map(x => x == null ? "—" : num(x, x >= 100 ? 0 : 1)).join(" ")}</span>`, null, 0],
+  ["div_cagr", "10 年分红复合增速", r => vcP(r.div_cagr), r => r.div_cagr, -1],
+  ["max_cut", "最大一次削减", r => r.max_cut == null ? "—" : r.max_cut >= 0 ? "从未下降" : num(r.max_cut, 0) + "%", r => r.max_cut, -1],
+  ["roe", "ROE 最低 / 中位数（10 年）", r => `${vcP(r.roe_min)} / ${vcP(r.roe_med)}`, r => r.roe_min, -1],
+  ["payout", "分红率（中位数）", r => r.payout != null ? num(r.payout * 100, 0) + "%" : "—", r => r.payout, 1],
+  ["cover", "覆盖倍数（10 年）", r => r.cover != null ? num(r.cover, 2) + "×" : "—", r => r.cover, -1],
+  ["rev_cagr", "10 年营收复合增速", r => vcP(r.rev_cagr), r => r.rev_cagr, -1],
+  ["gm_sd", "毛利率波动", r => r.gm_sd != null ? num(r.gm_sd, 1) + "pt" : "—", r => r.gm_sd, 1],
+  ["exp_ret", "参考：股息率 + 分红增速", r => `<span data-tip="${esc("历史延续的粗略假设：当前股息率 + 10 年分红复合增速（封顶 " + (LT.rules?.growth_cap ?? "") + "%），不考虑估值变化，不是预测")}">${vcP(r.exp_ret)}</span>`, r => r.exp_ret, -1],
+  ["pe", "PE / PB", r => `${r.pe != null ? num(r.pe) : "—"} / ${r.pb != null ? num(r.pb, 2) : "—"}`, r => r.pe, 1],
+  ["ytd", "年初至今净利同比", r => pc(r.ytd_np_yoy, 0), r => r.ytd_np_yoy, -1],
+  ["bk", "对比", r => r.in2 ? bkCtl(r.code) : '<span class="small">—</span>', null, 0],
+];
+function renderLt() {
+  if (!LT.file) { $("ltLead").innerHTML = `<span class="warn">还没有 10 年数据：运行 <code>python -m cn quality</code>（10 个财年）后重新构建。</span>`; $("ltHead").innerHTML = $("ltBody").innerHTML = ""; return; }
+  const R0 = LT.rules, n = LT.n || {}, g = $("ltGrp").value, q = $("ltQ").value.trim().toLowerCase();
+  $("ltLead").innerHTML = `${esc(LT.years[0])}–${esc(LT.years.at(-1))} 十个财年：全市场 <b>${(n.stable || 0) + (n.fin || 0)}</b> 家通过（非金融 <b>${n.stable || 0}</b>、金融 <b>${n.fin || 0}</b>）。
+    门槛：10 年每年现金分红，没有任何一年比上一年下降超过 ${-R0.max_cut}%，最近一年不低于前 3 年平均的 ${num(R0.cut_ratio * 100, 0)}%；10 年 ROE 最低 ≥ ${R0.roe_min}%、中位数 ≥ ${R0.roe_med}%（金融 ${R0.roe_min_fin}% / ${R0.roe_med_fin}%）；
+    分红率中位数 ${num(R0.payout_lo * 100, 0)}%–${num(R0.payout_hi * 100, 0)}%（金融 ≤ ${num(R0.payout_hi_fin * 100, 0)}%）；非金融：10 年自由现金流 ≥ 10 年分红、毛利率波动 ≤ ${R0.gm_sd_max}pt、有息负债 / 权益 ≤ ${R0.de_max}、商誉 / 权益 ≤ ${R0.gw_max_pct}%；
+    营收 10 年复合增速 ≥ ${R0.rev_cagr_min}%、分红不下降；当前股息率 ≥ ${R0.dy_min}%；年初至今盈利且净利同比 > ${R0.ytd_np_yoy_min}%；总市值 ≥ ${num(R0.mcap_min / 1e8, 0)} 亿；排除周期和易受冲击的行业（${esc([...(R.cyclical_industries || []), ...(LT.cyclical_extra || [])].join("、"))}）。`;
+  const c = LT_COLS.find(x => x[0] === ltS.k && x[3]) || LT_COLS[0], get = c[3];
+  const L = LTR.filter(r => r.group === g && (!q || (r.code + " " + r.name).toLowerCase().includes(q)))
+    .sort((a, b) => { const x = get(a), y = get(b); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+      return (typeof x === "string" ? x.localeCompare(y, "zh-CN") : x - y) * ltS.dir; });
+  $("ltHead").innerHTML = LT_COLS.map(([k, t, , gt]) => gt ? `<th scope="col" aria-sort="${ltS.k === k ? (ltS.dir > 0 ? "ascending" : "descending") : "none"}"><button type="button" class="sortbtn" data-lts="${k}">${esc(t)}${ltS.k === k ? (ltS.dir > 0 ? " ▲" : " ▼") : ""}</button></th>` : `<th scope="col">${esc(t)}</th>`).join("");
+  $("ltBody").innerHTML = L.map(r => `<tr>${LT_COLS.map(([k, , f]) => `<td${["code", "industry", "bk", "div"].includes(k) ? "" : ' class="n"'}>${f(r)}</td>`).join("")}</tr>`).join("")
+    || `<tr><td colspan="${LT_COLS.length}" class="small">没有符合条件的公司</td></tr>`;
+  $("ltCnt").textContent = `${L.length} 家`;
+  $("ltChecks").innerHTML = (LT.checks || []).map(x => `<li>${esc(x)}</li>`).join("");
+  $("ltNote").innerHTML = `得分 = 组内五项百分位等权平均：${Object.values(LT_F).join("、")}。分红为税前现金分红合计（中报 + 年报方案）；覆盖倍数 = 10 年自由现金流合计 ÷ 10 年分红合计（金融：10 年净利润 ÷ 分红）；毛利率波动 = 10 个财年毛利率的标准差。
+    “股息率 + 分红增速”只是把过去的增长延续下去的粗略参考，不考虑估值变化，不是预测。局限：分红按公司合计（增发、送转会影响每股口径）；上市不满 10 年的公司进不来；股息率用当前市值、税前口径。`;
+  bkSync();
+}
+$("ltHead").addEventListener("click", ev => { const b = ev.target.closest("[data-lts]"); if (!b) return; const k = b.dataset.lts, c = LT_COLS.find(x => x[0] === k);
+  ltS.dir = ltS.k === k ? -ltS.dir : c[4]; ltS.k = k; renderLt(); $("ltHead").querySelector(`[data-lts="${k}"]`)?.focus(); });
+$("ltGrp").addEventListener("change", () => { ltS.k = "rank"; ltS.dir = 1; renderLt(); });
+$("ltQ").addEventListener("input", debounce(renderLt, 120));
+function render() { renderHeat(); renderScreen(); renderPriority(); renderVc(); renderX(); renderDv(); renderLt(); renderBk(); renderLg(); renderLgFwd(); }
 function init() {
   renderHeader();
   const inds = [...new Set(D.screen.map(r => r.industry).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));

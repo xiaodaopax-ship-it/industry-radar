@@ -755,6 +755,16 @@ def dividend_checks():
     check("dividend screen (real files): every row meets every rule, ranks 1..n in each group, a reason for every quote",
           not bad and ranks_ok and len(P["why"]) == len(snap["quotes"]) and sum(1 for v in P["why"].values() if v == "") == len(P["rows"]),
           f"groups={P['n']} bad={bad[:5]}")
+    if len(qdoc["fiscal_years"]) >= DV.LONG_RULES["n_years"]:
+        LTP, LR = DV.long_term(snap, res, qdoc, 1.64), DV.LONG_RULES
+        cyc = set(B.RULES["cyclical_industries"]) | set(DV.LONG_CYCLICAL_EXTRA)
+        badl = [r["code"] for r in LTP["rows"] if not (len(r["div"]) == 10 and all(x and x > 0 for x in r["div"]) and (r["max_cut"] or 0) >= LR["max_cut"] - 0.05
+                and r["industry"] not in cyc and r["rev_cagr"] >= LR["rev_cagr_min"] - 0.05 and r["div_cagr"] >= -0.05 and r["dy"] >= LR["dy_min"] - 0.005)]
+        rk = all(sorted(r["rank"] for r in LTP["rows"] if r["group"] == g) == list(range(1, LTP["n"][g] + 1)) for g in LTP["n"])
+        check("long-term dividend view (10 fiscal years): every row meets the rules, no cyclical industry, ranks 1..n per group",
+              not badl and rk and len(LTP["why"]) == len(snap["quotes"]), f"groups={LTP['n']} bad={badl[:5]}")
+    else:
+        check("long-term dividend view: quality file has 10 fiscal years (run python -m cn quality)", False, str(len(qdoc["fiscal_years"])))
 
 
 if __name__ == "__main__":
