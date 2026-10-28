@@ -366,10 +366,10 @@ def analyze(snap, valuation=None):
         screen.append(code)
     lookup, dropped = full_lookup(Q, fl, floor)
 
-    rows = []
-    for code in screen:
-        f, q, p, yo = fl[code], Q[code], fp.get(code, {}), fy.get(code, {})
-        np_, ocf, ry = f.get("parent_net_profit"), f.get("operating_cash_flow"), f["revenue_yoy_pct"]
+    def row_for(code, val_override=None):
+        """One ② -style row (gates 1-10, label, reasons) for any quoted code; also used for extra card companies."""
+        f, q, p, yo = fl.get(code) or {}, Q.get(code) or {}, fp.get(code, {}), fy.get(code, {})
+        np_, ocf, ry = f.get("parent_net_profit"), f.get("operating_cash_flow"), f.get("revenue_yoy_pct")
         g = {}
         # 1 OCF / NP
         on = ratio(ocf, np_) if (np_ or 0) > 0 else None
@@ -383,7 +383,7 @@ def analyze(snap, valuation=None):
         for key, fld, cn, gap in (("ar", "accounts_receivable", "应收", RULES["ar_gap_pp"]),
                                   ("inv", "inventory", "存货", RULES["inv_gap_pp"])):
             gr = growth(f.get(fld), yo.get(fld))
-            if gr is None:
+            if gr is None or ry is None:
                 g[key] = ("na", "无可比数据", "—")
             else:
                 g[key] = ("warn" if gr > ry + gap else "ok", f"{cn} {gr:+.0f}% vs 营收 {ry:+.0f}%", f"{gr:+.0f}%")
@@ -433,7 +433,7 @@ def analyze(snap, valuation=None):
         else:
             g["reg"] = ("ok", "无标题命中", "无")
         # 9 valuation percentile (shortlist only)
-        vv = valuation.get(code)
+        vv = val_override if val_override is not None else valuation.get(code)
         pe_pct = pb_pct = None
         if vv is None:
             g["val"] = ("na", "未取历史（不在估值短名单）", "未取")
@@ -489,10 +489,10 @@ def analyze(snap, valuation=None):
             else:
                 label, reasons = "偏价值", [f"盈利，经营现金流/净利润 {on:.2f}", f"PE 分位 {pe_pct:.0f}%", "无监管类标题命中"]
 
-        acc = (ry - p["revenue_yoy_pct"]) if p.get("revenue_yoy_pct") is not None else None
-        rows.append({
+        acc = (ry - p["revenue_yoy_pct"]) if p.get("revenue_yoy_pct") is not None and ry is not None else None
+        return {
             "code": code, "name": q.get("name") or f.get("name"), "industry": q.get("industry"), "board": q.get("board"),
-            "revenue": f["revenue"], "rev_yoy": r1(ry), "rev_yoy_prev": r1(p.get("revenue_yoy_pct")), "accel": r1(acc),
+            "revenue": f.get("revenue"), "rev_yoy": r1(ry), "rev_yoy_prev": r1(p.get("revenue_yoy_pct")), "accel": r1(acc),
             "np": np_, "np_yoy": r1(f.get("net_profit_yoy_pct")), "gm": r1(f.get("gross_margin_pct")),
             "gm_chg": r1(f["gross_margin_pct"] - yo["gross_margin_pct"])
             if f.get("gross_margin_pct") is not None and yo.get("gross_margin_pct") is not None else None,
@@ -505,8 +505,10 @@ def analyze(snap, valuation=None):
             "label": label, "reasons": reasons, "cyclical": cyc,
             "reg_items": [{"date": r.get("date"), "title": r.get("title_cn"), "url": r.get("url"),
                            "kind": REG_KIND_CN[r["kind"]]} for r in rh[:3]],
-        })
+        }
 
+
+    rows = [row_for(c) for c in screen]
     # ---- research priority: eligible = profitable + <= priority_max_warn risk-gate warnings
     base = [r for r in rows if (r["np"] or 0) > 0 and r["ocf_np"] is not None and r["warn_n"] <= RULES["priority_max_warn"]]
     elig = [r for r in base if not r["cyclical"]]
@@ -549,6 +551,7 @@ def analyze(snap, valuation=None):
         "market": {"yoy_median": med(all_y),
                    "share_ge20": r1(100 * sum(1 for y in all_y if y is not None and y >= 20) / max(1, sum(1 for y in all_y if y is not None)))},
         "revenue_floor": floor, "lookup": lookup,
+        "_row_for": row_for,     # not serialised: build() pops it (extra card rows)
     }
 
 
@@ -627,6 +630,11 @@ def build(path=None):
         **res,
     }
     payload.pop("shortlist")
+    payload.pop("_row_for", None)
+    # extra full evaluation cards for companies outside ② (long-term dividend view); their rows never enter ② / ③ / counts
+    from . import cards as cardmod
+    cardmod.with_extras(snap, res)
+    payload["extra_rows"] = res["extra_rows"]
     # evaluation cards: merge the latest cards_<ts>.json (match by code; codes no longer on the card list are ignored)
     from . import cards as cardmod
     cpath = cardmod.latest_cards()
@@ -641,7 +649,7 @@ def build(path=None):
     if rdoc and rdoc.get("snap") != os.path.basename(path):
         log(f"NOTE: {os.path.basename(rpath)} was fetched for {rdoc.get('snap')}, not {os.path.basename(path)}; "
             f"items with a different quote date are flagged")
-    rngmod.attach(res["screen"], rdoc, qd)
+    rngmod.attach(res["screen"] + res["extra_rows"], rdoc, qd)
     payload["ranges_meta"] = {"file": os.path.basename(rpath) if rdoc else None, "fetched_at": (rdoc or {}).get("fetched_at"),
                               "as_of": (rdoc or {}).get("as_of"), "window_start": (rdoc or {}).get("window_start"),
                               "item_bases": (rdoc or {}).get("item_bases"), "complete": (rdoc or {}).get("complete"),
@@ -652,7 +660,7 @@ def build(path=None):
     # tracked holders in the top-10 float holders: attached AFTER analyze(), display only (never in any score / label / rank)
     from . import holders as hmod
     hdoc, hpath = hmod.load_latest()
-    hmod.attach(res["screen"], hdoc)
+    hmod.attach(res["screen"] + res["extra_rows"], hdoc)
     payload["inst_meta"] = hmod.meta(hdoc, hpath, res["screen"])
     payload["cards"] = cardmod.card_payload(snap, res, cdoc, RULES)
     for c in payload["cards"]:
@@ -663,7 +671,7 @@ def build(path=None):
     vdoc, vpath = vmod.load_latest()
     if vdoc and vdoc.get("snap") != os.path.basename(path):
         log(f"NOTE: {os.path.basename(vpath)} was fetched for {vdoc.get('snap')}, not {os.path.basename(path)}")
-    vmod.attach(res["screen"], vdoc, snap)
+    vmod.attach(res["screen"] + res["extra_rows"], vdoc, snap)
     for c in payload["cards"]:
         c["dcf_g"] = vmod.consensus_growth(c.get("consensus"), snap["periods"]["latest"])
         # one-off guard (c): consensus EPS next year vs current-year estimate (display only)

@@ -198,6 +198,8 @@
   .lt-note { background:rgba(140,140,140,.07); color:#959ba3; border-color:rgba(140,140,140,.2); }
   .lg-fbar { flex-wrap:wrap; align-items:center; gap:8px 12px; } .lg-tsel { position:relative; } .lg-tsel > summary { cursor:pointer; }
   .lg-tbox { display:flex; flex-wrap:wrap; gap:6px 16px; padding:8px; margin-top:4px; border:1px solid var(--line); border-radius:6px; max-width:980px; }
+  .lt-card { margin:0 0 10px; } .lt-bars { display:flex; flex-wrap:wrap; gap:4px 10px; margin:4px 0 6px; }
+  .lt-y { display:inline-flex; flex-direction:column; align-items:center; font-size:12px; min-width:40px; } .lt-chk { margin-top:6px; }
   .lg-fwd { margin-top:18px; } .lg-fwd tr.muted td { color:var(--muted); }
   .lk-hits { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; } .lk-hit { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:4px 10px; font:inherit; font-size:13px; cursor:pointer; text-align:left; }
   .lk-hit:hover, .lk-hit:focus-visible { border-color:var(--accent); }
@@ -677,6 +679,8 @@ const R = D.rules;
 const growthColor = v => { if (v == null) return "#4a515b"; const t = Math.max(-1, Math.min(1, v >= 5 ? (v - 5) / 35 : (v - 5) / 35));
   const mix = (a, b, k) => Math.round(a + (b - a) * k); return t < 0 ? `rgb(${mix(74, 184, -t)},${mix(81, 68, -t)},${mix(91, 61, -t)})` : `rgb(${mix(74, 47, t)},${mix(81, 158, t)},${mix(91, 106, t)})`; };
 const BYCODE = Object.fromEntries(D.screen.map(r => [r.code, r]));
+// rows of the extra full cards (companies outside ②, e.g. the long-term dividend view): same row shape, never part of ② / ③ / 对比池 scores
+const XROW = Object.fromEntries((D.extra_rows || []).map(r => [r.code, r])), rowOf = code => BYCODE[code] || XROW[code];
 // label display names (internal values 基本面支撑 / 中性 / 交易驱动 stay unchanged in data, filters and CSS classes)
 const LBT = {偏价值: "基本面支撑", 中性: "中性", 偏博弈: "交易驱动"}, lbT = v => LBT[v] || v;
 // 全市场速查 rows (cn/build.py full_lookup): one object per quoted stock
@@ -1233,9 +1237,23 @@ function qualCN(c) {
   return `<details class="grp" ${rs ? "open" : ""}><summary>定性六维 <span class="small">业务 · 客户 · 管理层 · 行业 · 产品 · 风险${rs ? "" : " · 没有调研文件"}</span></summary>
     <div class="grp-body"><div style="margin-bottom:8px">${head}</div><div class="grid g3 dims">${cells}</div></div></details>`;
 }
+// long-term dividend block at the top of a card (10 fiscal years; cn/dividend.long_term)
+function ltCardBlock(r, c) {
+  const L = D.longdiv || {}, ys = L.years || [], R0 = L.rules || {};
+  const bars = (r.div || []).map((v, i) => `<span class="lt-y"><b>${v == null ? "—" : num(v, v >= 100 ? 0 : 1)}</b><span class="tier">${esc(ys[i] || "")}</span></span>`).join("");
+  return `<div class="card lt-card"><h4>长期红利视角（${esc(ys[0] || "")}–${esc(ys.at(-1) || "")}）${c.source === "longdiv" ? ' <span class="tag">不在 ② 新兴筛选：下方增长类判断句对这类公司参考意义有限</span>' : ""}</h4>
+    <div class="small">现金分红（亿元，税前合计）</div><div class="lt-bars">${bars}</div>
+    <div class="small">股息率 <b>${vcP(r.dy)}</b> · 10 年分红复合增速 ${vcP(r.div_cagr)} · 最大一次削减 ${r.max_cut == null ? "—" : r.max_cut >= 0 ? "从未下降" : num(r.max_cut, 0) + "%"}
+      · ROE 最低 / 中位数 ${vcP(r.roe_min)} / ${vcP(r.roe_med)} · 分红率中位数 ${r.payout != null ? num(r.payout * 100, 0) + "%" : "—"} · 覆盖倍数 ${r.cover != null ? num(r.cover, 2) + "×" : "—"}
+      · 10 年营收复合增速 ${vcP(r.rev_cagr)}${r.gm_sd != null ? ` · 毛利率波动 ${num(r.gm_sd, 1)}pt` : ""}${r.util ? ` · <span class="tag">公用事业：负债门槛 ${R0.de_max_util}</span>` : ""}</div>
+    <div class="small">参考：股息率 + 分红增速 ≈ ${vcP(r.exp_ret)}（历史延续的粗略假设，不是预测）</div>
+    <details class="lt-chk"><summary class="small">人工核实清单（${(L.checks || []).length} 项）</summary><ol class="small">${(L.checks || []).map(x => `<li>${esc(x)}</li>`).join("")}</ol></details></div>`;
+}
 function evalCardCN(c) {
   const rs = c.research || {}, f = c.fin || {}, mk = ["STAR", "SH_MAIN"].includes(c.board) ? "SH" : c.board === "BSE" ? "BJ" : "SZ";
-  const rk = c.rank ? `研究优先级第 ${c.rank} 名 · 综合分 ${num(c.score)}` : `「基本面支撑」标签 · 不在优先级前 ${R.priority_top}`;
+  const ltr = (D.longdiv && D.longdiv.rows || []).find(x => x.code === c.code);
+  const rk = c.rank ? `研究优先级第 ${c.rank} 名 · 综合分 ${num(c.score)}` : c.source === "longdiv" ? `长期红利（10 年）${ltr ? `${ltr.group === "fin" ? "金融" : "非金融"}组第 ${ltr.rank} 名` : ""} · 不在 ② 新兴筛选`
+    : c.source === "cross" ? "交集：成长 × 价值 × 现价低于估值（默认参数）" : `「基本面支撑」标签 · 不在优先级前 ${R.priority_top}`;
   const gates = GATES.map(([k, t]) => { const g = c.gates[k]; return `<div class="chk"><span class="${esc(g.s)}">${ICON[g.s] || "·"}</span><span>${esc(t)}</span><span class="small">${esc(g.v)}</span></div>`; }).join("");
   const nq = (rs.open_questions || []).length + (c.questions || []).length;
   const qs = (rs.open_questions || []).map(x => `<li>${esc(x)} <span class="tier">调研</span></li>`).join("") + lis(c.questions);
@@ -1257,8 +1275,8 @@ function evalCardCN(c) {
       <span class="ec-nums"><span class="np">股价 <b>${f.price != null ? num(f.price, 2) + " 元" : "—"}</b></span><span class="np" data-tip="${esc(rngTip(c.range, f))}">52 周位置 <b>${rngOk(c.range) ? num(c.range.pos52, 0) + "%" : "—"}</b>${rngFlags(c.range).length ? '<span class="tag">注</span>' : ""}</span><span class="np">总市值 <b>${yi(f.mcap)} 亿</b></span><span class="np">PE(TTM) <b>${num(f.pe_ttm)}</b></span>
         <span class="np ${vs === "warn" ? "unrel" : vs === "ok" ? "good" : ""}">PE 分位 <b>${f.pe_pct == null ? "—" : num(f.pe_pct, 0) + "%"}</b></span>${pegNp}
         <span class="np ${c.warn_n ? "unrel" : "good"}" data-tip="前 8 项风险门槛中触发提示的项数">⚠ <b>${esc(c.warn_n)}</b></span>
-        ${noteCtl(c.code)}${bkCtl(c.code)}</span></summary>
-    <div class="ec-body">
+        ${noteCtl(c.code)}${BYCODE[c.code] ? bkCtl(c.code) : ""}</span></summary>
+    <div class="ec-body">${ltr ? ltCardBlock(ltr, c) : ""}
     <div class="ec-head"><div class="one">${esc(c.oneliner) || '<span class="muted">没有取到主营业务描述</span>'}</div>
       <div class="concl"><b>结论（规则生成）：</b>${esc(c.conclusion)}</div></div>
     <div class="grid g4">${c.tiles.map(ctile).join("")}</div>
@@ -1305,7 +1323,8 @@ function openCard(code, scroll, smooth) {
 function renderCards() {
   const cs = D.cards || [];
   $("ecN").textContent = cs.length;
-  $("ecLead").innerHTML = esc(`范围：③ 研究优先级前 ${D.priority.length} 名 + ② 中所有「基本面支撑」公司，去重后 ${cs.length} 家。每张卡依次是规则生成的结论、四个指标块、机会与风险，然后是可折叠的分组：证据（因子雷达、PE 历史、价格、一致预期、主营构成、前十大流通股东）、事件（业绩预告、增减持、解禁、监管标题）、门槛与待核实（10 项门槛、PEG 参考项、待核实问题）、定性六维。判断句都是按固定规则从数字生成的，需要人工核实；不包含买卖含义。` +
+  const nx = cs.filter(c => c.source === "longdiv").length, nc = cs.filter(c => c.source === "cross").length;
+  $("ecLead").innerHTML = esc(`范围：③ 研究优先级前 ${D.priority.length} 名 + ② 中所有「基本面支撑」公司 + 长期红利（10 年）里不在 ② 的 ${nx} 家 + 交集视图（默认参数）里另外的 ${nc} 家，去重后 ${cs.length} 家。每张卡依次是规则生成的结论、四个指标块、机会与风险，然后是可折叠的分组：证据（因子雷达、PE 历史、价格、一致预期、主营构成、前十大流通股东）、事件（业绩预告、增减持、解禁、监管标题）、门槛与待核实（10 项门槛、PEG 参考项、待核实问题）、定性六维。判断句都是按固定规则从数字生成的，需要人工核实；不包含买卖含义。` +
     `PEG 是参考项，不参与排序、标签和 ⚠ 数：优先用前瞻口径 = PE(TTM) ÷ 机构一致预期 EPS 从当年预期到两年后预期的年化增速（覆盖机构 ≥ ${CR.peg_min_org} 家、所用预期均 > 0）；` +
     `没有可用一致预期时用历史口径（扣非，年初至今同比）；周期行业、PE ≤ 0、增速 ≤ 0 时不显示。PEG ≤ ${CR.peg_ok_max} 记 ✓，> ${CR.peg_warn_min} 记 ⚠，其余或不可靠时记 ·。` +
     `“现金流估值（情景参考）”块：反向 DCF 和熊 / 基准 / 牛三情景 DCF，在上方“估值参数”里改折现率、永续增速和情景幅度后立即重算；${DCF_DISC}，不参与排序、标签、⚠ 数和对比池评分。`);
@@ -1669,7 +1688,7 @@ const DCF_FIELDS = [
 ];
 const DCF_WHY = {nodata: "未取到现金流估值数据（运行 python -m cn valuation）", rf: "未取到无风险利率，请在“估值参数”里手动填写",
   r0: "缺 TTM 营收或营收 ≤ 0", bal: `缺 ${VM.latest || "最新报告期"} 资产负债表（货币资金 / 有息负债）`, sh: "缺总股本或股价",
-  m: "缺年度经营现金流 / 购建长期资产现金，算不出 FCF 利润率", g: "缺增速数据", rg: "基准折现率与永续增速之差 ≤ 0.5 个百分点，请调整参数"};
+  m: "缺年度经营现金流 / 购建长期资产现金，算不出 FCF 利润率", g: "缺增速数据", fin: "金融类（银行、保险、券商）：自由现金流折现不适用，看 ROE、市净率和分红（见卡片顶部的长期红利视角）", rg: "基准折现率与永续增速之差 ≤ 0.5 个百分点，请调整参数"};
 const dcfDefaults = () => ({...DCF_DEF, rf: RF0});
 // display-only reliability note (does not change the calculation): FCF > 50% of revenue usually means pre-sales / working-capital swings
 const DCF_M_HI = 0.5, DCF_M_HI_TXT = "基准 FCF 利润率 > 50%，可能含预收款或营运资金的一次性变化，结果不可靠";
@@ -1779,6 +1798,7 @@ function dcfWhyTxt(mm, cyc, sel) {
 function dcfCase(r, c, P) {
   const d = r && r.dcf, price = r && r.price, cyc = !!(r && r.cyclical), cg = c && c.dcf_g && c.dcf_g.g != null ? c.dcf_g : null;
   const o = {status: "na", d, price, cyc, cg, P};
+  if (r && /银行|保险|证券|多元金融/.test(r.industry || "")) return {...o, why: "fin"};   // extra cards only: FCF DCF does not fit financials
   if (!d) return {...o, why: "nodata"};
   if (P.rf == null) return {...o, why: "rf"};
   if (d.r0 == null || d.r0 <= 0) return {...o, why: "r0"};
@@ -1810,7 +1830,7 @@ function dcfCase(r, c, P) {
 let DCF_CO = {};
 const dcfPOf = code => { const x = DCF_CO[code]; if (!x) return DP;
   return {...DP, ...(x.basis ? {basis: x.basis} : {}), ...(x.N != null ? {rampN: x.N} : {}), ...(x.T != null ? {rampT: x.T} : {})}; };
-const dcfOf = code => DCF_CACHE[code] || (DCF_CACHE[code] = dcfCase(BYCODE[code], CARDS[code], dcfPOf(code)));
+const dcfOf = code => DCF_CACHE[code] || (DCF_CACHE[code] = dcfCase(rowOf(code), CARDS[code], dcfPOf(code)));
 const dcfVs = vs => vs == null ? "—" : vs >= 0 ? `高于现价 ${num(vs, 0)}%` : `低于现价 ${num(-vs, 0)}%`;
 const dcfPct = (v, d = 1) => v == null || !isFinite(v) ? "—" : `${num(v, d)}%`;
 function dcfGsrc(o) {
@@ -1898,7 +1918,7 @@ function paxHtml(S) {
     <div class="small pax-cap">${esc(cap)}${clip ? " " + esc(clip) : ""}${has52 ? "" : " 无 52 周数据。"}</div>${note}</div>`;
 }
 function dcfAxis(c, o) {
-  const x = rngOk(c.range) ? c.range : rngOk(BYCODE[c.code]) ? BYCODE[c.code] : null, t = c.target || {};
+  const x = rngOk(c.range) ? c.range : rngOk(rowOf(c.code)) ? rowOf(c.code) : null, t = c.target || {};
   const S = {price: o.price ?? (c.range && c.range.price), lo: x ? x.rng.lo52 : null, hi: x ? x.rng.hi52 : null, tgt: t.median ?? null,
     tgtLbl: "机构目标价中位数", tgtCap: `机构目标价中位数（${t.n ?? "—"} 家，卖方观点）`, L: {bear: "熊", base: "基准", bull: "牛"}};
   if (o.status === "ok") S.sc = PAX_K.map(k => ({k, v: o.sc[k].vps}));
@@ -1906,7 +1926,7 @@ function dcfAxis(c, o) {
   return paxHtml(S);
 }
 function dcfCardInner(c) {
-  const r = BYCODE[c.code], o = dcfOf(c.code), d = o.d, fy = VM.fy || [];
+  const r = rowOf(c.code), o = dcfOf(c.code), d = o.d, fy = VM.fy || [];
   const head = `<p class="dcf-disc">${esc(DCF_DISC)} · <a href="#dcfPanel">修改估值参数</a></p>` + dcfAxis(c, o);   // axis re-renders with [data-dcfc]
   if (!d) return head + `<div class="small muted">${esc(DCF_WHY[o.why] || "无数据")}</div>` + lgCardBlock(c.code);
   const nWin = o.cyc ? 5 : 3, last = fy[fy.length - 1];

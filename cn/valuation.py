@@ -136,7 +136,9 @@ def fetch_valuation(snap_path=None):
     with open(snap_path, encoding="utf-8") as f:
         snap = json.load(f)
     res = analyze(snap)
-    codes = [r["code"] for r in res["screen"]]
+    from .cards import with_extras
+    with_extras(snap, res)
+    codes = [r["code"] for r in res["screen"] + res["extra_rows"]]
     want = set(codes)
     latest = snap["periods"]["latest"]
     fys, ytd, ytd_ago = plan_periods(latest)
@@ -186,7 +188,7 @@ def fetch_valuation(snap_path=None):
     os.replace(tmp, path)
     # coverage summary
     Q = {x["code"]: x for x in snap["quotes"]}
-    rows_by = {r["code"]: r for r in res["screen"]}
+    rows_by = {r["code"]: r for r in res["screen"] + res["extra_rows"]}
     cmp_ = [compact(items[c], doc, Q.get(c)) for c in codes]
     n3 = sum(1 for x in cmp_ if x and sum(1 for m in x["m"][-3:] if m is not None) == 3)
     nr0 = sum(1 for x in cmp_ if x and x["r0"] is not None)

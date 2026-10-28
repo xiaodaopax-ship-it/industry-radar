@@ -62,10 +62,94 @@ def log(msg):
 
 
 def card_codes(res):
-    """Research-priority list (rank order) + every 偏价值 stock (revenue-growth order), deduplicated."""
+    """Research-priority list (rank order) + every 偏价值 stock (revenue-growth order) + extra codes (with_extras), deduplicated."""
     out = [p["code"] for p in res["priority"]]
     out += [r["code"] for r in sorted(res["screen"], key=lambda r: -(r["rev_yoy"] or 0)) if r["label"] == "偏价值"]
+    out += list(res.get("extra_codes") or [])
     return list(dict.fromkeys(out))
+
+
+# extra full cards: every company of the long-term dividend view (cn/dividend.long_term) that is not in ②. Their rows are
+# built with the same gates / label rules (build.analyze row_for) but stay out of ②, ③, counts and the 对比池 score.
+EXTRA_SOURCES = ("longdiv", "cross")
+# "cross" = the 交集 view under default parameters: ② ∩ value channel ∩ base valuation >= +15% above the price (ledger record of
+# the current snapshot, default parameters), not cyclical, not 偏博弈, no recent profit drop (the page defaults)
+CROSS_GAP_MIN = 0.15
+
+
+def extra_codes(snap, res):
+    """[(code, source)] in view order; [] without a 10-year quality file."""
+    from . import quality as qmod, dividend as dmod, valuation as vmod
+    qdoc, qpath = qmod.load_latest()
+    if not qdoc:
+        return []
+    qdoc["_path"] = qpath
+    vdoc, _ = vmod.load_latest()
+    screen = {r["code"] for r in res["screen"]}
+    out = []
+    if "longdiv" in EXTRA_SOURCES:
+        lt = dmod.long_term(snap, res, qdoc, ((vdoc or {}).get("rf") or {}).get("value"))
+        out += [(r["code"], "longdiv") for r in lt.get("rows") or [] if r["code"] not in screen]
+    if "cross" in EXTRA_SOURCES:
+        from . import ledger as lmod
+        vc = qmod.channel(snap, res, qdoc, ((vdoc or {}).get("rf") or {}).get("value"))
+        last = {}
+        for x in lmod.load():
+            last[x["code"]] = x
+        by = {r["code"]: r for r in res["screen"]}
+        cross = []
+        for v in vc.get("rows") or []:
+            s, x = by.get(v["code"]), last.get(v["code"])
+            if not s or not x or x.get("status") != "ok" or x.get("gap_base") is None:
+                continue
+            if x["gap_base"] >= CROSS_GAP_MIN and not (v["cyclical"] or s["cyclical"]) and s["label"] != "偏博弈" and not v.get("recent_drop"):
+                cross.append((x["gap_base"], v["code"]))
+        out += [(c, "cross") for _, c in sorted(cross, reverse=True)]
+    seen, uniq = set(), []
+    for c, s in out:
+        if c not in seen:
+            seen.add(c)
+            uniq.append((c, s))
+    return uniq
+
+
+def with_extras(snap, res, cards_doc=None):
+    """Adds res["extra_codes"], res["extra_src"] and res["extra_rows"] (row_for with the card's own 5-year PE / PB percentile)."""
+    if "extra_rows" in res:
+        return res
+    ex = extra_codes(snap, res)
+    res["extra_codes"] = [c for c, _ in ex]
+    res["extra_src"] = dict(ex)
+    if cards_doc is None:
+        p = latest_cards()
+        if p:
+            try:
+                with open(p, encoding="utf-8") as f:
+                    cards_doc = json.load(f)
+            except (OSError, ValueError):
+                cards_doc = None
+    cc = (cards_doc or {}).get("cards", {})
+    rf = res.get("_row_for")
+    rows, screen = [], {r["code"] for r in res["screen"]}
+    for c in res["extra_codes"]:
+        if c in screen:
+            continue                 # ② companies (e.g. the 交集 view) already have a row; only the card is extra
+        vp = (cc.get(c) or {}).get("val_pct")
+        row = rf(c, {"pe": vp.get("pe_ttm"), "pb": vp.get("pb"), "first": None, "last": None} if vp else None) if rf else None
+        if row:
+            row["extra_src"] = res["extra_src"][c]
+            from .build import FIN_INDUSTRY_WORDS, RISK_GATES
+            if any(w in (row.get("industry") or "") for w in FIN_INDUSTRY_WORDS):
+                # banks / insurers / brokers: deposits and float are operating cash flow, receivables and inventory do not
+                # apply -> these three gates are "not applicable" instead of a warning (never in ② anyway)
+                na = ("na", "金融类不适用（存款、保费等本身计入经营现金流，没有应收 / 存货口径）", "不适用")
+                for k in ("ocf", "ar", "inv"):
+                    row["gates"][k] = {"s": na[0], "v": na[1], "sv": na[2]}
+                row["ocf_np"] = None
+                row["warn_n"] = sum(1 for k in RISK_GATES if row["gates"][k]["s"] == "warn")
+            rows.append(row)
+    res["extra_rows"] = rows
+    return res
 
 
 # ----------------------------------------------------------------------------- fetch
@@ -112,7 +196,7 @@ def fetch_cards(snap_path=None, snap=None):
             return None
         with open(snap_path, encoding="utf-8") as f:
             snap = json.load(f)
-    res = analyze(snap)
+    res = with_extras(snap, analyze(snap))
     codes = card_codes(res)
     today = dt.date.today()
     t0 = dt.datetime.now(em.CST)
@@ -127,7 +211,7 @@ def fetch_cards(snap_path=None, snap=None):
                 prev_doc = d.get("cards") or {}
         except (OSError, ValueError):
             prev_doc = {}
-    log(f"cards: {len(codes)} stocks (priority {len(res['priority'])} + value label, deduplicated) from {os.path.basename(snap_path or '')}"
+    log(f"cards: {len(codes)} stocks (priority {len(res['priority'])} + value label + {len(res['extra_codes'])} extra, deduplicated) from {os.path.basename(snap_path or '')}"
         + (f"; reusing fields from {os.path.basename(prev_path)}" if prev_doc else ""))
     out, failed, reused = {}, {}, 0
     for i, code in enumerate(codes, 1):
@@ -163,14 +247,16 @@ def fetch_cards(snap_path=None, snap=None):
         else:
             ac = call("consensus", em.analyst_consensus, code)
             rec["consensus"] = ac[0] if ac else None
-        if have("valuation_history", "pe_series", "pe_band", "price", "hist_range"):
-            for k in ("pe_series", "pe_band", "price", "hist_range"):
+        if have("valuation_history", "pe_series", "pe_band", "price", "hist_range", "val_pct"):
+            for k in ("pe_series", "pe_band", "price", "hist_range", "val_pct"):
                 rec[k] = old[k]
             reused += 1
         else:
             hist = call("valuation_history", em.valuation_history, code, RULES["valuation_years"])
             rec["pe_series"], rec["pe_band"], rec["price"] = _series(hist, today)
             rec["hist_range"] = [hist[0]["date"], hist[-1]["date"]] if hist else None
+            # 5-year PE / PB percentile from the same history (cards outside the valuation shortlist use it for the tile)
+            rec["val_pct"] = {p["metric"]: p for p in em.valuation_percentiles(hist, keys=("pe_ttm", "pb"))} if hist else None
         # 扣非 EPS / profit for the latest YTD period and the same period last year (historical PEG fallback)
         if have("deducted", "deducted") and all(p in (old["deducted"] or {}) for p in (P["latest"], P["year_ago"])):
             rec["deducted"] = old["deducted"]; reused += 1
@@ -400,7 +486,7 @@ def card_payload(snap, res, cards_doc, rules):
     """List of card dicts (priority order, then 偏价值) for the template. cards_doc may be None (snapshot-only cards)."""
     P = snap["periods"]
     today = dt.date.fromisoformat(snap["today"])
-    by = {r["code"]: r for r in res["screen"]}
+    by = {r["code"]: r for r in res["screen"] + (res.get("extra_rows") or [])}
     prio = {p["code"]: p for p in res["priority"]}
     extra = (cards_doc or {}).get("cards", {})
     hold, unl, fc, reg = {}, {}, {}, {}
@@ -421,6 +507,8 @@ def card_payload(snap, res, cards_doc, rules):
     quote = {q["code"]: q for q in snap["quotes"]}
     out = []
     for code in card_codes(res):
+        if code not in by:
+            continue
         r, p, x = by[code], prio.get(code), extra.get(code) or {}
         g = r["gates"]
         prof = x.get("profile")
@@ -434,7 +522,7 @@ def card_payload(snap, res, cards_doc, rules):
         u_rows = sorted(unl.get(code, []), key=lambda u: u.get("date") or "")
         f_rows = sorted(fc.get(code, []), key=lambda f: f.get("notice_date") or "", reverse=True)[:3]
         reg_rows = sorted(reg.get(code, []), key=lambda f: f.get("date") or "", reverse=True)[:10]
-        val = (snap.get("valuation") or {}).get(code) or {}
+        val = (snap.get("valuation") or {}).get(code) or ({"pe": (x.get("val_pct") or {}).get("pe_ttm"), "pb": (x.get("val_pct") or {}).get("pb")} if x.get("val_pct") else {})
         pe, pb = val.get("pe") or {}, val.get("pb") or {}
         q = quote.get(code, {})
         ts = q.get("total_shares")
@@ -504,7 +592,8 @@ def card_payload(snap, res, cards_doc, rules):
             bear.append(f"{fh[0]['end_date']} 前十大流通股东中 {sum(1 for h in fh if h['status'] == 'decrease')} 家减持、"
                         f"{sum(1 for h in fh if h['status'] == 'exited')} 家退出")
         # ---- conclusion (data-level summary + top reasons, like radar/score.py conclusion())
-        head = (f"研究优先级第 {p['rank']} 名（综合分 {_f(p['score'])}），" if p else "") + f"标签「{r['label']}」"
+        from .build import LABEL_CN
+        head = (f"研究优先级第 {p['rank']} 名（综合分 {_f(p['score'])}），" if p else "") + f"标签「{LABEL_CN.get(r['label'], r['label'])}」"
         b = "；".join(bull[:2]) or "数据上没有突出的优点"
         w = "；".join(bear[:2]) or "前 8 项风险门槛没有触发提示"
         concl = f"{head}。数据上的依据：{b}。需要注意：{w}。以上是按固定规则从公开数据生成的摘要，需要人工核实。"
@@ -579,6 +668,8 @@ def card_payload(snap, res, cards_doc, rules):
             "hist_range": x.get("hist_range"),
             # display only (never in rank / label / warn_n): 52-week qfq range from the ranges file, analyst target median
             "range": {k: r.get(k) for k in ("price", "px_date", "rng", "pos52", "off_hi", "off_lo")},
+            # None = ③ / ② 偏价值 card; "longdiv" = long-term dividend view (not in ②); "cross" = 交集 view (in ②)
+            "source": None if p or r.get("label") == "偏价值" and not r.get("extra_src") else (res.get("extra_src") or {}).get(code),
             "target": target_median(x, q.get("price"), q.get("as_of")),
         })
     return out

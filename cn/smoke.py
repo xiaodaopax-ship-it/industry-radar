@@ -765,6 +765,19 @@ def dividend_checks():
               not badl and rk and len(LTP["why"]) == len(snap["quotes"]), f"groups={LTP['n']} bad={badl[:5]}")
     else:
         check("long-term dividend view: quality file has 10 fiscal years (run python -m cn quality)", False, str(len(qdoc["fiscal_years"])))
+    # extra full cards: long-term dividend companies outside ② + the 交集 view; their rows never enter ② / ③ / counts
+    from . import cards as CM
+    res2 = B.analyze(snap)
+    n_screen = len(res2["screen"])
+    CM.with_extras(snap, res2)
+    scr = {r["code"] for r in res2["screen"]}
+    lt_codes = {r["code"] for r in DV.long_term(snap, res2, qdoc, 1.64)["rows"]}
+    xr = {r["code"] for r in res2["extra_rows"]}
+    cards = set(CM.card_codes(res2))
+    fin_ok = all(r["gates"]["ocf"]["s"] == "na" for r in res2["extra_rows"] if any(w in (r.get("industry") or "") for w in B.FIN_INDUSTRY_WORDS))
+    check("extra cards: every long-term dividend company has a card; extra rows are outside ② and ② / ③ are unchanged; financial rows mark OCF n/a",
+          lt_codes <= cards and not (xr & scr) and xr == lt_codes - scr and len(res2["screen"]) == n_screen and fin_ok,
+          f"extra={len(res2['extra_codes'])} extra_rows={len(xr)} cards={len(cards)}")
 
 
 if __name__ == "__main__":

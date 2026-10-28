@@ -147,7 +147,8 @@ def fetch_ranges(limit=None, snap_path=None):
         return None
     with open(snap_path, encoding="utf-8") as f:
         snap = json.load(f)
-    res = analyze(snap)
+    from .cards import with_extras
+    res = with_extras(snap, analyze(snap))
     Q = {q["code"]: q for q in snap["quotes"]}
     as_of = next((q.get("as_of") for q in snap["quotes"] if q.get("as_of")), None) or snap["today"]
     as_of = as_of[:10]
