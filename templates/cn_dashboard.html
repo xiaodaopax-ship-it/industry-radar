@@ -2687,7 +2687,9 @@ function renderBk() {
 // 长期红利对比: every pool item that is in the 10Y long-term dividend view (in ② or not). Group ranks / scores come from
 // cn/dividend.long_term (market-wide percentiles); within-pool best / worst is marked per group. Display only, no new score.
 const BKLT_HL = {dy: 1, div_cagr: 1, max_cut: 1, roe_min: 1, cover: 1, payout: 0, rev_cagr: 1, gm_sd: -1, exp_ret: 1};
+let bkLtView = [];   // rows of the 长期红利对比 table in page order (for the CSV export)
 function renderBkLt(items) {
+  bkLtView = [];
   $("bkLtWrap").hidden = !items.length; $("bkLtN").textContent = items.length;
   if (!items.length) { $("bkLtHead").innerHTML = $("bkLtBody").innerHTML = ""; return; }
   const ext = {};
@@ -2720,6 +2722,7 @@ function renderBkLt(items) {
     {k: "rm", t: "移除", nosort: 1, cls: "nw", f: e => `<button type="button" class="btn ghost" data-bkrm="${esc(e.r.code)}" aria-label="把 ${esc(e.r.code)} ${esc(e.r.name)} 移出对比池">移除</button>`},
   ];
   const sorted = table("bklt", "bkLtHead", "bkLtBody", cols, items), span = cols.length;
+  bkLtView = sorted.filter(e => e.r.group !== "fin").concat(sorted.filter(e => e.r.group === "fin"));
   const tr = e => `<tr>${cols.map(c => `<td class="${c.n ? "n" : c.cls || ""}${BKLT_HL[c.k] !== undefined ? hl(e, c.k) : ""}">${c.f(e)}</td>`).join("")}</tr>`;
   const st = sorted.filter(e => e.r.group !== "fin"), fn = sorted.filter(e => e.r.group === "fin");
   $("bkLtBody").innerHTML = (st.length && fn.length ? `<tr class="bk-gh"><td colspan="${span}">非金融（${st.length} 家）</td></tr>` : "") + st.map(tr).join("")
@@ -2751,10 +2754,23 @@ function bkCsv() {
       main ? "非周期" : "周期·不参与评分", s.score ?? "", s.rank ?? "", main ? `${s.covered}/${s.total}` : "",
       ...BK_DIMS.map(d => main && s.dims[d.k]?.pct != null ? r1(s.dims[d.k].pct) : ""), ...BK_DIMS.map(d => bkW(d.k)),
       main ? [s.dims.val?.basis, s.dims.val?.note].filter(Boolean).join("；") : "", s.flags.join("；"), ...dcfCsv(r.code)]; });
-  const csv = "\ufeff" + [head, ...lines].map(l => l.map(q).join(",")).join("\r\n") + "\r\n";
+  // second block: 长期红利对比 (same rows and order as the table on the page; display values, no new score)
+  const ltHead = ["加入顺序", "代码", "名称", "分组", "行业", "公用事业", "也在②内", "长期红利组内排名", "组内得分", "股息率(%)", "10年分红复合增速(%)", "最大一次削减(%)",
+    "ROE最低(%)", "ROE中位数(%)", "分红率中位数(%)", "覆盖倍数", "10年营收复合增速(%)", "毛利率波动(pt)", "参考:股息率+分红增速(%)", "PE", "PB", "年初至今净利同比(%)",
+    "股价", "行情日期", "近一年涨跌(%,周收盘前复权)", "近一年最低", "近一年最高", "52周位置(%)", `现金分红(亿,${(LT.years || []).join("/")})`, "有评估卡"];
+  const ltLines = bkLtView.map(e => { const r = e.r, c = r.wk?.c || [];
+    return [e.i, r.code, r.name, r.group === "fin" ? "金融" : "非金融", r.industry, r.util ? "是" : "否", r.in2 ? "是" : "否", r.rank ?? "", r1(r.score),
+      r1(r.dy), r1(r.div_cagr), r.max_cut == null ? "" : r.max_cut >= 0 ? "从未下降" : r1(r.max_cut, 0), r1(r.roe_min), r1(r.roe_med),
+      bkFin(r.payout) ? r1(r.payout * 100, 0) : "", r1(r.cover, 2), r1(r.rev_cagr), r1(r.gm_sd), r1(r.exp_ret), r1(r.pe), r1(r.pb, 2), r1(r.ytd_np_yoy),
+      r1(r.price, 2), D.quote_date || "", r1(ltChg(r)), c.length ? r1(Math.min(...c), 2) : "", c.length ? r1(Math.max(...c), 2) : "",
+      r1(rowOf(r.code)?.pos52), (r.div || []).map(v => bkFin(v) ? +v.toFixed(2) : "").join("/"), CARDS[r.code] ? "是" : "否"]; });
+  const blocks = [];
+  if (bkView.length) blocks.push(["② 公司对比（池内评分）"], head, ...lines);
+  if (ltLines.length) blocks.push(...(blocks.length ? [[]] : []), ["长期红利对比（10 年口径，展示用，不参与 ② 池内评分）"], ltHead, ...ltLines);
+  const csv = "\ufeff" + blocks.map(l => l.map(q).join(",")).join("\r\n") + "\r\n";
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type: "text/csv;charset=utf-8"})); a.download = `industry-radar-cn-basket-${today()}.csv`;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  bkToast(`已导出 ${bkView.length} 行 CSV`);
+  bkToast(`已导出 CSV：② 对比 ${bkView.length} 行${ltLines.length ? `，长期红利对比 ${ltLines.length} 行` : ""}`);
 }
 function bkInit() {
   $("bkWs").innerHTML = BK_DIMS.map(d => `<label class="bk-w">${esc(d.t)} <select data-bkw="${esc(d.k)}" aria-label="${esc(d.t)} 权重">${BK_WOPTS.map(v => `<option value="${v}">${v === 0 ? "0 不计" : "× " + v}</option>`).join("")}</select></label>`).join("");
