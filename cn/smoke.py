@@ -463,6 +463,7 @@ def main():
 
     print("\n[p] full-market lookup (cn/build.py full_lookup) and value channel (cn/quality.py)")
     lookup_value_checks()
+    dividend_checks()
 
     print("\n[robustness] failure handling")
     bad = em.financials("1900-01-01")
@@ -723,6 +724,37 @@ def lookup_value_checks():
           not bad and ranks == list(range(1, V["n_ranked"] + 1)) and all(not r.get("rank") for r in V["rows"] if r["cyclical"])
           and len(V["why"]) == len(snap["quotes"]) and sum(1 for w in V["why"].values() if w == "") == V["n_pass"],
           f"file={os.path.basename(qp)} pass={V['n_pass']} ranked={V['n_ranked']} bad={bad[:5]}")
+
+
+def dividend_checks():
+    """红利筛选: synthetic pass / fail cases, then every real row meets every rule, ranks 1..n per group, one reason per quote."""
+    import json as _json
+    from . import build as B, quality as QM, dividend as DV
+    ys = ["2021", "2022", "2023", "2024", "2025"]
+    it = {y: {"np": 10e8, "div": 4e8 * (1.05 ** i), "roe": 15.0, "ocf": 14e8, "cx": 4e8} for i, y in enumerate(ys)}
+    q, f = {"total_mcap": 100e8, "pe_ttm": 10.0}, {"parent_net_profit": 5e8, "net_profit_yoy_pct": 3.0}
+    m, w = DV.evaluate(it, ys, q, f, False)
+    cut = {**it, "2025": {**it["2025"], "div": 1e8}}
+    _, wc = DV.evaluate(cut, ys, {**q, "total_mcap": 20e8}, f, False)
+    _, wr = DV.evaluate(it, ys, q, {**f, "net_profit_yoy_pct": -45.0}, False)
+    check("dividend rules (synthetic): pass case; a cut below 80% of the 3-year mean and a YTD profit drop are rejected",
+          w == [] and abs(m["dy"] - 4e8 * 1.05 ** 4 / 100e8 * 100) < 1e-9 and "d_cut" in wc and "d_recent" in wr, f"{w} {wc} {wr}")
+    qdoc, _ = QM.load_latest()
+    if not qdoc:
+        check("dividend: quality file present (run python -m cn quality)", False)
+        return
+    with open(B.latest_snap(), encoding="utf-8") as fh:
+        snap = _json.load(fh)
+    res = B.analyze(snap)
+    P = DV.panel(snap, res, qdoc, 1.64)
+    R = DV.DIV_RULES
+    bad = [r["code"] for r in P["rows"] if not (r["dy"] >= R["dy_min"] - 0.005 and all(x and x > 0 for x in r["div"])
+           and r["payout"] <= (R["payout_max_fin"] if r["group"] == "fin" else R["payout_max"]) + 1e-3
+           and (r["group"] == "fin" or (r["cover"] is not None and r["cover"] >= 1 - 1e-3)) and r["mcap"] >= R["mcap_min"])]
+    ranks_ok = all(sorted(r["rank"] for r in P["rows"] if r["group"] == g) == list(range(1, P["n"][g] + 1)) for g in P["n"])
+    check("dividend screen (real files): every row meets every rule, ranks 1..n in each group, a reason for every quote",
+          not bad and ranks_ok and len(P["why"]) == len(snap["quotes"]) and sum(1 for v in P["why"].values() if v == "") == len(P["rows"]),
+          f"groups={P['n']} bad={bad[:5]}")
 
 
 if __name__ == "__main__":

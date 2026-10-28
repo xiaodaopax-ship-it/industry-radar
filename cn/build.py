@@ -679,6 +679,11 @@ def build(path=None):
         pv = payload["value"]
         if pv.get("file"):
             log(f"value channel: {pv['file']} pass={pv['n_pass']} ranked={pv['n_ranked']} complete={pv['complete']}")
+        # 红利筛选 (dividend screen, display only) from the same quality file
+        from . import dividend as dmod
+        payload["dividend"] = dmod.panel(snap, res, qdoc, ((vdoc or {}).get("rf") or {}).get("value"))
+        if payload["dividend"].get("file"):
+            log(f"dividend screen: groups={payload['dividend']['n']}")
     except Exception as e:  # noqa: BLE001
         log(f"WARNING: value channel skipped ({type(e).__name__}: {e})")
         payload["value"] = {"file": None}

@@ -379,6 +379,7 @@
       <li><a class="sl" href="#s2" data-sec="s2">② 新兴筛选</a></li>
       <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li>
       <li><a class="sl" href="#sX" data-sec="sX">交集：成长 × 价值 × 低估</a></li>
+      <li><a class="sl" href="#sDv" data-sec="sDv">红利筛选</a></li>
       <li><a class="sl" href="#s4" data-sec="s4">③ 研究优先级</a><div class="substeps"><a class="sl" href="#s4cy">周期行业单列</a></div></li>
       <li><a class="sl" href="#s3" data-sec="s3">④ 基本面·交易</a></li>
       <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li>
@@ -401,7 +402,7 @@
 
   <div class="sticky">
     <nav class="steps" aria-label="页面分节">
-      <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#sVc">价值通道</a><a href="#sX">交集</a><a href="#s4">③ 研究优先级</a><a href="#s3">④ 基本面 / 交易标签</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
+      <a href="#s1">① 行业热度</a><a href="#s2">② 新兴公司筛选</a><a href="#sVc">价值通道</a><a href="#sX">交集</a><a href="#sDv">红利</a><a href="#s4">③ 研究优先级</a><a href="#s3">④ 基本面 / 交易标签</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">⑤ 个股评估卡</a><a href="#s5">数据与方法</a>
     </nav>
   </div>
 
@@ -477,6 +478,22 @@
     <div class="tscroll"><table><thead><tr><th scope="col">代码 · 名称</th><th scope="col">行业 · 标签</th><th scope="col">价值通道</th><th scope="col" class="n">ROE 中位数</th><th scope="col" class="n">FCF 收益率 / 股息率</th>
       <th scope="col" class="n">营收同比（② 口径）</th><th scope="col" class="n">Base 估值 vs 现价</th><th scope="col" class="n">现价隐含增速 vs 历史</th><th scope="col">提示</th><th scope="col">对比</th></tr></thead><tbody id="xBody"></tbody></table></div>
     <p class="note" id="xNote"></p>
+  </section>
+
+  <section id="sDv" aria-labelledby="dvTitle">
+    <h2 id="dvTitle"><span class="step-tag">息</span>红利筛选 · 持续、可负担的现金分红</h2>
+    <p class="lead" id="dvLead"></p>
+    <p class="dcf-disc">按规则筛出“股息率高、连续分红、没有大幅削减、分红率不过高、分红有现金或利润支撑、近期盈利没有明显恶化”的公司，并在组内排序。只缩小研究范围，不是推荐，也不是买卖建议；规则没有回测；不进入 ③ 排序、标签、⚠ 数和对比池评分。</p>
+    <div class="toolbar" role="group" aria-label="红利筛选">
+      <label class="small" for="dvGrp">分组</label><select id="dvGrp"><option value="stable">稳定行业</option><option value="fin">金融（银行、保险、券商）</option><option value="cyc">周期行业（单列）</option></select>
+      <label class="small" for="dvQ">搜索</label><input type="search" id="dvQ" placeholder="代码或名称" autocomplete="off">
+      <label class="small" for="dvInd">行业</label><select id="dvInd"><option value="">全部行业</option></select>
+      <label class="small" for="dvMin">股息率至少</label><select id="dvMin"><option value="3">3%</option><option value="4">4%</option><option value="5">5%</option><option value="6">6%</option></select>
+      <span class="small" id="dvCnt" role="status" aria-live="polite"></span>
+    </div>
+    <div class="tscroll vc-t"><table><thead><tr id="dvHead"></tr></thead><tbody id="dvBody"></tbody></table></div>
+    <div class="toolbar"><button type="button" class="btn" id="dvMore">显示更多</button></div>
+    <p class="note" id="dvNote"></p>
   </section>
 
   <section id="s4">
@@ -1304,7 +1321,7 @@ function jumpCN(code) {
 }
 
 // ---------- left sidebar: section links with scroll-spy, industries (by number of screened companies)
-const SECTS = [["sLk", "全市场速查"], ["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["sVc", "价值通道"], ["sX", "交集"], ["s4", "③ 研究优先级"], ["s3", "④ 基本面·交易"], ["sBk", "对比池"], ["sLg", "估值台账"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
+const SECTS = [["sLk", "全市场速查"], ["s1", "① 行业热度"], ["s2", "② 新兴筛选"], ["sVc", "价值通道"], ["sX", "交集"], ["sDv", "红利筛选"], ["s4", "③ 研究优先级"], ["s3", "④ 基本面·交易"], ["sBk", "对比池"], ["sLg", "估值台账"], ["s6", "⑤ 个股评估卡"], ["s5", "数据与方法"]];
 let curSec = "s1";
 function markSec() {
   document.querySelectorAll("#side a[data-sec], .steps a").forEach(a => { const on = (a.dataset.sec || a.getAttribute("href").slice(1)) === curSec;
@@ -1417,7 +1434,10 @@ function lkShow(code, scroll) {
   const V = D.value || {}, vr = (V.rows || []).find(x => x.code === code), vw = V.why ? (V.why[code] ?? null) : null;
   const vtxt = !V.file ? "" : vr ? `<p><b>在价值通道内</b>${vr.rank ? `：通道排名第 ${vr.rank} / ${V.n_ranked}，得分 ${num(vr.score, 1)}` : "（周期行业，只列出不排名）"}；近 5 年 ROE 中位数 ${num(vr.roe_med, 1)}%，FCF 为正 ${vr.fcf_pos} / ${vr.n_fcf} 年。<button type="button" class="btn ghost" data-lkvc="${esc(code)}">在价值通道中查看</button></p>`
     : vw != null ? `<p><b>未进入价值通道</b>：${vw.split(",").filter(Boolean).map(w => esc(VC_WHY[w] || w)).join("；")}。</p>` : "";
-  $("lkOne").innerHTML = `<div class="card lk-card"><h3>${esc(r.code)} ${esc(r.name)} <span class="small">${esc(r.industry || "—")} · ${esc(BOARD_CN[r.board] || r.board || "")}</span></h3>${st}${vtxt}
+  const dw = (D.dividend || {}).why ? D.dividend.why[code] : undefined, dr = (D.dividend || {}).rows ? D.dividend.rows.find(x => x.code === code) : null;
+  const dtxt = dr ? `<p><b>在红利筛选内</b>（${esc(DV_GRP[dr.group])}）：组内第 ${dr.rank} 名，股息率 ${num(dr.dy, 2)}%，分红率中位数 ${num(dr.payout * 100, 0)}%。</p>`
+    : dw ? `<p><b>未进入红利筛选</b>：${dw.split(",").filter(Boolean).map(w => esc(DV_WHY[w] || w)).join("；")}。</p>` : "";
+  $("lkOne").innerHTML = `<div class="card lk-card"><h3>${esc(r.code)} ${esc(r.name)} <span class="small">${esc(r.industry || "—")} · ${esc(BOARD_CN[r.board] || r.board || "")}</span></h3>${st}${vtxt}${dtxt}
     <dl class="lk-kv">${kv.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join("")}</dl>
     <p class="small">数字来自 ${esc(D.quote_date || "—")} 行情快照和 ${esc(D.periods.latest)} 财报（年初至今累计）。速查只做定位和说明，不是评估结论。</p></div>`;
   if (scroll) { $("lkQ").value = code; $("sLk").scrollIntoView({behavior: "smooth", block: "start"}); }
@@ -2767,7 +2787,63 @@ function renderX() {
   bkSync();
 }
 ["xThr", "xCyc", "xTrade", "xDrop", "xHide", "xSort"].forEach(id => $(id).addEventListener("change", renderX));
-function render() { renderHeat(); renderScreen(); renderPriority(); renderVc(); renderX(); renderBk(); renderLg(); renderLgFwd(); }
+// ---------- 红利筛选 (cn/dividend.py panel(): rows already filtered; ranked inside each group)
+const DV = D.dividend || {}, DVR = DV.rows || [], DV_BY = Object.fromEntries(DVR.map(r => [r.code, r]));
+const DV_GRP = {stable: "稳定行业", fin: "金融", cyc: "周期行业"};
+const DV_WHY = (R0 => ({d_st: "ST / *ST", d_nodata: "没有近 5 个财年数据", d_small: `总市值 < ${num((R0.mcap_min || 0) / 1e8, 0)} 亿`,
+  d_yield: `股息率（最近财年现金分红 ÷ 总市值）< ${R0.dy_min}%`, d_years: `5 个财年里不是每年都有现金分红`, d_cut: `最近财年分红低于前 3 年平均的 ${num((R0.cut_ratio || 0) * 100, 0)}%（明显削减）`,
+  d_payout: `分红率中位数过高（> ${num((R0.payout_max || 0) * 100, 0)}%；金融 > ${num((R0.payout_max_fin || 0) * 100, 0)}%）或无法计算`,
+  d_cash: "5 年分红合计超过 5 年自由现金流合计（分红没有现金支撑）", d_roe: `金融类 5 年 ROE 中位数 < ${R0.roe_fin_min}%`,
+  d_np: `5 年中盈利年数少于 ${R0.np_pos_min}`, d_recent: `年初至今亏损或净利润同比 < ${R0.ytd_np_yoy_min}%（近期恶化，警惕高股息陷阱）`}))(DV.rules || {});
+const DV_F = {dy: "股息率", div_cagr: "分红增速", cover: "覆盖倍数", roe_med: "ROE 中位数", ey: "盈利收益率"};
+const dvS = {k: "rank", dir: 1, n: 50};
+const DV_COLS = [
+  ["rank", "组内排名", r => r.rank, r => r.rank, 1],
+  ["code", "代码 · 名称", r => `${CARDS[r.code] ? codeCell(r.code) : r.in2 ? `<a href="#s2" data-lgjump="${esc(r.code)}">${esc(r.code)}</a>` : esc(r.code)} ${esc(r.name)}<div class="small">${r.in2 ? `② 内 · ${esc(lbT(r.label))}` : "未进入 ②"}${VC_BY[r.code] ? " · 价值通道" : ""}</div>`, r => r.code, 1],
+  ["industry", "行业", r => `<span class="small">${esc(r.industry)}</span>`, r => r.industry, 1],
+  ["score", "组内得分", r => r.score != null ? `<span data-tip="${esc(Object.entries(r.f || {}).map(([k, v]) => `${DV_F[k]} ${v == null ? "—" : num(v, 0)}`).join("；"))}">${num(r.score, 1)}</span>` : "—", r => r.score, -1],
+  ["dy", "股息率", r => `<b>${vcP(r.dy)}</b>${r.spread != null ? `<div class="small">比 10 年国债高 ${num(r.spread, 1)}pt</div>` : ""}`, r => r.dy, -1],
+  ["div", `现金分红（亿，${(DV.years || []).at(0) || ""}–${(DV.years || []).at(-1) || ""}）`, r => `<span class="small">${(r.div || []).map(x => x == null ? "—" : num(x, x >= 100 ? 0 : 2)).join(" / ")}</span>`, r => (r.div || []).at(-1), -1],
+  ["div_cagr", "分红 4 年复合增速", r => vcP(r.div_cagr), r => r.div_cagr, -1],
+  ["payout", "分红率（中位数）", r => r.payout != null ? num(r.payout * 100, 0) + "%" : "—", r => r.payout, 1],
+  ["cover", "覆盖倍数", r => r.cover != null ? num(r.cover, 2) + "×" : "—", r => r.cover, -1],
+  ["roe_med", "ROE 中位数", r => vcP(r.roe_med), r => r.roe_med, -1],
+  ["pe", "PE / PB", r => `${r.pe != null ? num(r.pe) : "—"} / ${r.pb != null ? num(r.pb, 2) : "—"}`, r => r.pe, 1],
+  ["ytd", `年初至今净利同比`, r => pc(r.ytd_np_yoy, 0), r => r.ytd_np_yoy, -1],
+  ["bk", "对比", r => r.in2 ? bkCtl(r.code) : '<span class="small" title="对比池只收 ② 内公司">—</span>', null, 0],
+];
+function dvList() {
+  const g = $("dvGrp").value, q = $("dvQ").value.trim().toLowerCase(), ind = $("dvInd").value, mn = +$("dvMin").value;
+  const c = DV_COLS.find(x => x[0] === dvS.k && x[3]) || DV_COLS[0], get = c[3];
+  return DVR.filter(r => r.group === g && (r.dy ?? 0) >= mn && (!ind || r.industry === ind) && (!q || (r.code + " " + r.name).toLowerCase().includes(q)))
+    .sort((a, b) => { const x = get(a), y = get(b); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+      return (typeof x === "string" ? x.localeCompare(y, "zh-CN") : x - y) * dvS.dir; });
+}
+function renderDv() {
+  if (!DV.file) { $("dvLead").innerHTML = '<span class="warn">还没有红利筛选数据：运行 <code>python -m cn quality</code> 后重新构建。</span>'; $("dvHead").innerHTML = $("dvBody").innerHTML = ""; $("dvMore").hidden = true; return; }
+  const R0 = DV.rules, n = DV.n || {}, g = $("dvGrp").value;
+  $("dvLead").innerHTML = `${esc(DV.years[0])}–${esc(DV.years.at(-1))} 五个财年：全市场 <b>${(n.stable || 0) + (n.fin || 0) + (n.cyc || 0)}</b> 家通过全部门槛 —— 稳定行业 <b>${n.stable || 0}</b>、金融 <b>${n.fin || 0}</b>、周期 <b>${n.cyc || 0}</b>（三组各自排序，不混排）。
+    门槛：股息率 ≥ ${R0.dy_min}%（10 年国债 ${DV.rf != null ? num(DV.rf, 2) + "%" : "—"}）；5 年每年都有现金分红；最近一年不低于前 3 年平均的 ${num(R0.cut_ratio * 100, 0)}%；分红率中位数 ≤ ${num(R0.payout_max * 100, 0)}%（金融 ≤ ${num(R0.payout_max_fin * 100, 0)}%）；
+    非金融：5 年分红 ≤ 5 年自由现金流；金融：ROE 中位数 ≥ ${R0.roe_fin_min}%；5 年至少 ${R0.np_pos_min} 年盈利，年初至今盈利且净利同比 > ${R0.ytd_np_yoy_min}%；非 ST；总市值 ≥ ${num(R0.mcap_min / 1e8, 0)} 亿。`;
+  const inds = [...new Set(DVR.filter(r => r.group === g).map(r => r.industry))].sort((a, b) => a.localeCompare(b, "zh-CN"));
+  if ($("dvInd").dataset.g !== g) { $("dvInd").innerHTML = `<option value="">全部行业</option>` + inds.map(i => `<option>${esc(i)}</option>`).join(""); $("dvInd").dataset.g = g; }
+  $("dvHead").innerHTML = DV_COLS.map(([k, t, , get]) => get ? `<th scope="col" aria-sort="${dvS.k === k ? (dvS.dir > 0 ? "ascending" : "descending") : "none"}"><button type="button" class="sortbtn" data-dvs="${k}">${esc(t)}${dvS.k === k ? (dvS.dir > 0 ? " ▲" : " ▼") : ""}</button></th>` : `<th scope="col">${esc(t)}</th>`).join("");
+  const L = dvList();
+  $("dvBody").innerHTML = L.slice(0, dvS.n).map(r => `<tr>${DV_COLS.map(([k, , f]) => `<td${["code", "industry", "bk", "div"].includes(k) ? "" : ' class="n"'}>${f(r)}</td>`).join("")}</tr>`).join("")
+    || `<tr><td colspan="${DV_COLS.length}" class="small">没有符合条件的公司</td></tr>`;
+  $("dvCnt").textContent = `${Math.min(dvS.n, L.length)} / ${L.length} 家`;
+  $("dvMore").hidden = L.length <= dvS.n;
+  $("dvNote").innerHTML = `得分 = 组内五项百分位等权平均：${Object.values(DV_F).join("、")}。股息率 = 最近财年税前现金分红合计（中报 + 年报方案，东方财富 RPT_SHAREBONUS_DET）÷ 当前总市值；覆盖倍数 = 5 年自由现金流合计 ÷ 5 年分红合计（金融：5 年净利润 ÷ 分红）；分红率 = 分红 ÷ 归母净利润。
+    ${g === "cyc" ? "<b>周期行业</b>：分红跟着商品价格和景气走，高点时股息率最高、随后可能大幅下降，单列排序，只作参考。" : g === "fin" ? "<b>金融</b>：没有可比的自由现金流，改看分红率和 ROE；银行还要看资产质量和资本充足率（年报）。" : ""}
+    局限：股息率随股价变化；税前口径，持股不满 1 年要扣红利税；分红增速按公司合计，增发或送转会让它和每股分红不同。高股息可能来自股价下跌，先看“年初至今净利同比”和分红走势。`;
+  bkSync();
+}
+$("dvHead").addEventListener("click", ev => { const b = ev.target.closest("[data-dvs]"); if (!b) return; const k = b.dataset.dvs, c = DV_COLS.find(x => x[0] === k);
+  dvS.dir = dvS.k === k ? -dvS.dir : c[4]; dvS.k = k; renderDv(); $("dvHead").querySelector(`[data-dvs="${k}"]`)?.focus(); });
+$("dvGrp").addEventListener("change", () => { dvS.k = "rank"; dvS.dir = 1; dvS.n = 50; $("dvInd").value = ""; renderDv(); });
+["dvQ", "dvInd", "dvMin"].forEach(id => $(id).addEventListener(id === "dvQ" ? "input" : "change", debounce(() => { dvS.n = 50; renderDv(); }, 120)));
+$("dvMore").onclick = () => { dvS.n += 50; renderDv(); };
+function render() { renderHeat(); renderScreen(); renderPriority(); renderVc(); renderX(); renderDv(); renderBk(); renderLg(); renderLgFwd(); }
 function init() {
   renderHeader();
   const inds = [...new Set(D.screen.map(r => r.industry).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));
