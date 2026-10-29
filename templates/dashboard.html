@@ -600,7 +600,7 @@
     <div class="grid g2">
       <div><h3>筛选漏斗</h3><table><tbody id="funnel"></tbody></table><h3>本行业已排除的公司</h3><table><tbody id="excl"></tbody></table></div>
       <div>
-        <p class="note">美国公司：营收、毛利、营业利润、净利润、股数、现金来自 SEC XBRL frames（金融类环节另取税前利润、股东权益、信用损失拨备和净利息收入；金融类龙头的这几项来自 Yahoo 财务时间序列）；行业代码、股票代码、Form 4 来自 SEC submissions。本看板只保留美国上市公司（config.json markets.us_only = true；台湾、日本、韩国、欧洲上市的公司不抓取也不显示，改回 false 可恢复）。在美上市的 ADR 若只交 20-F，部分财务来自 Yahoo 财务时间序列。毛利率优先用 GrossProfit；公司不申报毛利时按“营收 − 营业成本”推算（CostOfRevenue / CostOfGoodsAndServicesSold，再退到不含折旧摊销的成本，数值偏高），营业利润率缺 OperatingIncomeLoss 时按“营收 − 成本费用合计（CostsAndExpenses）”推算；推算值带 ≈ 标记，同一家公司今年和去年用同一口径，悬停看来源。油气开采、REIT、公用事业、银行保险和部分药企既不申报毛利也不申报营业成本，仍显示“—”。股价、市值、EPS 实际与预期、一致预期、财报日、分析师人数来自 Yahoo Finance（非官方接口）。</p>
+        <p class="note">美国公司：营收、毛利、营业利润、净利润、股数、现金来自 SEC XBRL frames（金融类环节另取税前利润、股东权益、信用损失拨备和净利息收入；金融类龙头的这几项来自 Yahoo 财务时间序列）；行业代码、股票代码、Form 4 来自 SEC submissions。本看板只保留美国上市公司（config.json markets.us_only = true；台湾、日本、韩国、欧洲上市的公司不抓取也不显示，改回 false 可恢复）。在美上市的 ADR 若只交 20-F，部分财务来自 Yahoo 财务时间序列。毛利率优先用 GrossProfit；公司不申报毛利时按“营收 − 营业成本”推算（CostOfRevenue / CostOfGoodsAndServicesSold，再退到不含折旧摊销的成本，数值偏高），营业利润率缺 OperatingIncomeLoss 时按“营收 − 成本费用合计（CostsAndExpenses）”推算；推算值带 ≈ 标记，同一家公司今年和去年用同一口径，悬停看来源。SEC 里两类科目都没有的公司（油气开采、公用事业、部分药企和服务业），再用 Yahoo 标准化季报补，带 Y 标记（非官方，口径可能和公司自己的划分不同，只在季度截止日一致时采用）。银行、保险、REIT 等金融类没有毛利率的概念，仍显示“—”。股价、市值、EPS 实际与预期、一致预期、财报日、分析师人数来自 Yahoo Finance（非官方接口）。</p>
         <p class="note">研究优先池：先剔除周期性环节、缺市值、稀释超过 50%、亏损且现金不足 6 个季度、营收同比超过 300% 的公司，再按 10 个因子在本行业候选中的百分位排名取平均。权重相同，没有经过回测，只用来排研究顺序。</p>
         <div class="note" id="pegNote"></div>
         <div class="note" id="dcfNote">
@@ -1663,8 +1663,8 @@ const midCells = e => { const d = e.d;
     <td class="n">${e.opm != null ? `<span class="${e.opm < 0 ? "neg" : ""}">${num(e.opm)}%</span>` + srcMark(e.opm_src) : "—"}</td><td class="n">${num(d.ps)}</td>`; };
 // margins derived from revenue minus a cost line (the filer does not tag GrossProfit / OperatingIncomeLoss)
 const SRC_TIP = { cor: "公司未申报毛利，按 营收 − 营业成本(CostOfRevenue) 推算", cogs: "公司未申报毛利，按 营收 − 销售成本(CostOfGoodsAndServicesSold) 推算",
-  xda: "公司未申报毛利，按 营收 − 不含折旧摊销的成本 推算，数值偏高", cae: "公司未申报营业利润，按 营收 − 成本费用合计(CostsAndExpenses) 推算" };
-function srcMark(s) { return SRC_TIP[s] ? `<sup class="small" title="${SRC_TIP[s]}" aria-label="${SRC_TIP[s]}">${s === "xda" ? "≈↑" : "≈"}</sup>` : ""; }
+  xda: "公司未申报毛利，按 营收 − 不含折旧摊销的成本 推算，数值偏高", yh: "SEC 申报里没有毛利 / 营业成本科目，用 Yahoo 标准化季报（非官方，口径可能和公司自己的划分不同）", cae: "公司未申报营业利润，按 营收 − 成本费用合计(CostsAndExpenses) 推算" };
+function srcMark(s) { return SRC_TIP[s] ? `<sup class="small" title="${SRC_TIP[s]}" aria-label="${SRC_TIP[s]}">${s === "xda" ? "≈↑" : s === "yh" ? "Y" : "≈"}</sup>` : ""; }
 function renderHead() {
   $("thead").innerHTML = COLS().map(([k, t, n]) => `<th scope="col" class="${n ? "n" : ""}"><button type="button" data-k="${k}">${t}</button></th>`).join("");
   document.querySelectorAll("#thead button").forEach(b => b.onclick = () => { state.dir = state.sort === b.dataset.k ? -state.dir : -1; state.sort = b.dataset.k; renderEmerging(); });

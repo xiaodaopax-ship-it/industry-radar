@@ -57,10 +57,34 @@ def collect_us(yh, fx, excluded):
         if (i + 1) % 50 == 0:
             log(f"  market {i + 1}/{len(s2)}")
     funnel.append({"step": "美国：市值 ≤ 环节上限", "n": len(s3)})
+    _yahoo_margins(yh, fx, s3)
     since = (dt.date.today() - dt.timedelta(days=CFG["form4"]["lookback_days"])).isoformat()
     log(f"US: parsing Form 4 since {since} ...")
     us.insiders(s3, since, log)
     return P, s3, funnel, since
+
+
+def _yahoo_margins(yh, fx, rows):
+    """Last fallback for margins the SEC frames cannot give (no GrossProfit and no cost-of-revenue tag): Yahoo's
+    standardized quarterly statements, only for the same quarter end and non-financial SIC (banks / insurers / REITs
+    have no gross margin by design). Current and year-ago values are taken as a pair from Yahoo so the change is like
+    with like. Marked gm_src / opm_src = "yh"."""
+    n_gm = n_op = 0
+    for r in rows:
+        sic = r.get("sic") or 0
+        need_gm, need_op = r.get("gm") is None or r.get("gm_ly") is None, r.get("opm") is None
+        if 6000 <= sic < 6800 or not (need_gm or need_op):
+            continue
+        f = Y.fundamentals(yh, r["ticker"], fx) or {}
+        if f.get("q_end") != r.get("q_end"):
+            continue
+        if need_gm and f.get("gm") is not None and (r.get("gm") is None or f.get("gm_ly") is not None):
+            r.update(gm=f["gm"], gm_ly=f.get("gm_ly"), gm_src="yh")
+            n_gm += 1
+        if need_op and f.get("opm") is not None:
+            r.update(opm=f["opm"], opm_ly=f.get("opm_ly"), opm_src="yh")
+            n_op += 1
+    log(f"US: Yahoo margin fallback filled gross margin for {n_gm}, operating margin for {n_op}")
 
 
 def collect_intl(yh, fx, excluded):

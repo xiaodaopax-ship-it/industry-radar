@@ -387,7 +387,8 @@ def checklist(r, d, cyc):
         why = ("毛利率大幅跳升，增长可能主要来自涨价，需要核实" if price_jump else "所在环节有周期性，要区分涨价和销量" if cyc else
                f"毛利率低于 {FL['low_gm_pct']}%，定价能力弱" if r["gm"] < FL["low_gm_pct"] else "毛利率在扩张" if (jump or 0) >= 0 else "毛利率小幅下降")
         src = {"cor": "（公司未申报毛利，按营收减营业成本推算）", "cogs": "（公司未申报毛利，按营收减销售成本推算）",
-               "xda": "（公司未申报毛利，按营收减不含折旧摊销的成本推算，数值偏高）"}.get(r.get("gm_src"), "")
+               "xda": "（公司未申报毛利，按营收减不含折旧摊销的成本推算，数值偏高）",
+               "yh": "（SEC 申报里没有毛利科目，取自 Yahoo 标准化季报，非官方口径）"}.get(r.get("gm_src"), "")
         add("增长质量", st, f"毛利率 {r.get('gm_ly') if r.get('gm_ly') is not None else '—'}% → {r['gm']}%{src}。{why}")
     else:
         add("增长质量", "warn" if cyc else "na", "没有毛利数据（来源数据里既没有毛利也没有营业成本科目，油气开采、REIT、公用事业、银行保险和部分药企常见）"
@@ -396,7 +397,8 @@ def checklist(r, d, cyc):
         bad = "opm" in d["anomaly"]
         add("盈利能力", "warn" if bad else "ok" if r["opm"] > 0 and (d["opm_trend"] or 0) >= 0 else "warn",
             f"营业利润率 {r.get('opm_ly') if r.get('opm_ly') is not None else '—'}% → {r['opm']}%"
-            + ("（公司未申报营业利润，按营收减成本费用合计推算）" if r.get("opm_src") == "cae" else "") + ("。变化幅度异常，可能含一次性项目，排序时不计入" if bad else ""))
+            + ("（公司未申报营业利润，按营收减成本费用合计推算）" if r.get("opm_src") == "cae" else
+               "（取自 Yahoo 标准化季报，非官方口径）" if r.get("opm_src") == "yh" else "") + ("。变化幅度异常，可能含一次性项目，排序时不计入" if bad else ""))
     else:
         add("盈利能力", "na", "没有营业利润数据")
     if d["ps"] is not None:
