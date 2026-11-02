@@ -80,6 +80,7 @@
   .tscroll thead th { position:sticky; top:0; z-index:1; background:var(--raised); }
   .tscroll tbody tr:last-child > td { border-bottom:none; }
   tr.ov-peer > td { color:var(--muted); }
+  .ms-new li { margin:3px 0; } .ms-new mark { background:rgba(55,198,224,.18); color:var(--text); padding:0 2px; border-radius:3px; }
   /* frozen company-name column: freezeTables() marks the name cell of every wide table with .fz (sticky while scrolling sideways) */
   th.fz, td.fz { position:sticky; left:0; box-shadow:inset -1px 0 0 var(--line2); }
   thead th.fz { z-index:3; }
@@ -1810,6 +1811,39 @@ function qualBlock(e) {
   return `<details class="grp" ${rs ? "open" : ""}><summary>综合评估 <span class="small">业务 · 客户 · 管理层 · 行业 · 产品 · 风险</span></summary><div class="grp-body"><div style="margin-bottom:8px">${head}</div>
     <div class="grid g3 dims">${cells}</div>${links ? `<div class="small" style="margin-top:6px">原始申报：${links}</div>` : ""}</div></details>`;
 }
+// ---------- 里程碑跟踪 (radar/milestones.py): quarterly numbers and milestone statements parsed from SEC filings; display only
+const MS_Q = {first: "Q1", second: "Q2", third: "Q3", fourth: "Q4"};
+const MS_HL = /(Intel 18A-P|Intel 18A|Intel 14A|risk production|high volume production|committed demand|design wins?|external (?:Intel Foundry |foundry )?customers?|significant (?:external )?customers?|accelerat\w*|discontinue|not be economical|process design kit)/gi;
+function msBlock(t) {
+  const M = (D.milestones?.items || {})[t]; if (!M || !(M.quarters || []).length) return "";
+  const Q = M.quarters.slice(-8), b = v => v == null ? "—" : num(v / 1e9, 2), lab = d => d ? d.slice(0, 7) : "—";
+  const vsG = q => { const g = q.guide_prev; if (!g || q.rev == null) return ""; const mid = (g.lo + g.hi) / 2;
+    const s = q.rev > g.hi ? ["pos", "高于区间"] : q.rev < g.lo ? ["neg", "低于区间"] : ["", "区间内"];
+    return `<div class="small"><span class="${s[0]}">${s[1]}</span> · 指引 ${b(g.lo)}–${b(g.hi)}（中值 ${pc((q.rev / mid - 1) * 100, 1)}）</div>`; };
+  const gmG = q => { const g = q.guide_prev; return g && g.gm_ng != null && q.gm_ng != null ? `<div class="small">指引 ${num(g.gm_ng, 1)}%（${q.gm_ng >= g.gm_ng ? "+" : ""}${num(q.gm_ng - g.gm_ng, 1)}pp）</div>` : ""; };
+  const rows = Q.map((q, i) => { const p = Q[i - 1], gn = q.guide_next || {};
+    const op = q.seg_op == null ? "—" : `<span class="${q.seg_op < 0 ? "neg" : "pos"}">${b(q.seg_op)}</span>${p && p.seg_op != null ? `<div class="small">${q.seg_op >= p.seg_op ? "收窄 / 改善" : "扩大 / 变差"} ${b(Math.abs(q.seg_op - p.seg_op))}</div>` : ""}`;
+    return `<tr><td class="nw"><b>${lab(q.end)}</b><div class="small">${esc(q.form)} · ${esc(q.filed)}</div></td>
+      <td class="n">${b(q.rev)}${vsG(q)}</td>
+      <td class="n">${q.gm_ng != null ? num(q.gm_ng, 1) + "%" : "—"}${q.gm_gaap != null ? `<div class="small">GAAP ${num(q.gm_gaap, 1)}%</div>` : ""}${gmG(q)}</td>
+      <td class="n">${b(q.seg_rev)}</td><td class="n">${op}</td>
+      <td class="n">${q.ext != null ? num(q.ext / 1e6, 0) + " 百万" : "—"}${q.ext_text ? `<div class="small" data-tip="${esc(q.ext_text)}">原文</div>` : ""}</td>
+      <td class="n">${gn.lo != null ? `${esc(MS_Q[gn.q] || gn.q || "")} ${b(gn.lo)}–${b(gn.hi)}` : "—"}${gn.gm_ng != null ? `<div class="small">毛利率 ${num(gn.gm_ng, 1)}% · EPS ${gn.eps_ng ?? "—"}</div>` : ""}</td>
+      <td class="small nw">${q.url ? `<a href="${esc(q.url)}" target="_blank" rel="noopener noreferrer">报告</a>` : ""}${q.release ? ` · <a href="${esc(q.release)}" target="_blank" rel="noopener noreferrer">财报公告</a>` : ""}</td></tr>`; }).join("");
+  const hl = s => esc(s).replace(MS_HL, m => `<mark>${m}</mark>`);
+  const newL = Q.slice().reverse().filter(q => (q.new || []).length).slice(0, 3);
+  const st = newL.map((q, i) => `<details ${i === 0 ? "open" : ""}><summary class="small"><b>${lab(q.end)}</b>（${esc(q.form)}，${esc(q.filed)}）首次出现的表述 ${q.new.length} 条</summary>
+    <ul class="small ms-new">${q.new.map(s => `<li>${hl(s)}</li>`).join("")}</ul></details>`).join("");
+  return `<details class="grp" open><summary>里程碑跟踪 <span class="small">${esc(M.segment_cn)} · SEC 原始文件 · 每季度自动更新 · 不计分</span></summary>
+    <div class="grp-body">
+      <div class="tscroll"><table data-nofz><thead><tr><th scope="col">季度末</th><th scope="col" class="n">收入（十亿美元）vs 上季指引</th><th scope="col" class="n">非 GAAP 毛利率</th>
+        <th scope="col" class="n">${esc(M.segment_cn)}收入</th><th scope="col" class="n">${esc(M.segment_cn)}营业利润</th><th scope="col" class="n">代工外部收入</th><th scope="col" class="n">下季指引</th><th scope="col">来源</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>
+      <h4 style="margin-top:8px">新出现的里程碑表述 <span class="tier">与此前所有报告对比，数字变化不算新</span></h4>${st || '<div class="small muted">没有新表述</div>'}
+      <p class="note">数据全部来自公司向 SEC 提交的 10-Q / 10-K（分部收入和分部营业利润取自内嵌 XBRL；第四季度 = 全年 − 前三季）和 8-K 财报公告（收入、毛利率、下季指引）。外部收入和里程碑句子按文字规则提取，措辞变化时可能漏取，漏取显示“—”。
+        分部收入含对 Intel 自家产品的内部收入，外部收入才反映对外代工；外部收入里可能含一次性合同，要看原文。只展示，不计分，不是买卖建议。</p>
+    </div></details>`;
+}
 function evalCard(e, prefix, open) {
   const d = e.d, n = D.notes[e.ticker] || {}, nq = e.mkt?.next_q, ld = e.kind === "leader";
   const f = (k, l) => `<div><b>${l}：</b>${n[k] ? esc(n[k]) : '<span class="todo">待填</span>'}</div>`;
@@ -1850,6 +1884,7 @@ function evalCard(e, prefix, open) {
         ${(e.research?.bear || []).length || n.bear ? `<div class="small"><b>业务层面</b></div><ul>${(e.research?.bear || []).map(x => `<li>${esc(x)}</li>`).join("")}${n.bear ? `<li>${esc(n.bear)}</li>` : ""}</ul><div class="small" style="margin-top:4px"><b>数据层面</b></div>` : ""}
         <ul>${e.bear.map(x => `<li>${esc(x)}</li>`).join("") || "<li>数据上没有明显的风险信号</li>"}</ul></div>
     </div>
+    ${msBlock(e.ticker)}
     ${qualBlock(e)}
     ${dcfBlock(e)}
     <details class="grp" open><summary>证据与下一步 <span class="small">${ld ? "价格位置" : "因子画像"} · 林奇清单 · 待验证问题 · 研究笔记</span></summary>
@@ -2824,7 +2859,7 @@ $("foot").textContent = `数据：SEC EDGAR、Yahoo Finance。Form 4 统计自 $
 const FZ_RE = [/名称/, /^公司/, /^代码/, /^行业$/, /^行业（/, /^大类$/, /^Ticker/i];
 function freezeTables() {
   document.querySelectorAll("table").forEach(t => {
-    if (t.closest(".card, details.ec, .dcf, [data-nofz]")) return;
+    if (t.closest(".card, details.ec, .dcf") || t.matches("[data-nofz]")) return;
     const hs = [...(t.tHead?.rows[0]?.cells || [])];
     let i = -1;
     for (const re of FZ_RE) { i = hs.findIndex(h => re.test(h.textContent.trim())); if (i >= 0) break; }

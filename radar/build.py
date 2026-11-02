@@ -267,7 +267,15 @@ def model(raw, ledger_file=None, with_ledger=True):
         print(f"overseas watch list: {len((ovs or {}).get('items') or {})} rows from {(ovs or {}).get('fetched_at', 'none')}")
     except Exception as err:  # noqa: BLE001
         print(f"overseas watch list not embedded: {type(err).__name__}: {err}")
-    data = {"heat": hm, "vc": vc, "lookup": lk, "px_w": pxw, "overseas": ovs, "sector_names": sec_names, "val": val, "ledger": led,
+    # milestone tracker from SEC filings (optional; `python -m radar milestones`). Display only, shown in evaluation cards.
+    msd = None
+    try:
+        from . import milestones as MSm
+        msd = MSm.latest()
+        print(f"milestones: {sorted(((msd or {}).get('items') or {}).keys())} from {(msd or {}).get('fetched_at', 'none')}")
+    except Exception as err:  # noqa: BLE001
+        print(f"milestones not embedded: {type(err).__name__}: {err}")
+    data = {"heat": hm, "vc": vc, "lookup": lk, "px_w": pxw, "overseas": ovs, "milestones": msd, "sector_names": sec_names, "val": val, "ledger": led,
             "built_at": dt.datetime.now().strftime("%Y-%m-%d %H:%M"), "fetched_at": raw["fetched_at"], "periods": raw["periods"],
             "fx": raw.get("fx"), "funnel": [f for f in raw["funnel"] if not US_ONLY or f["step"].startswith("美国")], "us_only": US_ONLY, "form4_since": raw["form4_since"], "sectors": secs, "entries": out,
             "overview": overview, "excluded": [x for x in raw["excluded"] if not US_ONLY or "." not in (x.get("ticker") or "")], "notes": notes, "factor_cn": S.FACTOR_CN,
