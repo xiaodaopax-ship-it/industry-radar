@@ -79,6 +79,7 @@
   .tscroll { max-height:72vh; overflow:auto; border:1px solid var(--line); border-radius:var(--r2); margin:6px 0; }
   .tscroll thead th { position:sticky; top:0; z-index:1; background:var(--raised); }
   .tscroll tbody tr:last-child > td { border-bottom:none; }
+  tr.ov-peer > td { color:var(--muted); }
   /* frozen company-name column: freezeTables() marks the name cell of every wide table with .fz (sticky while scrolling sideways) */
   th.fz, td.fz { position:sticky; left:0; box-shadow:inset -1px 0 0 var(--line2); }
   thead th.fz { z-index:3; }
@@ -371,7 +372,7 @@
   </div>
   <div><div class="gt">全市场</div>
     <ul><li><a class="sl" href="#sLk" data-sec="sLk">全市场速查</a></li><li><a class="sl" href="#s0" data-sec="s0">⓪ 全市场热度</a></li><li><a class="sl" href="#sPeg" data-sec="sPeg">PEG 筛选</a></li>
-      <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li><li><a class="sl" href="#sX" data-sec="sX">交集：成长 × 价值 × 低估</a></li>
+      <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li><li><a class="sl" href="#sX" data-sec="sX">交集：成长 × 价值 × 低估</a></li><li><a class="sl" href="#sOv" data-sec="sOv">海外对照 · 韩国内存</a></li>
       <li><a class="sl" href="#sDcf" data-sec="sDcf">估值参数（DCF）</a></li>
       <li><a class="sl" href="#sLdg" data-sec="sLdg">估值台账 · 本期变化</a></li>
       <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li></ul></div>
@@ -467,6 +468,17 @@
     <p class="note" id="xNote"></p>
   </section>
 
+  <!-- 海外对照: fixed watch list outside the US screen (radar/overseas.py), display only -->
+  <section id="sOv" aria-labelledby="ovTitle">
+    <h2 id="ovTitle"><span class="step-tag">🌏</span>海外对照 · 韩国内存</h2>
+    <p class="lead" id="ovLead"></p>
+    <p class="dcf-disc">固定观察名单，不进入美股筛选、因子、结论、台账和对比池评分；价格是上市地货币。内存是强周期行业：盈利最高时市盈率最低，前瞻市盈率低不等于便宜。不是买卖建议。</p>
+    <div class="tscroll"><table><thead><tr><th scope="col">名称</th><th scope="col">类型</th><th scope="col" class="n">最新价</th><th scope="col" class="n">1 周</th><th scope="col" class="n">1 个月</th>
+      <th scope="col" class="n">3 个月</th><th scope="col" class="n">1 年</th><th scope="col" class="n">距 52 周高点</th><th scope="col">近一年走势（周收盘）</th><th scope="col">52 周位置</th>
+      <th scope="col" class="n">前瞻市盈率（本年 / 下年）</th><th scope="col" class="n">一致预期 EPS 增速</th><th scope="col" class="n">目标价中位数（隐含空间）</th><th scope="col">下次财报</th></tr></thead><tbody id="ovBody"></tbody></table></div>
+    <p class="note" id="ovNote"></p>
+  </section>
+
   <!-- 现金流估值参数 (cash-flow valuation reference; display only, computed in this page) -->
   <section id="sDcf" aria-labelledby="dcfTitle">
     <h2 id="dcfTitle"><span class="step-tag">DCF</span>估值参数 · 现金流估值（情景参考）</h2>
@@ -517,7 +529,7 @@
   <div class="sticky">
     <div class="tabs" role="tablist" id="tabs"></div>
     <nav class="steps" aria-label="分析步骤">
-      <a href="#sLk">速查</a><a href="#s0">⓪ 全市场热度</a><a href="#sPeg">PEG 筛选</a><a href="#sVc">价值通道</a><a href="#sX">交集</a><a href="#sDcf">估值参数</a><a href="#sLdg">估值台账</a><a href="#sBk">对比池</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
+      <a href="#sLk">速查</a><a href="#s0">⓪ 全市场热度</a><a href="#sPeg">PEG 筛选</a><a href="#sVc">价值通道</a><a href="#sX">交集</a><a href="#sOv">海外对照</a><a href="#sDcf">估值参数</a><a href="#sLdg">估值台账</a><a href="#sBk">对比池</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
     </nav>
   </div>
 
@@ -754,7 +766,7 @@ function jumpCompany(sector, ticker, kind) {
 }
 
 // ---------- left sidebar: sections, sectors (with counts) and the step links of the active sector
-const SECTS = [["sLk", "全市场速查", 0], ["s0", "⓪ 全市场热度", 0], ["sPeg", "PEG 筛选", 0], ["sVc", "价值通道", 0], ["sX", "交集", 0], ["sDcf", "估值参数", 0], ["sLdg", "估值台账", 0], ["sBk", "对比池", 0], ["s1", "① 行业总览", 1], ["s2", "② 细分拆解", 1], ["s3", "③ 龙头分析", 1],
+const SECTS = [["sLk", "全市场速查", 0], ["s0", "⓪ 全市场热度", 0], ["sPeg", "PEG 筛选", 0], ["sVc", "价值通道", 0], ["sX", "交集", 0], ["sOv", "海外对照", 0], ["sDcf", "估值参数", 0], ["sLdg", "估值台账", 0], ["sBk", "对比池", 0], ["s1", "① 行业总览", 1], ["s2", "② 细分拆解", 1], ["s3", "③ 龙头分析", 1],
   ["s4", "④ 新兴机会", 1], ["s5", "⑤ 机会清单", 1], ["s6", "数据与方法", 1]];
 const SCNT = D.entries.reduce((a, e) => (a[e.sector] = (a[e.sector] || 0) + 1, a), {});
 let curSec = "sLk";
@@ -1020,6 +1032,44 @@ function xSpark(t) {
   const ch = c[0] > 0 ? (c.at(-1) / c[0] - 1) * 100 : null;
   const tip = `近一年（${w.d[0]} – ${w.d.at(-1)}）每周最后一个交易日收盘价（已按拆股调整，未按分红调整）；最低 ${num(Math.min(...c), 2)}，最高 ${num(Math.max(...c), 2)}；区间涨跌 ${ch == null ? "—" : (ch > 0 ? "+" : "") + num(ch, 1) + "%"}。只展示，不计分`;
   return `<span data-tip="${esc(tip)}" role="img" aria-label="${esc(tip)}" style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">${spark(c)}<span class="small">${ch == null ? "—" : pc(ch)}</span></span>`;
+}
+// ---------- 海外对照 (radar/overseas.py): fixed watch list, display only
+function ovSpark(x) {
+  const c = x.wk?.c || [];
+  if (c.length < 8) return '<span class="small">—</span>';
+  const tip = `近一年（${x.wk.d[0]} – ${x.wk.d.at(-1)}）每周最后一个交易日收盘价；最低 ${num(Math.min(...c), 2)}，最高 ${num(Math.max(...c), 2)}`;
+  return `<span data-tip="${esc(tip)}" role="img" aria-label="${esc(tip)}">${spark(c)}</span>`;
+}
+function ovPos(x) {
+  const lo = x.lo52 ?? x.lo, hi = x.hi52 ?? x.hi, p = x.last;
+  if (lo == null || hi == null || hi <= lo) return "—";
+  const v = Math.round((p - lo) / (hi - lo) * 100), X = u => 3 + 84 * (u - lo) / (hi - lo);
+  const tip = `52 周区间 ${num(lo, 2)} ~ ${num(hi, 2)}；最新价 ${num(p, 2)}，位于区间 ${v}%。只说明位置，不代表低估或高估`;
+  return `<span data-tip="${esc(tip)}" style="display:inline-flex;align-items:center;gap:6px"><svg viewBox="0 0 90 12" width="90" height="12" role="img" aria-label="52 周位置 ${v}%">` +
+    `<line x1="3" x2="87" y1="6" y2="6" stroke="#2a3038" stroke-width="4" stroke-linecap="round"/><circle cx="${X(Math.min(hi, Math.max(lo, p)))}" cy="6" r="3.5" fill="#37c6e0"/></svg><b>${v}%</b></span>`;
+}
+function renderOv() {
+  const O = D.overseas;
+  if (!O || !O.items) { $("ovLead").innerHTML = '<span class="warn">还没有数据：运行 <code>python -m radar overseas</code> 后重新构建。</span>'; $("ovBody").innerHTML = ""; return; }
+  const KIND = {stock: "个股", etf: "ETF", index: "指数", fx: "汇率", peer: "美股参照"};
+  const fmt = (x, v) => v == null ? "—" : x.ccy === "KRW" && x.kind !== "fx" ? Math.round(v).toLocaleString("zh-CN") : num(v, 2);
+  const pe = (x, e) => x.last && e && e > 0 ? x.last / e : null;
+  const rows = Object.entries(O.items).sort((a, b) => (a[1].group === "参照") - (b[1].group === "参照"));
+  $("ovBody").innerHTML = rows.map(([s, x]) => {
+    const p0 = pe(x, x.eps0), p1 = pe(x, x.eps1), g = x.eps0 > 0 && x.eps1 != null ? (x.eps1 / x.eps0 - 1) * 100 : null;
+    const up = x.target && x.last ? (x.target / x.last - 1) * 100 : null;
+    return `<tr${x.group === "参照" ? ' class="ov-peer"' : ""}><td><b>${esc(s)}</b><div class="small">${esc(x.name)}${x.peer ? ` · 参照 ${esc(x.peer)}` : ""}</div></td>
+      <td class="small">${esc(KIND[x.kind] || x.kind)}</td>
+      <td class="n">${fmt(x, x.last)}<div class="small">${esc(x.ccy || "")} · ${esc(x.date)}</div></td>
+      <td class="n">${pc(x.r1w, 1)}</td><td class="n">${pc(x.r1m, 1)}</td><td class="n">${pc(x.r3m, 1)}</td><td class="n">${pc(x.r1y, 1)}</td>
+      <td class="n">${pc(x.off_hi, 1)}<div class="small">${esc(x.hi_date || "")}</div></td><td>${ovSpark(x)}</td><td>${ovPos(x)}</td>
+      <td class="n">${p0 == null ? "—" : `${num(p0, 1)} / ${p1 == null ? "—" : num(p1, 1)}`}${p0 != null ? `<div class="small">${esc((x.eps0_end || "").slice(0, 4))} / ${esc((x.eps1_end || "").slice(0, 4))}</div>` : ""}</td>
+      <td class="n">${g == null ? "—" : pc(g, 0)}</td>
+      <td class="n">${x.target ? `${fmt(x, x.target)}<div class="small">${pc(up, 0)} · ${esc(x.analysts ?? "—")} 家</div>` : "—"}</td>
+      <td class="small">${esc(x.next_date || "—")}</td></tr>`; }).join("");
+  $("ovLead").innerHTML = `数据抓取于 ${esc((O.fetched_at || "").replace("T", " ").slice(0, 16))}。三星、海力士和韩国半导体 ETF 放在一起看，下方带美光（MU）和 SOXX 作为美股参照，比较同一时间窗口的走势。`;
+  $("ovNote").innerHTML = `来源：Yahoo Finance（非官方接口）。前瞻市盈率 = 最新价 ÷ 分析师一致预期 EPS（同一货币，本财年 / 下财年）；内存厂商的盈利波动极大，看周期位置时更常用市净率和合约价、库存、资本开支这些行业数据，页面不提供这些。
+    目标价是卖方观点，不是预测。韩元计价的回报还要叠加汇率变化（见“美元 / 韩元”行：数值上升 = 韩元贬值）。`;
 }
 // ---------- 交集: sector growth screen ∩ value channel ∩ base valuation above the price (live 估值参数, the same numbers as the cards)
 function renderX() {
@@ -1485,7 +1535,7 @@ $("bkCsv").onclick = () => {
 };
 addEventListener("storage", ev => { if (ev.key === BKKEY) { bkLoad(); bkRenderW(); bkRender(); bkSync(); } });   // another tab changed the basket
 bkLoad(); bkRenderW();
-lkLead(); renderVc(); setTimeout(renderX, 0);   // after the basket state exists; renderX needs the DCF engine defined further down (the value-channel table carries ＋对比 buttons)
+lkLead(); renderVc(); renderOv(); setTimeout(renderX, 0);   // after the basket state exists; renderX needs the DCF engine defined further down (the value-channel table carries ＋对比 buttons)
 
 // ---------- ① overview
 function renderOverview() {
