@@ -74,6 +74,8 @@
   th button { background:none; border:none; color:inherit; font:inherit; cursor:pointer; padding:0; } th button:hover { color:var(--text); }
   th button[data-dir]::after { content:attr(data-dir); margin-left:2px; color:var(--accent); }
   td.n, th.n { text-align:right; white-space:nowrap; }
+  .co { display:inline-flex; flex-direction:column; align-items:flex-start; line-height:1.35; vertical-align:top; }
+  .co > .co-n { white-space:nowrap; color:var(--text); font-weight:400; }
   td.g { white-space:nowrap; font-size:12px; } td.nw { white-space:nowrap; } td.why { min-width:160px; }
   .tscroll { max-height:72vh; overflow:auto; border:1px solid var(--line); border-radius:var(--r2); margin:6px 0; }
   .tscroll thead th { position:sticky; top:0; z-index:1; background:var(--raised); }
@@ -1079,6 +1081,8 @@ function renderInstX() {
     <div class="small muted">每格 = ② 中「基本面支撑」公司数 / ② 全部 ${D.screen.length} 家中的公司数，点数字在 ② 里套用对应筛选。基本面支撑共 ${val.length} 家。${esc(INST_CAVEAT)}</div>`;
   $("instX").querySelectorAll("button[data-ix]").forEach(b => b.onclick = () => { const [k, s, lb] = b.dataset.ix.split("|"); setInstFilter(k, s, lb); });
 }
+// 代码 · 名称 cell: code on one line, the name below it (never split across lines)
+const coName = (codeHtml, name) => `<span class="co">${codeHtml}<span class="co-n">${esc(name)}</span></span>`;
 const codeCell = code => CARDS[code] ? `<a href="#card-${esc(code)}" class="cardlink" data-card="${esc(code)}" title="打开评估卡">${esc(code)}</a>` : esc(code);
 const BOARD_CN = {SH_MAIN: "沪市主板", STAR: "科创板", SZ_MAIN: "深市主板", ChiNext: "创业板", BSE: "北交所"};
 const FACTOR_CN = {growth: "增长", accel: "加速", ocf: "现金流", val: "估值"};
@@ -2311,7 +2315,7 @@ function lgRows(codes) {
 function lgCols(key) {
   const ab = v => v == null ? null : Math.abs(v);
   return [
-    {k: "code", t: "代码 · 名称", f: e => `<button type="button" class="linkbtn" data-lgjump="${esc(e.code)}" aria-label="跳到 ${esc(e.code)} ${esc(e.name)}"><b>${esc(e.code)}</b> ${esc(e.name)}</button>`},
+    {k: "code", t: "代码 · 名称", f: e => `<button type="button" class="linkbtn" data-lgjump="${esc(e.code)}" aria-label="跳到 ${esc(e.code)} ${esc(e.name)}">${coName(`<b>${esc(e.code)}</b>`, e.name)}</button>`},
     {k: "tag", t: "类型", f: e => e.tag ? `<span class="tag">${esc(e.tag)}</span>` : "—"},
     {k: "bp", t: "基准估值变化", n: 1, v: e => ab(e.bp ?? null), f: e => e.bp != null ? `<span class="${lgCls(e.bp)}">${lgSg(e.bp)}</span>` : e.mrp != null ? `<span class="small">需要利润率 ${lgSg(e.mrp, 1, "pt")}</span>` : `<span class="small">${esc((LG_S[e.st[0]] || e.st[0]) + "→" + (LG_S[e.st[1]] || e.st[1]))}</span>`},
     {k: "ppx", t: "股价变化", n: 1, v: e => ab(e.ppx), f: e => `<span class="${lgCls(e.ppx)}">${lgSg(e.ppx)}</span>`},
@@ -2383,7 +2387,7 @@ function lgFilterBar() {
 function lgFCols() {
   const sv = (v, d = 1, u = "%") => `<span class="${lgCls(v)}">${lgSg(v, d, u)}</span>`;
   return [
-    {k: "code", t: "代码 · 名称", v: e => e.code, f: e => `<button type="button" class="linkbtn" data-lgjump="${esc(e.code)}" aria-label="跳到 ${esc(e.code)} ${esc(e.name)}"><b>${esc(e.code)}</b> ${esc(e.name)}</button>`},
+    {k: "code", t: "代码 · 名称", v: e => e.code, f: e => `<button type="button" class="linkbtn" data-lgjump="${esc(e.code)}" aria-label="跳到 ${esc(e.code)} ${esc(e.name)}">${coName(`<b>${esc(e.code)}</b>`, e.name)}</button>`},
     {k: "ind", t: "行业", cls: "nw", v: e => e.ind, f: e => `<span class="small">${esc(e.ind)}</span>`},
     {k: "st", t: "估值方式", cls: "nw", v: e => e.t.s, f: e => `<span class="small">${esc(LG_S[e.t.s] || e.t.s)}${e.t.mb ? ` · ${esc(dcfUsedT(e.t.mb, e.t.cy))}` : ""}</span>`},
     {k: "p", t: "股价", n: 1, v: e => e.t.p, f: e => num(e.t.p, 2)},
@@ -2399,7 +2403,7 @@ function lgFCols() {
 }
 function lgFirstRows(codes) {
   return codes.map(code => { const r = (LGC[code] || []).slice(-1)[0]; if (!r) return "";
-    return `<tr><td><button type="button" class="linkbtn" data-lgjump="${esc(code)}"><b>${esc(code)}</b> ${esc(lgName(code))}</button></td><td>${esc(LG_S[r.s] || r.s)}</td><td class="n">${num(r.p, 2)}</td>
+    return `<tr><td><button type="button" class="linkbtn" data-lgjump="${esc(code)}">${coName(`<b>${esc(code)}</b>`, lgName(code))}</button></td><td>${esc(LG_S[r.s] || r.s)}</td><td class="n">${num(r.p, 2)}</td>
       <td class="n nw">${r.s === "ok" ? `${num(r.lo, 2)} / <b>${num(r.b, 2)}</b> / ${num(r.hi, 2)}` : "—"}</td><td class="n nw">${r.s === "ok" ? dcfVs(r.gp * 100) : r.s === "negfcf" ? lgReq(r) : "—"}</td>
       <td class="n">${lgIg(r)}</td><td class="n nw">${lgM(r, code)}</td><td class="n">${r.g == null ? "—" : dcfPct(r.g)}</td><td><div class="lg-tags">${lgChips(lgTags(r.x))}</div></td></tr>`; }).join("")
     || `<tr><td colspan="9" class="small">没有符合筛选的公司</td></tr>`;
@@ -2631,7 +2635,7 @@ function bkCols() {
   const valK = e => bkScored && e.s.group === "main" && e.s.dims.val?.basis === "PE(TTM)" ? "pe" : "pct";
   return [
     {k: "added", t: "#", n: 1, v: e => e.i, f: e => esc(e.i)},
-    {k: "code", t: "代码 · 名称", cls: "nw", v: e => e.r.code, f: e => `<button type="button" class="linkbtn" data-bkjump="${esc(e.r.code)}" aria-label="跳到 ${esc(e.r.code)} ${esc(e.r.name)} 的${CARDS[e.r.code] ? "评估卡" : " ② 筛选行"}"><b>${esc(e.r.code)}</b> ${esc(e.r.name)}</button>`},
+    {k: "code", t: "代码 · 名称", cls: "nw", v: e => e.r.code, f: e => `<button type="button" class="linkbtn" data-bkjump="${esc(e.r.code)}" aria-label="跳到 ${esc(e.r.code)} ${esc(e.r.name)} 的${CARDS[e.r.code] ? "评估卡" : " ② 筛选行"}">${coName(`<b>${esc(e.r.code)}</b>`, e.r.name)}</button>`},
     ...sc,
     {k: "industry", t: "行业", cls: "nw", f: e => `<span class="small">${esc(e.r.industry)}</span>`},
     {k: "board", t: "板块", cls: "nw", v: e => BOARD_CN[e.r.board] || e.r.board, f: e => `<span class="small">${esc(BOARD_CN[e.r.board] || e.r.board || "—")}</span>`},
@@ -2706,7 +2710,7 @@ function renderBkLt(items) {
   const hl = (e, k) => { const x = ext[e.r.group + k], v = e.r[k]; return !x || !bkFin(v) || x[0] === x[1] ? "" : v === x[0] ? " bk-best" : v === x[1] ? " bk-worst" : ""; };
   const cols = [
     {k: "added", t: "#", n: 1, v: e => e.i, f: e => esc(e.i)},
-    {k: "code", t: "代码 · 名称", cls: "nw", v: e => e.r.code, f: e => `<button type="button" class="linkbtn" data-bkjump="${esc(e.r.code)}" aria-label="跳到 ${esc(e.r.code)} ${esc(e.r.name)} 的评估卡"><b>${esc(e.r.code)}</b> ${esc(e.r.name)}</button>${e.r.in2 ? ' <span class="tag">② 内</span>' : ""}`},
+    {k: "code", t: "代码 · 名称", cls: "nw", v: e => e.r.code, f: e => `<button type="button" class="linkbtn" data-bkjump="${esc(e.r.code)}" aria-label="跳到 ${esc(e.r.code)} ${esc(e.r.name)} 的评估卡">${coName(`<b>${esc(e.r.code)}</b>`, e.r.name)}</button>${e.r.in2 ? ' <span class="tag">② 内</span>' : ""}`},
     {k: "group", t: "分组", cls: "nw", v: e => e.r.group, f: e => `<span class="small">${e.r.group === "fin" ? "金融" : "非金融"}</span>`},
     {k: "industry", t: "行业", cls: "nw", v: e => e.r.industry, f: e => `<span class="small">${esc(e.r.industry)}</span>${e.r.util ? ' <span class="tag">公用事业</span>' : ""}`},
     {k: "rank", t: "组内排名", n: 1, v: e => e.r.rank, f: e => esc(e.r.rank ?? "—")},
@@ -2825,7 +2829,7 @@ const vcS = {k: "rank", dir: 1, n: 50};
 const vcP = v => v == null ? "—" : num(v, 1) + "%";
 const VC_COLS = [
   ["rank", "通道排名", r => r.rank ?? (r.cyclical ? '<span class="tag t-cyc">周期</span>' : "—"), r => r.rank ?? 9999, 1],
-  ["code", "代码 · 名称", r => `${codeCell(r.code)} ${esc(r.name)}${r.in2 ? `<div class="small">② 内 · ${esc(lbT(r.label) || "")}</div>` : '<div class="small">未进入 ②</div>'}`, r => r.code, 1],
+  ["code", "代码 · 名称", r => `${coName(codeCell(r.code), r.name)}${r.in2 ? `<div class="small">② 内 · ${esc(lbT(r.label) || "")}</div>` : '<div class="small">未进入 ②</div>'}`, r => r.code, 1],
   ["industry", "行业", r => `<span class="small">${esc(r.industry)}</span>`, r => r.industry, 1],
   ["score", "通道得分", r => r.score != null ? `<span data-tip="${esc(Object.entries(r.f || {}).map(([k, v]) => `${VC_F[k]} ${v == null ? "—" : num(v, 0)}`).join("；"))}">${num(r.score, 1)}</span>` : "—", r => r.score, -1],
   ["roe_med", `ROE 中位数（${(VC.years || []).at(0) || ""}–${(VC.years || []).at(-1) || ""}）`, r => `${vcP(r.roe_med)}<div class="small">${(r.roe || []).map(x => x == null ? "—" : num(x, 0)).join(" / ")}</div>`, r => r.roe_med, -1],
@@ -2894,7 +2898,7 @@ function renderX() {
     if (x.o.mm && x.o.mm.guard && x.o.mm.guard.length) f.push(["t-warn", "疑似一次性收入"]);
     return f.map(([c, t]) => `<span class="tag ${c}" title="${esc(t)}">${esc(t.length > 14 ? t.slice(0, 14) + "…" : t)}</span>`).join(" ") || '<span class="small">—</span>'; };
   $("xBody").innerHTML = L.map(x => { const v = x.v, s = x.s, pr = PRIO_RANK[v.code];
-    return `<tr><td>${CARDS[v.code] ? codeCell(v.code) : `<a href="#s2" data-lgjump="${esc(v.code)}" title="在 ② 筛选表中定位">${esc(v.code)}</a>`} ${esc(v.name)}${pr ? `<div class="small">③ 第 ${pr} 名</div>` : ""}</td>
+    return `<tr><td>${coName(CARDS[v.code] ? codeCell(v.code) : `<a href="#s2" data-lgjump="${esc(v.code)}" title="在 ② 筛选表中定位">${esc(v.code)}</a>`, v.name)}${pr ? `<div class="small">③ 第 ${pr} 名</div>` : ""}</td>
       <td class="small">${esc(v.industry)}<div><span class="tag lb-${esc(s.label)}">${esc(lbT(s.label))}</span></div></td>
       <td class="small">${v.rank ? `第 ${v.rank} / ${VC.n_ranked}，得分 ${num(v.score, 1)}` : "周期不排名"}</td>
       <td class="n">${vcP(v.roe_med)}</td><td class="n">${vcP(v.fcfy)}<div class="small">股息 ${vcP(v.dy)}</div></td><td class="n">${pc(s.rev_yoy, 1)}</td>
@@ -2918,7 +2922,7 @@ const DV_F = {dy: "股息率", div_cagr: "分红增速", cover: "覆盖倍数", 
 const dvS = {k: "rank", dir: 1, n: 50};
 const DV_COLS = [
   ["rank", "组内排名", r => r.rank, r => r.rank, 1],
-  ["code", "代码 · 名称", r => `${CARDS[r.code] ? codeCell(r.code) : r.in2 ? `<a href="#s2" data-lgjump="${esc(r.code)}">${esc(r.code)}</a>` : esc(r.code)} ${esc(r.name)}<div class="small">${r.in2 ? `② 内 · ${esc(lbT(r.label))}` : "未进入 ②"}${VC_BY[r.code] ? " · 价值通道" : ""}</div>`, r => r.code, 1],
+  ["code", "代码 · 名称", r => `${coName(CARDS[r.code] ? codeCell(r.code) : r.in2 ? `<a href="#s2" data-lgjump="${esc(r.code)}">${esc(r.code)}</a>` : esc(r.code), r.name)}<div class="small">${r.in2 ? `② 内 · ${esc(lbT(r.label))}` : "未进入 ②"}${VC_BY[r.code] ? " · 价值通道" : ""}</div>`, r => r.code, 1],
   ["industry", "行业", r => `<span class="small">${esc(r.industry)}</span>`, r => r.industry, 1],
   ["score", "组内得分", r => r.score != null ? `<span data-tip="${esc(Object.entries(r.f || {}).map(([k, v]) => `${DV_F[k]} ${v == null ? "—" : num(v, 0)}`).join("；"))}">${num(r.score, 1)}</span>` : "—", r => r.score, -1],
   ["dy", "股息率", r => `<b>${vcP(r.dy)}</b>${r.spread != null ? `<div class="small">比 10 年国债高 ${num(r.spread, 1)}pt</div>` : ""}`, r => r.dy, -1],
@@ -2989,7 +2993,7 @@ const LT_WHY = (R0 => ({d_st: "ST / *ST", d_nodata: "没有财年数据", l_cyc:
 const ltS = {k: "rank", dir: 1};
 const LT_COLS = [
   ["rank", "组内排名", r => r.rank, r => r.rank, 1],
-  ["code", "代码 · 名称", r => `${CARDS[r.code] ? codeCell(r.code) : r.in2 ? `<a href="#s2" data-lgjump="${esc(r.code)}">${esc(r.code)}</a>` : esc(r.code)} ${esc(r.name)}<div class="small">${[r.in2 ? "② 内" : "", VC_BY[r.code] ? "价值通道" : "", DV_BY[r.code] ? "红利筛选" : ""].filter(Boolean).join(" · ") || "—"}</div>`, r => r.code, 1],
+  ["code", "代码 · 名称", r => `${coName(CARDS[r.code] ? codeCell(r.code) : r.in2 ? `<a href="#s2" data-lgjump="${esc(r.code)}">${esc(r.code)}</a>` : esc(r.code), r.name)}<div class="small">${[r.in2 ? "② 内" : "", VC_BY[r.code] ? "价值通道" : "", DV_BY[r.code] ? "红利筛选" : ""].filter(Boolean).join(" · ") || "—"}</div>`, r => r.code, 1],
   ["industry", "行业", r => `<span class="small">${esc(r.industry)}</span>${r.util ? ` <span class="tag" title="公用事业：负债门槛放宽到 ${LT.rules?.de_max_util}">公用事业</span>` : ""}`, r => r.industry, 1],
   ["score", "组内得分", r => r.score != null ? `<span data-tip="${esc(Object.entries(r.f || {}).map(([k, v]) => `${LT_F[k]} ${v == null ? "—" : num(v, 0)}`).join("；"))}">${num(r.score, 1)}</span>` : "—", r => r.score, -1],
   ["dy", "股息率", r => vcP(r.dy), r => r.dy, -1],

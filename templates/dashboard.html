@@ -914,7 +914,7 @@ const VC_F = {roe_med: "ROE 中位数", roe_min: "最低 ROE", conv: "现金转�
 const vcS = {k: "rank", dir: 1, n: 50};
 const vcP = v => v == null ? "—" : num(v, 1) + "%";
 const vcCo = r => { const e = D.entries.find(x => x.ticker === r.ticker);
-  return `${e ? `<button type="button" class="btn ghost ldg-jump" data-vcjump="${esc(e.sector)}|${esc(e.ticker)}|${esc(e.kind)}">${esc(r.ticker)}</button>` : `<b>${esc(r.ticker)}</b>`} <span class="small">${esc((r.name || "").slice(0, 26))}</span>
+  return `${e ? `<button type="button" class="btn ghost ldg-jump" data-vcjump="${esc(e.sector)}|${esc(e.ticker)}|${esc(e.kind)}">${esc(r.ticker)}</button>` : `<b>${esc(r.ticker)}</b>`}<div class="small" style="white-space:nowrap">${esc((r.name || "").slice(0, 26))}</div>
     <div class="small">${e ? `${esc(SEC[e.sector]?.name || e.sector)} · ${e.kind === "leader" ? "龙头" : "新兴"}` : "不在行业筛选"} ${(be => be ? bkBtn(be) : "")(e || VC_EBY[r.ticker])}</div>`; };
 const VC_COLS = [
   ["rank", "通道排名", r => r.rank ?? (r.cyclical ? '<span class="tag t-cyc">周期</span>' : "—"), r => r.rank ?? 9999, 1],
