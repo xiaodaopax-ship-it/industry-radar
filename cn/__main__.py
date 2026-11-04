@@ -7,6 +7,7 @@
     python -m cn valuation  现金流估值 inputs (cash flow, revenue, net cash, China 10y yield), save data/cn/valuation_<ts>.json
     python -m cn ledger  估值台账: append default-parameter valuation records to data/cn/ledger/cn_ledger.jsonl (offline, idempotent)
     python -m cn quality 价值通道 inputs: 5 fiscal years of fundamentals + cash dividends, market-wide -> data/cn/quality_<ts>.json
+    python -m cn valpct  5-year PE / PB percentiles for the value-channel / dividend / long-term dividend rows without a card
     python -m cn forward forward tracking of the ledger tags (price after each record vs the same-date median), offline
     python -m cn build   render site/cn/index.html from the latest snapshot + cards + ranges + holders + valuation files + ledger (offline)
     python -m cn.smoke   data-layer smoke test
@@ -45,6 +46,10 @@ def main():
     elif cmd == "quality":
         from .quality import fetch_quality
         if not fetch_quality():
+            sys.exit(1)
+    elif cmd == "valpct":
+        from .valpct import fetch
+        if not fetch():
             sys.exit(1)
     elif cmd == "build":
         from .build import build

@@ -96,6 +96,15 @@ def _valuation(tickers):
 def build(raw, ledger_file=None, out_path=None):
     """Data model + render site/index.html (or out_path). ledger_file: the valuation ledger to embed (default data/ledger/us_ledger.jsonl)."""
     data = model(raw, ledger_file=ledger_file)
+    # 本周变化: store this data date's view members and embed the difference (test renders to out_path do not write)
+    try:
+        from . import changes
+        data["changes"] = changes.update(data, (raw.get("fetched_at") or "")[:10], write=out_path is None)
+        data["vu_rules"] = changes.VU_RULES
+        ch = data["changes"]
+        print(f"changes vs {ch['prev']}: " + ", ".join(f"{k} {v['n']} (+{len(v['in'])}/-{len(v['out'])})" for k, v in ch["views"].items()))
+    except Exception as err:  # noqa: BLE001
+        print(f"changes not embedded: {type(err).__name__}: {err}")
     render(data, out_path)
     secs, out = data["sectors"], data["entries"]
     by = {s["id"]: (sum(1 for e in out if e["sector"] == s["id"] and e["kind"] == "leader"),

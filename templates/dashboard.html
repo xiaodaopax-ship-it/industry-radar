@@ -76,6 +76,12 @@
   tbody tr:hover > td { background:rgba(55,198,224,.065); }
   th button { background:none; border:none; color:inherit; font:inherit; cursor:pointer; padding:0; } th button:hover { color:var(--text); }
   td.n, th.n { text-align:right; white-space:nowrap; }
+  /* 本周变化 card */
+  .chg-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:10px; }
+  .chg h4 { margin:0 0 4px; } .chg .lbl { margin:8px 0 3px; color:var(--muted); font-size:12px; }
+  .chg-co { background:var(--raised); border:1px solid var(--line2); color:var(--text); border-radius:999px; padding:2px 9px; margin:2px 4px 2px 0; font:inherit; font-size:12px; cursor:pointer; }
+  .chg-co:hover { border-color:var(--accent); } .chg-co b { color:var(--accent); margin-right:4px; font-weight:600; }
+  .chg-co.out { color:var(--muted); } .chg-co.out b { color:var(--muted); }
   .tscroll { max-height:72vh; overflow:auto; border:1px solid var(--line); border-radius:var(--r2); margin:6px 0; }
   .tscroll thead th { position:sticky; top:0; z-index:1; background:var(--raised); }
   .tscroll tbody tr:last-child > td { border-bottom:none; }
@@ -380,8 +386,8 @@
     <div class="qs-res" id="qsRes" aria-live="polite"></div>
   </div>
   <div><div class="gt">全市场</div>
-    <ul><li><a class="sl" href="#sLk" data-sec="sLk">全市场速查</a></li><li><a class="sl" href="#s0" data-sec="s0">⓪ 全市场热度</a></li><li><a class="sl" href="#sPeg" data-sec="sPeg">PEG 筛选</a></li>
-      <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li><li><a class="sl" href="#sX" data-sec="sX">交集：成长 × 价值 × 低估</a></li><li><a class="sl" href="#sOv" data-sec="sOv">海外对照 · 韩国内存</a></li>
+    <ul><li><a class="sl" href="#sChg" data-sec="sChg">本周变化</a></li><li><a class="sl" href="#sLk" data-sec="sLk">全市场速查</a></li><li><a class="sl" href="#s0" data-sec="s0">⓪ 全市场热度</a></li><li><a class="sl" href="#sPeg" data-sec="sPeg">PEG 筛选</a></li>
+      <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li><li><a class="sl" href="#sX" data-sec="sX">交集：成长 × 价值 × 低估</a></li><li><a class="sl" href="#sVu" data-sec="sVu">价值 × 低估（不看成长）</a></li><li><a class="sl" href="#sOv" data-sec="sOv">海外对照 · 韩国内存</a></li>
       <li><a class="sl" href="#sDcf" data-sec="sDcf">估值参数（DCF）</a></li>
       <li><a class="sl" href="#sLdg" data-sec="sLdg">估值台账 · 本期变化</a></li>
       <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li></ul></div>
@@ -397,6 +403,11 @@
     <div class="chips" id="chips"></div>
   </header>
   <div class="banner">这是研究工具，不是投资建议。所有"机会""风险""结论"都是按数据规则自动生成的，用来决定先研究谁；业务、竞争、管理层这些判断必须人工补上。</div>
+  <section id="sChg" aria-labelledby="chgTitle">
+    <h2 id="chgTitle"><span class="step-tag">Δ</span>本周变化</h2>
+    <p class="lead" id="chgLead"></p>
+    <div class="chg-grid" id="chgBody"></div>
+  </section>
 
   <!-- 全市场速查 (any SEC filer: why it is / is not in the screens) -->
   <section id="sLk" aria-labelledby="lkTitle">
@@ -477,6 +488,24 @@
     <p class="note" id="xNote"></p>
   </section>
 
+  <!-- 价值 × 低估: value channel rows whose price implies clearly less growth (financial: lower ROE) than history; no sector screen -->
+  <section id="sVu" aria-labelledby="vuTitle">
+    <h2 id="vuTitle"><span class="step-tag">V</span>价值 × 低估 · 不要求行业筛选</h2>
+    <p class="lead" id="vuLead"></p>
+    <p class="dcf-disc">交集要求公司先在 14 个配置行业的成长筛选里，增长慢或不在这些行业的公司进不去。这里只看价值通道和现价包含的假设：标准口径看“现价隐含增速”比过去 4 年营收增速低多少，金融口径看“现价隐含 ROE”比 5 年 ROE 中位数低多少。差距大可能是被低估，也可能是市场看到了历史数据看不到的问题（价值陷阱），每家都要先看原因。只缩小研究范围，不是推荐，规则没有回测。</p>
+    <div class="toolbar" role="group" aria-label="价值 × 低估筛选">
+      <label class="small" for="vuThr">差距至少</label><select id="vuThr"><option value="0">0pt（金融 0pt）</option><option value="5" selected>5pt（金融 3pt）</option><option value="10">10pt（金融 6pt）</option><option value="15">15pt（金融 9pt）</option></select>
+      <label class="small" for="vuGrp">口径</label><select id="vuGrp"><option value="">全部</option><option value="std">标准</option><option value="fin">金融</option></select>
+      <label class="small"><input type="checkbox" id="vuCyc"> 含周期</label>
+      <label class="small"><input type="checkbox" id="vuDrop" checked> 隐藏最新季度营收下滑</label>
+      <label class="small"><input type="checkbox" id="vuNotIn"> 只看不在行业筛选里的</label>
+      <span class="small" id="vuCnt" role="status" aria-live="polite"></span>
+    </div>
+    <div class="tscroll vc-t"><table><thead><tr><th scope="col">公司</th><th scope="col">行业 · 口径</th><th scope="col" class="n">通道排名</th><th scope="col" class="n">ROE 中位数</th>
+      <th scope="col" class="n">FCF 收益率 / 市净率</th><th scope="col" class="n">股东回报率</th><th scope="col" class="n">现价隐含 vs 历史</th><th scope="col" class="n">股价</th><th scope="col">提示</th></tr></thead><tbody id="vuBody"></tbody></table></div>
+    <p class="note" id="vuNote"></p>
+  </section>
+
   <!-- 海外对照: fixed watch list outside the US screen (radar/overseas.py), display only -->
   <section id="sOv" aria-labelledby="ovTitle">
     <h2 id="ovTitle"><span class="step-tag">🌏</span>海外对照 · 韩国内存</h2>
@@ -538,7 +567,7 @@
   <div class="sticky">
     <div class="tabs" role="tablist" id="tabs"></div>
     <nav class="steps" aria-label="分析步骤">
-      <a href="#sLk">速查</a><a href="#s0">⓪ 全市场热度</a><a href="#sPeg">PEG 筛选</a><a href="#sVc">价值通道</a><a href="#sX">交集</a><a href="#sOv">海外对照</a><a href="#sDcf">估值参数</a><a href="#sLdg">估值台账</a><a href="#sBk">对比池</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
+      <a href="#sLk">速查</a><a href="#s0">⓪ 全市场热度</a><a href="#sPeg">PEG 筛选</a><a href="#sVc">价值通道</a><a href="#sX">交集</a><a href="#sVu">价值 × 低估</a><a href="#sOv">海外对照</a><a href="#sDcf">估值参数</a><a href="#sLdg">估值台账</a><a href="#sBk">对比池</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
     </nav>
   </div>
 
@@ -775,7 +804,7 @@ function jumpCompany(sector, ticker, kind) {
 }
 
 // ---------- left sidebar: sections, sectors (with counts) and the step links of the active sector
-const SECTS = [["sLk", "全市场速查", 0], ["s0", "⓪ 全市场热度", 0], ["sPeg", "PEG 筛选", 0], ["sVc", "价值通道", 0], ["sX", "交集", 0], ["sOv", "海外对照", 0], ["sDcf", "估值参数", 0], ["sLdg", "估值台账", 0], ["sBk", "对比池", 0], ["s1", "① 行业总览", 1], ["s2", "② 细分拆解", 1], ["s3", "③ 龙头分析", 1],
+const SECTS = [["sChg", "本周变化", 0], ["sLk", "全市场速查", 0], ["s0", "⓪ 全市场热度", 0], ["sPeg", "PEG 筛选", 0], ["sVc", "价值通道", 0], ["sX", "交集", 0], ["sVu", "价值 × 低估", 0], ["sOv", "海外对照", 0], ["sDcf", "估值参数", 0], ["sLdg", "估值台账", 0], ["sBk", "对比池", 0], ["s1", "① 行业总览", 1], ["s2", "② 细分拆解", 1], ["s3", "③ 龙头分析", 1],
   ["s4", "④ 新兴机会", 1], ["s5", "⑤ 机会清单", 1], ["s6", "数据与方法", 1]];
 const SCNT = D.entries.reduce((a, e) => (a[e.sector] = (a[e.sector] || 0) + 1, a), {});
 let curSec = "sLk";
@@ -1117,6 +1146,58 @@ $("xBody").addEventListener("click", ev => {
   const j = ev.target.closest("[data-xjump]"); if (j) { const [s, t, k] = j.dataset.xjump.split("|"); jumpCompany(s, t, k); return; }
   const v = ev.target.closest("[data-xvc]"); if (v) vcOpenCard(v.dataset.xvc);
 });
+// ---------- 价值 × 低估 (radar/changes.VU_RULES defaults): no sector screen required; display only
+const VU_FIN = {0: 0, 5: 3, 10: 6, 15: 9};
+function renderVu() {
+  if (!VC.file) { $("vuLead").innerHTML = '<span class="warn">还没有价值通道数据：运行 <code>python -m radar quality</code> 后重新构建。</span>'; $("vuBody").innerHTML = ""; return; }
+  const thr = +$("vuThr").value, tf = VU_FIN[thr] ?? thr * 0.6, grp = $("vuGrp").value, cyc = $("vuCyc").checked, drop = $("vuDrop").checked, notIn = $("vuNotIn").checked;
+  const gap = r => (r.group || "std") === "fin" ? (r.iroe != null && r.roe_med != null ? r.iroe - r.roe_med : null) : r.ig_gap;
+  const pass = r => { const g = gap(r), fin = (r.group || "std") === "fin"; return g != null ? g <= -(fin ? tf : thr) : !fin && r.igs === "lo"; };
+  const ent = t => D.entries.find(x => x.ticker === t);
+  const L = VCR.filter(r => pass(r) && (!grp || (r.group || "std") === grp) && (cyc || !r.cyclical) && (!drop || !((LK_BY[r.ticker] || {}).yoy <= -10)) && (!notIn || !ent(r.ticker)))
+    .sort((a, b) => (gap(a) ?? -999) - (gap(b) ?? -999));
+  const nAll = VCR.filter(r => !r.cyclical && pass(r)).length;
+  $("vuLead").innerHTML = `价值通道 ${VCR.length} 家中，非周期且差距达到条件的有 <b>${nAll}</b> 家；按当前条件列出 <b>${L.length}</b> 家，其中 <b>${L.filter(r => !ent(r.ticker)).length}</b> 家不在行业成长筛选里（交集看不到它们）。按差距从大到小排列。`;
+  const flags = r => { const f = [], lk = LK_BY[r.ticker] || {};
+    if (r.cyclical) f.push(["t-cyc", "周期：盈利高点时估值显得便宜"]);
+    if (lk.yoy != null && lk.yoy <= -10) f.push(["t-warn", `最新季度营收同比 ${num(lk.yoy)}%`]);
+    if (r.igs === "lo") f.push(["t-warn", "隐含增速 < −30%：先核实"]);
+    if ((r.shy ?? 0) > 25 || (r.fcfy ?? 0) > 25) f.push(["t-warn", "收益率 > 25%：先核实"]);
+    if (r.gw_warn) f.push(["t-warn", "商誉高"]);
+    if ((r.roe_med || 0) > 100) f.push(["t-warn", "ROE 极高：多为回购压低权益"]);
+    if (ent(r.ticker)) f.push(["", "在行业筛选里"]);
+    return f.map(([c, t]) => `<span class="tag ${c}" title="${esc(t)}">${esc(t.length > 12 ? t.slice(0, 12) + "…" : t)}</span>`).join(" ") || '<span class="small">—</span>'; };
+  $("vuBody").innerHTML = L.slice(0, 150).map(r => { const fin = (r.group || "std") === "fin", g = gap(r);
+    return `<tr><td>${vcCo(r)}</td><td class="small">${esc((r.sic_desc || "").slice(0, 34))}<div>${fin ? "金融口径" : "标准口径"}</div></td>
+      <td class="n">${r.rank ?? (r.cyclical ? '<span class="tag t-cyc">周期</span>' : "—")}</td><td class="n">${vcP(r.roe_med)}</td>
+      <td class="n">${fin ? `P/B ${num(r.pb, 2)}` : vcP(r.fcfy)}</td><td class="n">${vcP(r.shy)}</td>
+      <td class="n">${fin ? `隐含 ROE ${vcP(r.iroe)}<div class="small">5 年中位 ${vcP(r.roe_med)} · 低 ${g != null ? num(-g, 1) : "—"}pt</div>`
+        : `${r.ig != null ? vcP(r.ig) : r.igs === "lo" ? "&lt; −30%" : "—"}<div class="small">历史 ${vcP(r.cagr)}${g != null ? ` · 低 ${num(-g, 1)}pt` : ""}</div>`}</td>
+      <td class="n">${r.price != null ? num(r.price, 2) : "—"}</td><td>${flags(r)}</td></tr>`; }).join("")
+    || `<tr><td colspan="9" class="small">没有符合条件的公司（可以降低差距要求）</td></tr>`;
+  $("vuCnt").textContent = `${Math.min(150, L.length)} / ${L.length} 家`;
+  $("vuNote").innerHTML = `现价隐含增速 / 隐含 ROE 和价值通道同一套算法（反向现金流估值；金融用剩余收益法稳态）。差距越大，现价包含的预期越悲观；但 FCF 利润率只是暂时偏高（周期高点、一次性收入）时，差距就是假象。公司名可点：在行业筛选里的打开完整评估卡，其他的在价值通道里展开简化卡。不是买卖建议。`;
+  bkSync();
+}
+["vuThr", "vuGrp", "vuCyc", "vuDrop", "vuNotIn"].forEach(id => $(id).addEventListener("change", renderVu));
+$("vuBody").addEventListener("click", ev => { const j = ev.target.closest("[data-vcjump]"); if (j) { const [s, t, k] = j.dataset.vcjump.split("|"); jumpCompany(s, t, k); } });
+// ---------- 本周变化 (radar/changes.py): view members at this data date vs the previous one; display only
+const CHG_ORDER = ["x", "vu", "vc"], CHG_SEC = {x: "sX", vu: "sVu", vc: "sVc"};
+function renderChg() {
+  const C = D.changes;
+  if (!C) { $("chgLead").textContent = "还没有记录：重新构建后生成。"; $("chgBody").innerHTML = ""; return; }
+  const chip = (x, cls) => `<button type="button" class="chg-co ${cls}" data-chg="${esc(x[0])}" title="${cls ? "已退出：" : "打开 "}${esc(x[0])} ${esc(x[1])}"><b>${esc(x[0])}</b>${esc((x[1] || "").slice(0, 22))}</button>`;
+  const many = (a, cls) => a.slice(0, 40).map(x => chip(x, cls)).join("") + (a.length > 40 ? `<span class="small">… 另 ${a.length - 40} 家</span>` : "");
+  $("chgLead").innerHTML = C.prev ? `数据日期 <b>${esc(C.cur)}</b> 与上一次 <b>${esc(C.prev)}</b> 相比，各个视图新进入和退出的公司。交集按默认估值参数（估值台账）计算，可能和你调过参数后的交集表不同。点代码打开评估卡或价值通道简化卡，没有的打开全市场速查。只描述名单变化，不是买卖信号。`
+    : `已记录 <b>${esc(C.cur)}</b> 的名单。下次数据更新后，这里会列出每个视图新进入和退出的公司。`;
+  $("chgBody").innerHTML = CHG_ORDER.filter(k => C.views[k]).map(k => { const v = C.views[k], d = v.n_prev == null ? "" : v.n - v.n_prev;
+    return `<div class="card chg"><h4><a href="#${CHG_SEC[k]}">${esc(C.labels[k] || k)}</a> <span class="small">${v.n} 家${d === "" ? "" : `（${d > 0 ? "+" : ""}${d}）`}</span></h4>
+      ${C.prev ? `<div class="lbl">新进入 ${v.in.length}</div><div>${many(v.in, "") || '<span class="small">没有</span>'}</div>
+      <div class="lbl">退出 ${v.out.length}</div><div>${many(v.out, "out") || '<span class="small">没有</span>'}</div>` : ""}</div>`; }).join("");
+}
+$("chgBody").addEventListener("click", ev => { const b = ev.target.closest("[data-chg]"); if (!b) return; const t = b.dataset.chg, e = D.entries.find(x => x.ticker === t);
+  if (e) jumpCompany(e.sector, t, e.kind); else if (VC_BY[t]) vcOpenCard(t); else lkShow(t, true); });
+renderChg();
 function vcOpenCard(t) {
   const r = VC_BY[t]; if (!r) return;
   $("vcGrp").value = r.group || "std"; $("vcQ").value = t; $("vcSic").value = ""; $("vcNotIn").checked = false; if (r.cyclical) $("vcCyc").checked = true;
@@ -1544,7 +1625,7 @@ $("bkCsv").onclick = () => {
 };
 addEventListener("storage", ev => { if (ev.key === BKKEY) { bkLoad(); bkRenderW(); bkRender(); bkSync(); } });   // another tab changed the basket
 bkLoad(); bkRenderW();
-lkLead(); renderVc(); renderOv(); setTimeout(renderX, 0);   // after the basket state exists; renderX needs the DCF engine defined further down (the value-channel table carries ＋对比 buttons)
+lkLead(); renderVc(); renderOv(); setTimeout(renderX, 0); setTimeout(renderVu, 0);   // after the basket state exists; renderX needs the DCF engine defined further down (the value-channel table carries ＋对比 buttons)
 
 // ---------- ① overview
 function renderOverview() {

@@ -1,5 +1,6 @@
 """US data-layer self check (offline): python -m radar.smoke
 Covers the value channel (radar/quality.py metrics / fails / channel) and the full-market lookup on the local files."""
+import json
 import sys
 
 N_FAIL = []
@@ -38,6 +39,15 @@ def main():
           a == (30.0, 35.0, "cor") and b == (40.0, 45.0, "cor") and c == (50.0, 55.0, "cor")
           and margin_pair(1, srcs[:1], 100, 100) == (40.0, None, "gp") and margin_pair(9, srcs, 100, 100) == (None, None, None),
           str((a, b, c)))
+    from . import changes as CH
+    doc = {"keys": [{"k": "2026-10-20", "sets": {"vc": {"A": "a", "B": "b"}}}, {"k": "2026-10-27", "sets": {"vc": {"A": "a", "C": "c"}}}]}
+    d = CH.diff(doc, "2026-11-03", {"vc": {"A": "a", "D": "d"}})
+    check("changes.diff: compares with the latest earlier date; entered / left lists",
+          d["prev"] == "2026-10-27" and d["views"]["vc"]["in"] == [["D", "d"]] and d["views"]["vc"]["out"] == [["C", "c"]]
+          and CH.diff({"keys": []}, "2026-11-03", {"vc": {"A": "a"}})["views"]["vc"]["in"] == [], json.dumps(d["views"]))
+    check("changes.is_vu: gap rule, cyclical / recent revenue drop excluded, financial uses implied ROE",
+          CH.is_vu({"ig_gap": -6}) and not CH.is_vu({"ig_gap": -4}) and not CH.is_vu({"ig_gap": -20, "cyclical": True})
+          and not CH.is_vu({"ig_gap": -20}, -15) and CH.is_vu({"group": "fin", "iroe": 8, "roe_med": 12}) and CH.is_vu({"igs": "lo"}))
     big = [("cor", True, fr({"q0": {1: 900}, "q0_ly": {1: 120}}))]
     check("margin_pair: a cost line far above revenue is dropped (different scope)", margin_pair(1, big, 100, 100, cap_low=-100)[0] is None)
     doc, path = Q.latest()

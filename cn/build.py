@@ -705,6 +705,15 @@ def build(path=None):
                 f"sparkline={sum(1 for r in payload['longdiv']['rows'] if r.get('wk'))}/{len(payload['longdiv']['rows'])}")
         else:
             log(f"long-term dividend view: skipped ({payload['longdiv'].get('why_none', 'no quality file')})")
+        # display only: 5-year PE / PB percentiles (evaluation card first, else `python -m cn valpct`)
+        from . import valpct as vpmod
+        vpd = vpmod.latest()
+        cbc = (cdoc or {}).get("cards") or {}
+        for blk in ("value", "dividend", "longdiv"):
+            vpmod.attach((payload.get(blk) or {}).get("rows") or [], cbc, vpd)
+        rows_ = [r for b in ("value", "dividend", "longdiv") for r in (payload.get(b) or {}).get("rows") or []]
+        log(f"valuation percentiles: {sum(1 for r in rows_ if r.get('pe_pct') is not None or r.get('pb_pct') is not None)}/{len(rows_)} rows "
+            f"(valpct file {(vpd or {}).get('fetched_at', 'none')})")
     except Exception as e:  # noqa: BLE001
         log(f"WARNING: value channel skipped ({type(e).__name__}: {e})")
         payload["value"] = {"file": None}
@@ -723,6 +732,16 @@ def build(path=None):
             payload["ledger"]["fwd"] = fmod.page_payload(os.environ.get("CN_LEDGER_FILE") or lmod.LEDGER_FILE)
         except Exception as e:  # noqa: BLE001
             log(f"WARNING: forward tracking skipped ({type(e).__name__}: {e})")
+    # 本周变化: store this quote date's view members and embed the difference (test renders via CN_BUILD_OUT do not write)
+    try:
+        from . import changes as chmod
+        payload["changes"] = chmod.update(payload, res["screen"], (payload.get("quote_date") or "")[:10],
+                                          write=not os.environ.get("CN_BUILD_OUT"))
+        payload["vu_rules"] = chmod.VU_RULES
+        ch = payload["changes"]
+        log(f"changes vs {ch['prev']}: " + ", ".join(f"{k} {v['n']} (+{len(v['in'])}/-{len(v['out'])})" for k, v in ch["views"].items()))
+    except Exception as e:  # noqa: BLE001
+        log(f"WARNING: changes skipped ({type(e).__name__}: {e})")
     have = set((cdoc or {}).get("cards", {}))
     payload["cards_meta"] = {"file": os.path.basename(cpath) if cpath else None, "fetched_at": (cdoc or {}).get("fetched_at"),
                              "snap": (cdoc or {}).get("snap"), "rules": cardmod.CARD_RULES,

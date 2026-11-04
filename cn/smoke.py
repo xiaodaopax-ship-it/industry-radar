@@ -175,6 +175,14 @@ def main():
     check("ranges.summarize hi/lo/dates (pre-window bar excluded)", it["hi52"] == 15 and it["lo52"] == 9.5
           and it["hi_date"] == "2026-03-02" and it["lo_date"] == "2025-10-23" and it["n_days"] == 3, json.dumps(it)[:200])
     check("ranges.summarize flags clean", not it["short_history"] and not it["stale"] and not it["basis_mismatch"])
+    from . import changes as CHG, valpct as VP
+    d_ = CHG.diff({"keys": [{"k": "2026-10-27", "sets": {"lt": {"1": "a", "2": "b"}}}]}, "2026-11-03", {"lt": {"1": "a", "3": "c"}})
+    check("changes.diff: entered / left vs the previous quote date", d_["prev"] == "2026-10-27"
+          and d_["views"]["lt"]["in"] == [["3", "c"]] and d_["views"]["lt"]["out"] == [["2", "b"]], json.dumps(d_["views"]))
+    rows_ = [{"code": "A"}, {"code": "B"}, {"code": "C"}]
+    VP.attach(rows_, {"A": {"val_pct": {"pe_ttm": {"percentile": 10}, "pb": {"percentile": 20}}}}, {"items": {"A": {"pe_pct": 99}, "B": {"pe_pct": 30, "pb_pct": 40}}})
+    check("valpct.attach: evaluation card percentile first, else the valpct file, else None",
+          (rows_[0]["pe_pct"], rows_[0]["pb_pct"], rows_[1]["pe_pct"], rows_[2]["pe_pct"]) == (10, 20, 30, None), str(rows_))
     wk = ranges.weekly_closes([{"date": "2026-10-19", "close": 1}, {"date": "2026-10-21", "close": 2}, {"date": "2026-10-26", "close": 3}])
     check("ranges.weekly_closes keeps the last close of each week", wk == {"d": ["2026-10-21", "2026-10-26"], "c": [2, 3]}
           and it["wk"]["c"] == [10, 14, 12], json.dumps(wk))
