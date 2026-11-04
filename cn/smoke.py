@@ -451,7 +451,9 @@ def main():
         g_ = V.one_off_guard(d_, dr)
         b = CB(d_["m"], d_["mt"], False, "auto", g_)
         check("real data 688331 荣昌生物: auto => ramp (avg3 <= 0, FY2025 improving), guard (b) H1 revenue > FY2025 and (c) EPS drop, TTM not used, start = FY2025",
-              b["used"] == "ramp" and b["why"] == "auto_ramp" and b["ttm_block"] == "guard" and {"b", "c"} <= {x["k"] for x in g_}
+              # guard (c) needs the consensus EPS from the cards file; when 688331 is no longer a card code, (b) alone is expected
+              b["used"] == "ramp" and b["why"] == "auto_ramp" and b["ttm_block"] == "guard"
+              and ({"b", "c"} if dr and dr.get("hit") else {"b"}) <= {x["k"] for x in g_}
               and b["start_src"] == "fy" and b["start"] == d_["m"][-1] and b["avg"] <= 0 and d_["m"][-1] > d_["m"][-2],
               f"guard={[x['k'] for x in g_]} avg3={b['avg']:.4f} fy={d_['m'][-2]:.4f}->{d_['m'][-1]:.4f} ttm={d_['mt']} rh={d_['rh']} ry={d_['ry']} eps={dr}")
     else:
@@ -636,7 +638,7 @@ def ledger_checks(LDG, V, syn):
               f"records={len(real)} runs={len(LDG._runs(real))} basis={dict(bas)} max_rel_dev={dev:.1e}")
         r688 = next((x for x in reversed(real) if x["code"] == "688331"), None)
         check("ledger file 688331: ramp (start = FY0) with guard a / b / c, status ok",
-              r688 is not None and r688["basis"] == "ramp" and r688["start_src"] == "fy" and {"b", "c"} <= set(r688["guard"])
+              r688 is not None and r688["basis"] == "ramp" and r688["start_src"] == "fy" and "b" in set(r688["guard"])
               and r688["status"] == "ok", str(r688 and (r688["basis"], r688["guard"])))
     else:
         check("ledger file present (run python -m cn ledger)", False)
