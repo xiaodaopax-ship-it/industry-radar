@@ -405,7 +405,7 @@
   <span class="mkt-sw" role="group" aria-label="切换看板"><a href="../index.html" data-mkt="us">美股</a><span class="on" aria-current="page">A 股</span></span>
 </div>
 <nav class="side" id="side" aria-label="页面导航">
-  <div class="brand">A 股看板<span>一 长期红利 · 二 新兴筛选 · 三 低估筛选</span></div>
+  <div class="brand">A 股看板<span>总览 · 一 长期红利 · 二 新兴筛选 · 三 低估筛选 · 四 标签</span></div>
   <div class="mkt-sw" role="group" aria-label="切换看板"><a href="../index.html" data-mkt="us">美股</a><span class="on" aria-current="page">A 股</span></div>
   <div class="qs" role="search">
     <div class="gt"><label for="qs">公司快速跳转</label></div>
@@ -416,11 +416,14 @@
   <div><div class="gt">页面分节</div>
     <ul>
       <li><a class="sl" href="#sChg" data-sec="sChg">本周变化</a></li>
+      <li><a class="sl" href="#s1" data-sec="s1">总览 · 行业热度</a></li>
       <li><a class="sl gp" href="#g1" data-grp="sLt">一、长期红利</a><div class="gp-sub"><a class="sl" href="#sLt" data-sec="sLt">1.1 长期红利名单</a></div></li>
       <li><a class="sl gp" href="#g2" data-grp="s2,s4">二、新兴筛选</a><div class="gp-sub"><a class="sl" href="#s2" data-sec="s2">2.1 新兴公司筛选</a><a class="sl" href="#s4" data-sec="s4">2.2 研究优先级</a><a class="sl" href="#s4cy">　· 周期行业单列</a></div></li>
       <li><a class="sl gp" href="#g3" data-grp="sX,sVu">三、低估筛选</a><div class="gp-sub"><a class="sl" href="#sX" data-sec="sX">3.1 成长 × 低估</a><a class="sl" href="#sVu" data-sec="sVu">3.2 价值 × 低估</a></div></li>
-      <li><a class="sl gp" href="#gT">工具</a><div class="gp-sub"><a class="sl" href="#sLk" data-sec="sLk">全市场速查</a><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a><a class="sl" href="#sLg" data-sec="sLg">估值台账</a><a class="sl" href="#s6" data-sec="s6">个股评估卡</a><a class="sl" href="#s5" data-sec="s5">数据与方法</a></div></li>
-      <li><a class="sl gp" href="#gA" data-grp="s1,sVc,sDv,s3">附录（默认收起）</a><div class="gp-sub"><a class="sl" href="#s1" data-sec="s1">行业热度</a><a class="sl" href="#sVc" data-sec="sVc">价值通道</a><a class="sl" href="#sDv" data-sec="sDv">红利筛选（5 年）</a><a class="sl" href="#s3" data-sec="s3">基本面 / 交易标签</a></div></li>
+      <li><a class="sl gp" href="#g4" data-grp="s3">四、基本面 / 交易标签</a><div class="gp-sub"><a class="sl" href="#s3" data-sec="s3">4.1 标签 · 机构动向</a></div></li>
+      <li><a class="sl gp" href="#gT">工具</a><div class="gp-sub"><a class="sl" href="#sLk" data-sec="sLk">全市场速查</a><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a><a class="sl" href="#sLg" data-sec="sLg">估值台账</a><a class="sl" href="#s6" data-sec="s6">个股评估卡</a></div></li>
+      <li><a class="sl gp" href="#gA" data-grp="sDv">附录（默认收起）</a><div class="gp-sub"><a class="sl" href="#sDv" data-sec="sDv">红利筛选（5 年）</a></div></li>
+      <li><a class="sl" href="#s5" data-sec="s5">数据与方法</a></li>
     </ul></div>
   <details class="sgrp" open><summary><span class="gt">行业（按进入筛选家数）</span></summary><ul id="sideInd"></ul></details>
 </nav>
@@ -429,7 +432,7 @@
   <header>
     <div>
       <h1 id="pageTop" tabindex="-1">A 股看板</h1>
-      <div class="sub">一 长期红利 → 二 新兴筛选（2.1 筛选 · 2.2 研究优先级）→ 三 低估筛选（3.1 成长 × 低估 · 3.2 价值 × 低估）→ 工具 · 附录</div>
+      <div class="sub">总览 → 一 长期红利 → 二 新兴筛选（2.1 筛选 · 2.2 研究优先级）→ 三 低估筛选（3.1 成长 × 低估 · 3.2 价值 × 低估）→ 四 基本面 / 交易标签 → 工具 · 数据与方法</div>
     </div>
     <div class="chips" id="chips"><a href="../index.html">← 美股看板</a></div>
   </header>
@@ -442,9 +445,24 @@
 
   <div class="sticky">
     <nav class="steps" aria-label="页面分节">
-      <a href="#g1" data-grp="sLt">一 长期红利</a><a href="#g2" data-grp="s2,s4">二 新兴筛选</a><a href="#g3" data-grp="sX,sVu">三 低估筛选</a><a href="#sLk">速查</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">评估卡</a><a href="#gA" data-grp="s1,sVc,sDv,s3">附录</a>
+      <a href="#s1">行业热度</a><a href="#g1" data-grp="sLt">一 长期红利</a><a href="#g2" data-grp="s2,s4">二 新兴筛选</a><a href="#g3" data-grp="sX,sVu">三 低估筛选</a><a href="#g4" data-grp="s3">四 基本面 / 交易标签</a><a href="#sLk">速查</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">评估卡</a><a href="#s5">数据与方法</a>
     </nav>
   </div>
+
+  <div class="grp-band" id="g0"><span class="gb-n">总</span><h2 class="gb-t">总览</h2><span class="gb-s">按东方财富行业看营收规模和增长，点击行业进入新兴筛选</span></div>
+
+  <section id="s1">
+    <h2><span class="step-tag">总</span>行业热度（东方财富行业）</h2>
+    <p class="lead" id="hLead"></p>
+    <div class="grid g4" id="hKpis"></div>
+    <h3>面积 = 年初至今营收合计；颜色 = 营收同比中位数；点击行业 → 在新兴筛选中筛选该行业</h3>
+    <svg id="hTree" viewBox="0 0 1300 420" width="100%" role="img" aria-label="A 股行业营收树图"></svg>
+    <div class="legend"><span>营收同比中位数</span><span>−30%</span><span class="grad"></span><span>+40%</span></div>
+    <h3>行业排行（点击表头排序）</h3>
+    <div class="tscroll"><table><thead><tr id="indHead"></tr></thead><tbody id="indBody"></tbody></table></div>
+    <div class="toolbar"><button class="btn" type="button" id="indMore"></button></div>
+    <p class="note" id="indNote"></p>
+  </section>
 
   <div class="grp-band" id="g1"><span class="gb-n">一</span><h2 class="gb-t">长期红利</h2><span class="gb-s">10 个财年分红持续、现金流覆盖、负债可控的公司</span></div>
 
@@ -508,29 +526,40 @@
       <span class="small" id="xCnt" role="status" aria-live="polite"></span>
     </div>
     <div class="tscroll"><table><thead><tr><th scope="col">代码 · 名称</th><th scope="col">行业 · 标签</th><th scope="col">价值通道</th><th scope="col" class="n">ROE 中位数</th><th scope="col" class="n">FCF 收益率 / 股息率</th>
-      <th scope="col" class="n">营收同比（新兴筛选口径）</th><th scope="col" class="n">Base 估值 vs 现价</th><th scope="col" class="n">现价隐含增速 vs 历史</th><th scope="col">提示</th><th scope="col">对比</th></tr></thead><tbody id="xBody"></tbody></table></div>
+      <th scope="col" class="n">营收同比（新兴筛选口径）</th><th scope="col" class="n">Base 估值 vs 现价</th><th scope="col" class="n">现价隐含增速 vs 历史</th><th scope="col">机构动向</th><th scope="col">提示</th><th scope="col">对比</th></tr></thead><tbody id="xBody"></tbody></table></div>
     <p class="note" id="xNote"></p>
   </section>
 
   <section id="sVu" aria-labelledby="vuTitle">
     <h2 id="vuTitle"><span class="step-tag">3.2</span>价值 × 低估 · 不要求成长筛选</h2>
     <p class="lead" id="vuLead"></p>
-    <p class="dcf-disc">交集要求先通过 新兴筛选（营收同比 ≥ 20%），增长慢但现金流好、估值低的公司进不去。这里只看价值通道和现价包含的增长假设：现价隐含增速明显低于过去 4 年营收增速，说明市场预期比历史表现差。可能是被低估，也可能是市场看到了历史数据看不到的问题（价值陷阱），每家都要先看原因。只缩小研究范围，不是推荐，规则没有回测。</p>
+    <p class="dcf-disc">3.1 成长 × 低估要求先进入新兴筛选（营收同比 ≥ 20%），增长慢但现金流好、估值低的公司进不去。门槛选“不限”时显示全部价值通道公司（5 年 ROE、自由现金流、现金转化、负债和商誉门槛都通过），按通道得分排序。这里只看价值通道和现价包含的增长假设：现价隐含增速明显低于过去 4 年营收增速，说明市场预期比历史表现差。可能是被低估，也可能是市场看到了历史数据看不到的问题（价值陷阱），每家都要先看原因。只缩小研究范围，不是推荐，规则没有回测。</p>
     <div class="toolbar" role="group" aria-label="价值 × 低估筛选">
-      <label class="small" for="vuThr">隐含增速比历史低至少</label><select id="vuThr"><option value="0">0pt</option><option value="5" selected>5pt</option><option value="10">10pt</option><option value="15">15pt</option></select>
+      <label class="small" for="vuThr">隐含增速比历史低至少</label><select id="vuThr"><option value="all">不限（价值通道全部）</option><option value="0">0pt</option><option value="5" selected>5pt</option><option value="10">10pt</option><option value="15">15pt</option></select>
       <label class="small" for="vuPct">估值 5 年分位不高于</label><select id="vuPct"><option value="">不限</option><option value="70">70%</option><option value="50">50%</option><option value="30">30%</option></select>
       <label class="small"><input type="checkbox" id="vuCyc"> 含周期行业</label>
+      <label class="small" for="vuQ">搜索</label><input type="search" id="vuQ" placeholder="代码或名称" autocomplete="off">
       <label class="small"><input type="checkbox" id="vuDrop" checked> 隐藏近期净利下滑</label>
       <label class="small"><input type="checkbox" id="vuNotIn"> 只看不在新兴筛选里的</label>
       <span class="small" id="vuCnt" role="status" aria-live="polite"></span>
     </div>
     <div class="tscroll vc-t"><table><thead><tr><th scope="col">代码 · 名称</th><th scope="col">行业</th><th scope="col" class="n">通道排名</th><th scope="col" class="n">ROE 中位数</th>
       <th scope="col" class="n">FCF 收益率</th><th scope="col" class="n">股息率</th><th scope="col" class="n">现价隐含增速 vs 历史</th><th scope="col" class="n">估值 5 年分位</th>
-      <th scope="col" class="n">年初至今</th><th scope="col">提示</th><th scope="col">对比</th></tr></thead><tbody id="vuBody"></tbody></table></div>
+      <th scope="col" class="n">年初至今</th><th scope="col">标签 · 机构动向</th><th scope="col">提示</th><th scope="col">对比</th></tr></thead><tbody id="vuBody"></tbody></table></div>
     <p class="note" id="vuNote"></p>
   </section>
 
-  <div class="grp-band tools" id="gT"><span class="gb-n">工</span><h2 class="gb-t">工具</h2><span class="gb-s">速查 · 对比 · 台账 · 评估卡 · 方法</span></div>
+  <div class="grp-band" id="g4"><span class="gb-n">四</span><h2 class="gb-t">基本面 / 交易标签</h2><span class="gb-s">按规则给新兴筛选的公司打标签，并看北向、社保等机构在前十大流通股东里的进出</span></div>
+
+  <section id="s3">
+    <h2><span class="step-tag">4.1</span>基本面 / 交易标签 · 机构动向</h2>
+    <p class="lead">按固定规则给每家筛选出的公司打一个描述性标签，说明它目前更接近"基本面与估值数据较扎实"还是"受事件、资金或估值位置影响较大"。标签不是结论，原因列在新兴筛选表格最后一列。</p>
+    <div class="grid g3" id="lbKpis"></div>
+    <div class="rule" id="lbRule"></div>
+    <div id="instX" style="margin-top:14px"></div>
+  </section>
+
+  <div class="grp-band tools" id="gT"><span class="gb-n">工</span><h2 class="gb-t">工具</h2><span class="gb-s">速查 · 对比 · 台账 · 评估卡</span></div>
 
   <section id="sLk" aria-labelledby="lkTitle">
     <h2 id="lkTitle"><span class="step-tag">查</span>全市场速查</h2>
@@ -590,6 +619,26 @@
     <div id="ecList"></div>
   </section>
 
+  <details class="appx" id="gA"><summary><span class="gb-n">附</span><b>附录</b><span class="small">红利筛选（5 年口径，比长期红利宽，含周期和更多金融股），默认收起</span></summary>
+
+  <section id="sDv" aria-labelledby="dvTitle">
+    <h2 id="dvTitle"><span class="step-tag">附1</span>红利筛选 · 持续、可负担的现金分红</h2>
+    <p class="lead" id="dvLead"></p>
+    <p class="dcf-disc">按规则筛出“股息率高、连续分红、没有大幅削减、分红率不过高、分红有现金或利润支撑、近期盈利没有明显恶化”的公司，并在组内排序。只缩小研究范围，不是推荐，也不是买卖建议；规则没有回测；不进入 研究优先级排序、标签、⚠ 数和对比池评分。</p>
+    <div class="toolbar" role="group" aria-label="红利筛选">
+      <label class="small" for="dvGrp">分组</label><select id="dvGrp"><option value="stable">稳定行业</option><option value="fin">金融（银行、保险、券商）</option><option value="cyc">周期行业（单列）</option></select>
+      <label class="small" for="dvQ">搜索</label><input type="search" id="dvQ" placeholder="代码或名称" autocomplete="off">
+      <label class="small" for="dvInd">行业</label><select id="dvInd"><option value="">全部行业</option></select>
+      <label class="small" for="dvMin">股息率至少</label><select id="dvMin"><option value="3">3%</option><option value="4">4%</option><option value="5">5%</option><option value="6">6%</option></select>
+      <span class="small" id="dvCnt" role="status" aria-live="polite"></span>
+    </div>
+    <div class="tscroll vc-t"><table><thead><tr id="dvHead"></tr></thead><tbody id="dvBody"></tbody></table></div>
+    <div class="toolbar"><button type="button" class="btn" id="dvMore">显示更多</button></div>
+    <p class="note" id="dvNote"></p>
+  </section>
+
+  </details>
+
   <section id="s5">
     <h2><span class="step-tag">i</span>数据与方法</h2>
     <div class="grid g2">
@@ -641,63 +690,6 @@
       </div>
     </div>
   </section>
-
-  <details class="appx" id="gA"><summary><span class="gb-n">附</span><b>附录</b><span class="small">行业热度 · 价值通道 · 红利筛选（5 年）· 基本面 / 交易标签：上面几块的数据来源和补充视图，默认收起</span></summary>
-
-  <section id="s1">
-    <h2><span class="step-tag">附1</span>行业热度（东方财富行业）</h2>
-    <p class="lead" id="hLead"></p>
-    <div class="grid g4" id="hKpis"></div>
-    <h3>面积 = 年初至今营收合计；颜色 = 营收同比中位数；点击行业 → 在新兴筛选中筛选该行业</h3>
-    <svg id="hTree" viewBox="0 0 1300 420" width="100%" role="img" aria-label="A 股行业营收树图"></svg>
-    <div class="legend"><span>营收同比中位数</span><span>−30%</span><span class="grad"></span><span>+40%</span></div>
-    <h3>行业排行（点击表头排序）</h3>
-    <div class="tscroll"><table><thead><tr id="indHead"></tr></thead><tbody id="indBody"></tbody></table></div>
-    <div class="toolbar"><button class="btn" type="button" id="indMore"></button></div>
-    <p class="note" id="indNote"></p>
-  </section>
-
-  <section id="sVc" aria-labelledby="vcTitle">
-    <h2 id="vcTitle"><span class="step-tag">附2</span>价值通道 · 长期质量 + 估值收益率</h2>
-    <p class="lead" id="vcLead"></p>
-    <p class="dcf-disc">价值通道是和 新兴筛选并列的第二个入口：不要求营收高增长，看过去 5 个完整财年的 ROE、自由现金流、现金转化、负债和商誉，再按质量和估值收益率在通道内排序。排序只表示“按这六个维度先看谁”，没有回测，不是买卖建议；不进入 研究优先级排序、基本面 / 交易标签、⚠ 数和对比池评分。</p>
-    <div class="toolbar" role="group" aria-label="价值通道筛选">
-      <label class="small" for="vcQ">搜索</label><input type="search" id="vcQ" placeholder="代码或名称" autocomplete="off">
-      <label class="small" for="vcInd">行业</label><select id="vcInd"><option value="">全部行业</option></select>
-      <label class="small"><input type="checkbox" id="vcNot2"> 只看未进入新兴筛选 的</label>
-      <label class="small"><input type="checkbox" id="vcCyc"> 包含周期行业（不排名）</label>
-      <span class="small" id="vcCnt" role="status" aria-live="polite"></span>
-    </div>
-    <div class="tscroll vc-t"><table><thead><tr id="vcHead"></tr></thead><tbody id="vcBody"></tbody></table></div>
-    <div class="toolbar"><button type="button" class="btn" id="vcMore">显示更多</button></div>
-    <p class="note" id="vcNote"></p>
-  </section>
-
-  <section id="sDv" aria-labelledby="dvTitle">
-    <h2 id="dvTitle"><span class="step-tag">附3</span>红利筛选 · 持续、可负担的现金分红</h2>
-    <p class="lead" id="dvLead"></p>
-    <p class="dcf-disc">按规则筛出“股息率高、连续分红、没有大幅削减、分红率不过高、分红有现金或利润支撑、近期盈利没有明显恶化”的公司，并在组内排序。只缩小研究范围，不是推荐，也不是买卖建议；规则没有回测；不进入 研究优先级排序、标签、⚠ 数和对比池评分。</p>
-    <div class="toolbar" role="group" aria-label="红利筛选">
-      <label class="small" for="dvGrp">分组</label><select id="dvGrp"><option value="stable">稳定行业</option><option value="fin">金融（银行、保险、券商）</option><option value="cyc">周期行业（单列）</option></select>
-      <label class="small" for="dvQ">搜索</label><input type="search" id="dvQ" placeholder="代码或名称" autocomplete="off">
-      <label class="small" for="dvInd">行业</label><select id="dvInd"><option value="">全部行业</option></select>
-      <label class="small" for="dvMin">股息率至少</label><select id="dvMin"><option value="3">3%</option><option value="4">4%</option><option value="5">5%</option><option value="6">6%</option></select>
-      <span class="small" id="dvCnt" role="status" aria-live="polite"></span>
-    </div>
-    <div class="tscroll vc-t"><table><thead><tr id="dvHead"></tr></thead><tbody id="dvBody"></tbody></table></div>
-    <div class="toolbar"><button type="button" class="btn" id="dvMore">显示更多</button></div>
-    <p class="note" id="dvNote"></p>
-  </section>
-
-  <section id="s3">
-    <h2><span class="step-tag">附4</span>基本面 / 交易标签</h2>
-    <p class="lead">按固定规则给每家筛选出的公司打一个描述性标签，说明它目前更接近"基本面与估值数据较扎实"还是"受事件、资金或估值位置影响较大"。标签不是结论，原因列在新兴筛选表格最后一列。</p>
-    <div class="grid g3" id="lbKpis"></div>
-    <div class="rule" id="lbRule"></div>
-    <div id="instX" style="margin-top:14px"></div>
-  </section>
-
-  </details>
 
   <footer id="foot"></footer>
 </main>
@@ -1341,7 +1333,7 @@ function evalCardCN(c) {
   const rs = c.research || {}, f = c.fin || {}, mk = ["STAR", "SH_MAIN"].includes(c.board) ? "SH" : c.board === "BSE" ? "BJ" : "SZ";
   const ltr = (D.longdiv && D.longdiv.rows || []).find(x => x.code === c.code);
   const rk = c.rank ? `研究优先级第 ${c.rank} 名 · 综合分 ${num(c.score)}` : c.source === "longdiv" ? `长期红利（10 年）${ltr ? `${ltr.group === "fin" ? "金融" : "非金融"}组第 ${ltr.rank} 名` : ""} · 不在新兴筛选`
-    : c.source === "cross" ? "交集：成长 × 价值 × 现价低于估值（默认参数）" : `「基本面支撑」标签 · 不在优先级前 ${R.priority_top}`;
+    : c.source === "cross" ? "成长 × 低估（默认参数）" : c.source === "vu" ? "价值 × 低估 · 不在新兴筛选：下方增长类判断句参考意义有限" : `「基本面支撑」标签 · 不在优先级前 ${R.priority_top}`;
   const gates = GATES.map(([k, t]) => { const g = c.gates[k]; return `<div class="chk"><span class="${esc(g.s)}">${ICON[g.s] || "·"}</span><span>${esc(t)}</span><span class="small">${esc(g.v)}</span></div>`; }).join("");
   const nq = (rs.open_questions || []).length + (c.questions || []).length;
   const qs = (rs.open_questions || []).map(x => `<li>${esc(x)} <span class="tier">调研</span></li>`).join("") + lis(c.questions);
@@ -1443,9 +1435,9 @@ function jumpCN(code) {
 }
 
 // ---------- left sidebar: section links with scroll-spy, industries (by number of screened companies)
-const SECTS = [["sChg", "本周变化"], ["sLt", "1.1 长期红利"], ["s2", "2.1 新兴筛选"], ["s4", "2.2 研究优先级"], ["sX", "3.1 成长 × 低估"], ["sVu", "3.2 价值 × 低估"],
-  ["sLk", "全市场速查"], ["sBk", "对比池"], ["sLg", "估值台账"], ["s6", "个股评估卡"], ["s5", "数据与方法"],
-  ["s1", "附录 · 行业热度"], ["sVc", "附录 · 价值通道"], ["sDv", "附录 · 红利筛选"], ["s3", "附录 · 基本面 / 交易标签"]];
+const SECTS = [["sChg", "本周变化"], ["s1", "总览 · 行业热度"], ["sLt", "1.1 长期红利"], ["s2", "2.1 新兴筛选"], ["s4", "2.2 研究优先级"],
+  ["sX", "3.1 成长 × 低估"], ["sVu", "3.2 价值 × 低估"], ["s3", "4.1 基本面 / 交易标签"], ["sLk", "全市场速查"], ["sBk", "对比池"], ["sLg", "估值台账"],
+  ["s6", "个股评估卡"], ["sDv", "附录 · 红利筛选"], ["s5", "数据与方法"]];
 let curSec = "sChg";
 function markSec() {
   document.querySelectorAll("#side a[data-sec], .steps a").forEach(a => { const on = (a.dataset.sec || a.getAttribute("href").slice(1)) === curSec || (a.dataset.grp || "").split(",").includes(curSec);
@@ -1575,8 +1567,7 @@ $("sLk").addEventListener("click", ev => {
   const h = ev.target.closest("[data-lk]"); if (h) { lkShow(h.dataset.lk, false); return; }
   const j = ev.target.closest("[data-lkjump]"); if (j) jumpCN(j.dataset.lkjump);
   const v = ev.target.closest("[data-lkvc]");
-  if (v) { const r = VC_BY[v.dataset.lkvc]; $("vcQ").value = v.dataset.lkvc; $("vcInd").value = ""; $("vcNot2").checked = false; if (r && r.cyclical) $("vcCyc").checked = true;
-    vcS.n = 50; renderVc(); $("sVc").scrollIntoView({behavior: "smooth", block: "start"}); }
+  if (v) vuShow(v.dataset.lkvc);
 });
 lkLead();
 
@@ -2926,6 +2917,7 @@ function vcList() {
       return (typeof x === "string" ? x.localeCompare(y, "zh-CN") : x - y) * vcS.dir; });
 }
 function renderVc() {
+  if (!$("vcBody")) return;   // the 价值通道 table was merged into 3.2 价值 × 低估（门槛选“不限”= 全部价值通道）
   if (!VC.file) {
     $("vcLead").innerHTML = '<span class="warn">还没有价值通道数据：运行 <code>python -m cn quality</code>（全市场 5 个财年财务 + 分红，约 230 次请求）后重新构建。</span>';
     $("vcHead").innerHTML = ""; $("vcBody").innerHTML = ""; $("vcMore").hidden = true; return;
@@ -2947,10 +2939,10 @@ function renderVc() {
     周期行业的高 ROE 可能出现在景气高点，所以只列出、不排名。金融类（银行、保险、券商）需要不同的模型，暂未覆盖。ROE 为东方财富披露的加权 ROE。`;
   bkSync();
 }
-$("vcHead").addEventListener("click", ev => { const b = ev.target.closest("[data-vcs]"); if (!b) return; const k = b.dataset.vcs, c = VC_COLS.find(x => x[0] === k);
+$("vcHead")?.addEventListener("click", ev => { const b = ev.target.closest("[data-vcs]"); if (!b) return; const k = b.dataset.vcs, c = VC_COLS.find(x => x[0] === k);
   vcS.dir = vcS.k === k ? -vcS.dir : c[4]; vcS.k = k; renderVc(); $("vcHead").querySelector(`[data-vcs="${k}"]`)?.focus(); });
-["vcQ", "vcInd", "vcNot2", "vcCyc"].forEach(id => $(id).addEventListener(id === "vcQ" ? "input" : "change", debounce(() => { vcS.n = 50; renderVc(); }, 120)));
-$("vcMore").onclick = () => { vcS.n += 50; renderVc(); };
+["vcQ", "vcInd", "vcNot2", "vcCyc"].forEach(id => $(id)?.addEventListener(id === "vcQ" ? "input" : "change", debounce(() => { vcS.n = 50; renderVc(); }, 120)));
+if ($("vcMore")) $("vcMore").onclick = () => { vcS.n += 50; renderVc(); };
 // ---------- 交集: 新兴筛选growth screen ∩ value channel ∩ base valuation above the price (live 估值参数, same numbers as the cards / 对比池)
 function renderX() {
   const thr = +$("xThr").value, cyc = $("xCyc").checked, tr = $("xTrade").checked, dr = $("xDrop").checked, hide = $("xHide").checked, srt = $("xSort").value;
@@ -2974,8 +2966,8 @@ function renderX() {
       <td class="small">${v.rank ? `第 ${v.rank} / ${VC.n_ranked}，得分 ${num(v.score, 1)}` : "周期不排名"}</td>
       <td class="n">${vcP(v.roe_med)}</td><td class="n">${vcP(v.fcfy)}<div class="small">股息 ${vcP(v.dy)}</div></td><td class="n">${pc(s.rev_yoy, 1)}</td>
       <td class="n">${dcfVs(x.gap)}<div class="small">${num(x.o.sc.base.vps, 2)} 元</div></td>
-      <td class="n">${v.ig != null ? `${vcP(v.ig)}<div class="small">历史 ${vcP(v.cagr)}</div>` : "—"}</td><td>${flags(x)}</td><td>${bkCtl(v.code)}</td></tr>`; }).join("")
-    || `<tr><td colspan="10" class="small">没有符合条件的公司（可以降低比例或放宽排除项）</td></tr>`;
+      <td class="n">${v.ig != null ? `${vcP(v.ig)}<div class="small">历史 ${vcP(v.cagr)}</div>` : "—"}</td><td class="nw">${instBadges(s, 2)}</td><td>${flags(x)}</td><td>${bkCtl(v.code)}</td></tr>`; }).join("")
+    || `<tr><td colspan="11" class="small">没有符合条件的公司（可以降低比例或放宽排除项）</td></tr>`;
   $("xCnt").textContent = `${L.length} 家`;
   $("xNote").innerHTML = `“Base 估值”是情景参考，不是目标价：对折现率、永续增速和利润率口径很敏感，换参数结论就会变；差距越大越要先查原因。点代码打开评估卡或在新兴筛选中定位。三者交集只是缩小研究范围，规则没有回测，不是买卖建议；不进入 研究优先级排序、标签、⚠ 数和对比池评分。`;
   bkSync();
@@ -3114,10 +3106,10 @@ $("ltQ").addEventListener("input", debounce(renderLt, 120));
 // ---------- 价值 × 低估: value channel rows whose price implies clearly less growth than the 4-year revenue CAGR; no growth screen
 function renderVu() {
   if (!VC.file) { $("vuLead").innerHTML = '<span class="warn">还没有价值通道数据：运行 <code>python -m cn quality</code> 后重新构建。</span>'; $("vuBody").innerHTML = ""; return; }
-  const thr = +$("vuThr").value, pmax = $("vuPct").value === "" ? null : +$("vuPct").value, cyc = $("vuCyc").checked, drop = $("vuDrop").checked, notIn = $("vuNotIn").checked;
-  const pass = r => r.ig_gap != null ? r.ig_gap <= -thr : r.igs === "below";
-  const L = VCR.filter(r => pass(r) && (cyc || !r.cyclical) && (!drop || !r.recent_drop) && (!notIn || !r.in2) && (pmax == null || (vpKey(r) != null && vpKey(r) <= pmax)))
-    .sort((a, b) => (a.ig_gap ?? -999) - (b.ig_gap ?? -999));
+  const all_ = $("vuThr").value === "all", q = $("vuQ").value.trim().toLowerCase(), thr = all_ ? 0 : +$("vuThr").value, pmax = $("vuPct").value === "" ? null : +$("vuPct").value, cyc = $("vuCyc").checked, drop = $("vuDrop").checked, notIn = $("vuNotIn").checked;
+  const pass = r => all_ || (r.ig_gap != null ? r.ig_gap <= -thr : r.igs === "below");
+  const L = VCR.filter(r => pass(r) && (cyc || !r.cyclical) && (!drop || !r.recent_drop) && (!notIn || !r.in2) && (!q || (r.code + " " + r.name).toLowerCase().includes(q)) && (pmax == null || (vpKey(r) != null && vpKey(r) <= pmax)))
+    .sort((a, b) => all_ ? (a.rank ?? 9999) - (b.rank ?? 9999) : (a.ig_gap ?? -999) - (b.ig_gap ?? -999));
   const all = VCR.filter(r => !r.cyclical && pass(r)).length;
   $("vuLead").innerHTML = `价值通道 ${VCR.length} 家中，非周期且现价隐含增速比过去 4 年营收增速低至少 ${thr}pt 的有 <b>${all}</b> 家；按当前条件列出 <b>${L.length}</b> 家，其中 <b>${L.filter(r => !r.in2).length}</b> 家不在新兴筛选里（成长 × 低估看不到它们）。按差距从大到小排列。`;
   const flags = r => { const f = [];
@@ -3128,20 +3120,27 @@ function renderVu() {
     if (r.label === "偏博弈") f.push(["", "新兴筛选标签：交易驱动"]);
     return f.map(([c, t]) => `<span class="tag ${c}" title="${esc(t)}">${esc(t.length > 12 ? t.slice(0, 12) + "…" : t)}</span>`).join(" ") || '<span class="small">—</span>'; };
   $("vuBody").innerHTML = L.slice(0, 150).map(r => `<tr>
-    <td class="nw">${coName(CARDS[r.code] ? codeCell(r.code) : r.in2 ? `<a href="#s2" data-lgjump="${esc(r.code)}">${esc(r.code)}</a>` : esc(r.code), r.name)}<div class="small">${r.in2 ? `新兴筛选内 · ${esc(lbT(r.label) || "")}` : "未进入新兴筛选"}${DV_BY[r.code] ? " · 红利筛选" : ""}${LT_BY[r.code] ? " · 长期红利" : ""}</div></td>
+    <td class="nw">${coName(CARDS[r.code] ? codeCell(r.code) : r.in2 ? `<a href="#s2" data-lgjump="${esc(r.code)}">${esc(r.code)}</a>` : `<button type="button" class="linkbtn" data-vulk="${esc(r.code)}" title="没有评估卡：打开全市场速查">${esc(r.code)}</button>`, r.name)}<div class="small">${r.in2 ? `新兴筛选内 · ${esc(lbT(r.label) || "")}` : "未进入新兴筛选"}${DV_BY[r.code] ? " · 红利筛选" : ""}${LT_BY[r.code] ? " · 长期红利" : ""}</div></td>
     <td class="small">${esc(r.industry)}</td><td class="n">${r.rank ?? "—"}</td><td class="n">${vcP(r.roe_med)}</td><td class="n">${vcP(r.fcfy)}</td><td class="n">${vcP(r.dy)}</td>
     <td class="n">${r.ig != null ? vcP(r.ig) : r.igs === "below" ? "&lt; −30%" : "—"}<div class="small">历史 ${vcP(r.cagr)}${r.ig_gap != null ? ` · 低 ${num(-r.ig_gap, 1)}pt` : ""}</div></td>
-    <td class="n">${vpTxt(r)}</td><td class="n">净利 ${pc(r.np_yoy, 0)}<div class="small">营收 ${pc(r.rev_yoy, 0)}</div></td><td>${flags(r)}</td>
+    <td class="n">${vpTxt(r)}</td><td class="n">净利 ${pc(r.np_yoy, 0)}<div class="small">营收 ${pc(r.rev_yoy, 0)}</div></td><td class="nw">${(lb => lb ? `<span class="tag lb-${esc(lb)}">${esc(lbT(lb))}</span><br>` : "")((rowOf(r.code) || {}).label)}${instBadges(r, 2)}</td><td>${flags(r)}</td>
     <td>${BYCODE[r.code] || LT_BY[r.code] ? bkCtl(r.code) : '<span class="small" title="对比池只收 新兴筛选内和长期红利公司">—</span>'}</td></tr>`).join("")
-    || `<tr><td colspan="11" class="small">没有符合条件的公司（可以降低差距要求或放宽估值分位）</td></tr>`;
+    || `<tr><td colspan="12" class="small">没有符合条件的公司（可以降低差距要求或放宽估值分位）</td></tr>`;
   $("vuCnt").textContent = `${Math.min(150, L.length)} / ${L.length} 家`;
   $("vuNote").innerHTML = `现价隐含增速：用价值通道同一套反向现金流估值，在现价下反推未来 10 年需要的营收增速（营收基数 = 最近财年，FCF 利润率 = 近 3 年平均，折现率 = 无风险利率 + ${VC.rules?.erp ?? ""}%）。
     差距越大，说明现价包含的预期越悲观；但如果 FCF 利润率只是暂时偏高（周期高点、一次性收入），差距就是假象。估值 5 年分位只和公司自己的历史比。不是买卖建议。`;
   bkSync();
 }
+// "不限（价值通道全部）" also shows cyclical and recent-drop companies (the user can switch them off again)
+$("vuThr").addEventListener("change", () => { if ($("vuThr").value === "all") { $("vuCyc").checked = true; $("vuDrop").checked = false; } });
 ["vuThr", "vuPct", "vuCyc", "vuDrop", "vuNotIn"].forEach(id => $(id).addEventListener("change", renderVu));
+$("vuQ").addEventListener("input", debounce(renderVu, 120));
+$("vuBody").addEventListener("click", ev => { const b = ev.target.closest("[data-vulk]"); if (b) lkShow(b.dataset.vulk, true); });
+// show one value-channel company in 3.2 (used by the lookup's "价值通道" link): all thresholds off, search = its code
+function vuShow(code) { const r = VC_BY[code]; $("vuThr").value = "all"; $("vuPct").value = ""; $("vuDrop").checked = false; $("vuNotIn").checked = false;
+  $("vuCyc").checked = !!(r && r.cyclical); $("vuQ").value = code; renderVu(); $("sVu").scrollIntoView({behavior: "smooth", block: "start"}); }
 // ---------- 本周变化 (cn/changes.py): view members at this quote date vs the previous one; display only
-const CHG_ORDER = ["x", "vu", "lt", "dv", "vc"], CHG_SEC = {x: "sX", vu: "sVu", lt: "sLt", dv: "sDv", vc: "sVc"};
+const CHG_ORDER = ["x", "vu", "lt", "dv", "vc"], CHG_SEC = {x: "sX", vu: "sVu", lt: "sLt", dv: "sDv", vc: "sVu"};
 function renderChg() {
   const C = D.changes;
   if (!C) { $("chgLead").textContent = "还没有记录：重新构建后生成。"; $("chgBody").innerHTML = ""; return; }

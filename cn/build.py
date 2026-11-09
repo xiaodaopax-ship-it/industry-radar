@@ -714,6 +714,9 @@ def build(path=None):
         rows_ = [r for b in ("value", "dividend", "longdiv") for r in (payload.get(b) or {}).get("rows") or []]
         log(f"valuation percentiles: {sum(1 for r in rows_ if r.get('pe_pct') is not None or r.get('pb_pct') is not None)}/{len(rows_)} rows "
             f"(valpct file {(vpd or {}).get('fetched_at', 'none')})")
+        # display only: tracked holders (北向 / 社保 / 证金 ...) for the 价值 × 低估 机构动向 column
+        for r in (payload.get("value") or {}).get("rows") or []:
+            r["inst"] = {k: hmod.compact(v) for k, v in hmod.derive_code(hdoc, r["code"]).items()}
     except Exception as e:  # noqa: BLE001
         log(f"WARNING: value channel skipped ({type(e).__name__}: {e})")
         payload["value"] = {"file": None}

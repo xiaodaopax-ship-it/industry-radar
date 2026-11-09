@@ -71,7 +71,7 @@ def card_codes(res):
 
 # extra full cards: every company of the long-term dividend view (cn/dividend.long_term) that is not in ②. Their rows are
 # built with the same gates / label rules (build.analyze row_for) but stay out of ②, ③, counts and the 对比池 score.
-EXTRA_SOURCES = ("longdiv", "cross")
+EXTRA_SOURCES = ("longdiv", "cross", "vu")
 # "cross" = the 交集 view under default parameters: ② ∩ value channel ∩ base valuation >= +15% above the price (ledger record of
 # the current snapshot, default parameters), not cyclical, not 偏博弈, no recent profit drop (the page defaults)
 CROSS_GAP_MIN = 0.15
@@ -105,6 +105,11 @@ def extra_codes(snap, res):
             if x["gap_base"] >= CROSS_GAP_MIN and not (v["cyclical"] or s["cyclical"]) and s["label"] != "偏博弈" and not v.get("recent_drop"):
                 cross.append((x["gap_base"], v["code"]))
         out += [(c, "cross") for _, c in sorted(cross, reverse=True)]
+    if "vu" in EXTRA_SOURCES:
+        # 价值 × 低估 view under the page defaults (cn/changes.is_vu), channel rank order, only codes not in ②
+        from .changes import is_vu
+        vc = qmod.channel(snap, res, qdoc, ((vdoc or {}).get("rf") or {}).get("value"))
+        out += [(r["code"], "vu") for r in vc.get("rows") or [] if is_vu(r) and r["code"] not in screen]
     seen, uniq = set(), []
     for c, s in out:
         if c not in seen:

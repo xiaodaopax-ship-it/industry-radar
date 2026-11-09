@@ -788,8 +788,12 @@ def dividend_checks():
     xr = {r["code"] for r in res2["extra_rows"]}
     cards = set(CM.card_codes(res2))
     fin_ok = all(r["gates"]["ocf"]["s"] == "na" for r in res2["extra_rows"] if any(w in (r.get("industry") or "") for w in B.FIN_INDUSTRY_WORDS))
-    check("extra cards: every long-term dividend company has a card; extra rows are outside ② and ② / ③ are unchanged; financial rows mark OCF n/a",
-          lt_codes <= cards and not (xr & scr) and xr == lt_codes - scr and len(res2["screen"]) == n_screen and fin_ok,
+    from .changes import is_vu
+    vu_codes = {r["code"] for r in QM.channel(snap, res2, qdoc, 1.64)["rows"] if is_vu(r)}
+    ex_out = {c for c, _ in CM.extra_codes(snap, res2)} - scr
+    check("extra cards: every long-term dividend and 价值 × 低估 company outside ② has a card; extra rows are outside ② and ② / ③ are unchanged; financial rows mark OCF n/a",
+          lt_codes <= cards and (vu_codes - scr) <= cards and not (xr & scr) and xr == ex_out and (lt_codes | vu_codes) - scr <= xr
+          and len(res2["screen"]) == n_screen and fin_ok,
           f"extra={len(res2['extra_codes'])} extra_rows={len(xr)} cards={len(cards)}")
 
 
