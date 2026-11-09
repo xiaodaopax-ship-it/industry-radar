@@ -82,6 +82,21 @@
   .chg-co { background:var(--raised); border:1px solid var(--line2); color:var(--text); border-radius:999px; padding:2px 9px; margin:2px 4px 2px 0; font:inherit; font-size:12px; cursor:pointer; }
   .chg-co:hover { border-color:var(--accent); } .chg-co b { color:var(--accent); margin-right:4px; font-weight:600; }
   .chg-co.out { color:var(--muted); } .chg-co.out b { color:var(--muted); }
+  /* parent groups (一 / 二 / 三), tools band and the collapsed appendix */
+  .grp-band { display:flex; align-items:baseline; gap:10px; margin:26px 0 8px; padding:10px 14px; border-radius:var(--r2);
+              background:linear-gradient(90deg, rgba(55,198,224,.14), rgba(55,198,224,0)); border-left:3px solid var(--accent); scroll-margin-top:calc(var(--stick, 0px) + 12px); }
+  .grp-band .gb-n { font-weight:800; font-size:18px; color:var(--accent); }
+  .grp-band .gb-t { margin:0; font-size:18px; }
+  .grp-band .gb-s { font-size:12.5px; color:var(--muted); }
+  .grp-band.tools { background:linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,0)); border-left-color:var(--line2); }
+  .grp-band.tools .gb-n { color:var(--muted); }
+  details.appx { margin:26px 0 8px; border:1px dashed var(--line2); border-radius:var(--r2); padding:0 10px; scroll-margin-top:calc(var(--stick, 0px) + 12px); }
+  details.appx > summary { cursor:pointer; padding:12px 4px; display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; }
+  details.appx > summary b { font-size:16px; }
+  details.appx > summary .gb-n { font-weight:800; color:var(--muted); }
+  .side .gp { font-weight:650; margin-top:4px; }
+  .side .gp-sub { margin:0 0 4px 12px; padding-left:6px; border-left:1px solid var(--line); }
+  .side .gp-sub a.sl { font-size:12.5px; padding:3px 8px; }
   .tscroll { max-height:72vh; overflow:auto; border:1px solid var(--line); border-radius:var(--r2); margin:6px 0; }
   .tscroll thead th { position:sticky; top:0; z-index:1; background:var(--raised); }
   .tscroll tbody tr:last-child > td { border-bottom:none; }
@@ -370,14 +385,14 @@
 </style>
 </head>
 <body>
-<a class="skip" href="#s0">跳到主要内容</a>
+<a class="skip" href="#g1">跳到主要内容</a>
 <div class="topbar">
   <button type="button" class="btn" id="sideBtn" aria-controls="side" aria-expanded="false">☰ 导航</button>
   <b>Industry Radar</b><span class="small" id="topCtx"></span>
   <span class="mkt-sw" role="group" aria-label="切换看板"><span class="on" aria-current="page">美股</span><a href="cn/index.html" data-mkt="cn">A 股</a></span>
 </div>
 <nav class="side" id="side" aria-label="页面导航">
-  <div class="brand">Industry Radar<span>行业 → 细分 → 龙头与新兴 → 机会</span></div>
+  <div class="brand">Industry Radar<span>一 行业成长筛选 · 二 低估筛选</span></div>
   <div class="mkt-sw" role="group" aria-label="切换看板"><span class="on" aria-current="page">美股</span><a href="cn/index.html" data-mkt="cn">A 股</a></div>
   <div class="qs" role="search">
     <div class="gt"><label for="qs">公司快速跳转</label></div>
@@ -385,12 +400,14 @@
     <div class="sr-only" id="qsHint">输入后按回车跳到第一条结果，或用下方向键选择</div>
     <div class="qs-res" id="qsRes" aria-live="polite"></div>
   </div>
-  <div><div class="gt">全市场</div>
-    <ul><li><a class="sl" href="#sChg" data-sec="sChg">本周变化</a></li><li><a class="sl" href="#sLk" data-sec="sLk">全市场速查</a></li><li><a class="sl" href="#s0" data-sec="s0">⓪ 全市场热度</a></li><li><a class="sl" href="#sPeg" data-sec="sPeg">PEG 筛选</a></li>
-      <li><a class="sl" href="#sVc" data-sec="sVc">价值通道</a></li><li><a class="sl" href="#sX" data-sec="sX">交集：成长 × 价值 × 低估</a></li><li><a class="sl" href="#sVu" data-sec="sVu">价值 × 低估（不看成长）</a></li><li><a class="sl" href="#sOv" data-sec="sOv">海外对照 · 韩国内存</a></li>
-      <li><a class="sl" href="#sDcf" data-sec="sDcf">估值参数（DCF）</a></li>
-      <li><a class="sl" href="#sLdg" data-sec="sLdg">估值台账 · 本期变化</a></li>
-      <li><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a></li></ul></div>
+  <div><div class="gt">页面分节</div>
+    <ul>
+      <li><a class="sl" href="#sChg" data-sec="sChg">本周变化</a></li>
+      <li><a class="sl gp" href="#g1" data-grp="s4,s3">一、行业成长筛选</a><div class="gp-sub"><a class="sl" href="#s4" data-sec="s4">1.1 新兴机会</a><a class="sl" href="#s3" data-sec="s3">1.2 龙头分析</a></div></li>
+      <li><a class="sl gp" href="#g2" data-grp="sX,sVu">二、低估筛选</a><div class="gp-sub"><a class="sl" href="#sX" data-sec="sX">2.1 成长 × 低估</a><a class="sl" href="#sVu" data-sec="sVu">2.2 价值 × 低估</a></div></li>
+      <li><a class="sl gp" href="#gT">工具</a><div class="gp-sub"><a class="sl" href="#sLk" data-sec="sLk">全市场速查</a><a class="sl" href="#sDcf" data-sec="sDcf">估值参数（DCF）</a><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a><a class="sl" href="#sLdg" data-sec="sLdg">估值台账</a><a class="sl" href="#sOv" data-sec="sOv">海外对照 · 韩国内存</a><a class="sl" href="#s6" data-sec="s6">数据与方法</a></div></li>
+      <li><a class="sl gp" href="#gA" data-grp="s0,sPeg,sVc,s1,s2,s5">附录（默认收起）</a><div class="gp-sub"><a class="sl" href="#s0" data-sec="s0">全市场热度</a><a class="sl" href="#sPeg" data-sec="sPeg">PEG 筛选</a><a class="sl" href="#sVc" data-sec="sVc">价值通道</a><a class="sl" href="#s1" data-sec="s1">行业总览</a><a class="sl" href="#s2" data-sec="s2">细分拆解</a><a class="sl" href="#s5" data-sec="s5">机会清单</a></div></li>
+    </ul></div>
   <div><div class="gt">行业</div><ul id="sideSecs"></ul></div>
 </nav>
 <div class="backdrop" id="sideBack"></div>
@@ -398,7 +415,7 @@
   <header>
     <div>
       <h1 id="pageTop" tabindex="-1">Industry Radar</h1>
-      <div class="sub">行业整体分析 → 细分领域拆解 → 龙头与新兴公司 → 研究机会清单 · <a href="cn/index.html">A 股看板（独立数据与规则）→</a></div>
+      <div class="sub">一 行业成长筛选（1.1 新兴机会 · 1.2 龙头分析）→ 二 低估筛选（2.1 成长 × 低估 · 2.2 价值 × 低估）→ 工具 · 附录 · <a href="cn/index.html">A 股看板（独立数据与规则）→</a></div>
     </div>
     <div class="chips" id="chips"></div>
   </header>
@@ -409,71 +426,51 @@
     <div class="chg-grid" id="chgBody"></div>
   </section>
 
-  <!-- 全市场速查 (any SEC filer: why it is / is not in the screens) -->
-  <section id="sLk" aria-labelledby="lkTitle">
-    <h2 id="lkTitle"><span class="step-tag">查</span>全市场速查（美股）</h2>
-    <p class="lead" id="lkLead"></p>
-    <div class="toolbar" role="search"><label for="lkQ" class="small">代码或公司名</label>
-      <input type="search" id="lkQ" placeholder="例如 KO 或 Coca-Cola" autocomplete="off" aria-controls="lkRes"></div>
-    <div id="lkRes" aria-live="polite"></div>
-    <div id="lkOne"></div>
-  </section>
+  <div class="sticky">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <nav class="steps" aria-label="分析步骤">
+      <a href="#g1" data-grp="s4,s3">一 行业成长筛选</a><a href="#g2" data-grp="sX,sVu">二 低估筛选</a><a href="#sLk">速查</a><a href="#sDcf">估值参数</a><a href="#sBk">对比池</a><a href="#sLdg">估值台账</a><a href="#sOv">海外对照</a><a href="#gA" data-grp="s0,sPeg,sVc,s1,s2,s5">附录</a>
+    </nav>
+  </div>
 
-  <!-- ⓪ market-wide heat -->
-  <section id="s0">
-    <h2><span class="step-tag">⓪</span>全市场行业热度（美股）</h2>
-    <p class="lead" id="hmLead"></p>
-    <div class="grid g5" id="hmKpis"></div>
-    <h3>按 SIC 大类（面积 = 最新季度营收合计；颜色 = 公司营收同比中位数；点击筛选下方细分行业）</h3>
-    <svg id="hmTree" viewBox="0 0 1300 300" width="100%" role="img" aria-label="全市场行业大类营收树图"></svg>
-    <div class="legend"><span>增速中位数</span><span>−20%</span><span class="grad"></span><span>+80%</span><span>白框 = 本工具已覆盖的大类</span></div>
-    <h3>大类排行</h3>
-    <div class="tscroll"><table><thead><tr id="hmHead"></tr></thead><tbody id="hmTbl"></tbody></table></div>
-    <h3>细分行业（4 位 SIC）<span id="hmFilt" class="small"></span></h3>
+  <div class="grp-band" id="g1"><span class="gb-n">一</span><h2 class="gb-t">行业成长筛选</h2><span class="gb-s">按上方行业标签切换：新兴公司按 10 个因子排研究顺序，龙头看估值和 PEG</span></div>
+
+  <!-- ④ -->
+  <section id="s4">
+    <h2><span class="step-tag">1.1</span>新兴机会筛选</h2>
+    <p class="lead" id="poolHow"></p>
+    <h3 id="bubTitle">增速 × 毛利率（气泡大小 = 市值；实心 = 新兴公司，按结论着色；空心紫圈 = 龙头，作参照）</h3>
+    <svg id="bubble" viewBox="0 0 1300 360" width="100%" role="img" aria-label="新兴公司增速与毛利率散点图"></svg>
+    <div class="legend"><span><span class="dot" style="background:#37c6e0"></span>优先研究</span><span><span class="dot" style="background:#3fbf7f"></span>可以观察</span><span><span class="dot" style="background:#5b636e"></span>暂不优先</span><span><span class="dot" style="border:2px solid #a78bfa"></span>龙头</span><span>横轴超过 150% 的放在最右侧</span></div>
+    <h3>研究优先池 · Top <span id="poolN"></span></h3>
+    <div class="grid g5" id="pool"></div>
     <div class="toolbar">
-      <label><input type="checkbox" id="hmUncov"> 只看本工具还没覆盖的行业</label>
-      <button class="btn" type="button" id="hmClear">清除大类筛选</button>
-      <span class="small" id="hmCount"></span>
+      <label>环节 <select id="fSeg"><option value="">全部</option></select></label>
+      <label>市场 <select id="fMkt"><option value="">全部</option></select></label>
+      <label>股价（美元） <select id="fPx"><option value="">全部</option><option value="0-50">50 以下</option><option value="50-100">50 ~ 100</option><option value="100-200">100 ~ 200</option><option value="200-">200 以上</option></select></label>
+      <label>结论 <select id="fLv"><option value="">全部</option><option>优先研究</option><option>可以观察</option><option>暂不优先</option></select></label>
+      <label><input type="checkbox" id="fHideCyc"> 隐藏周期性环节</label>
+      <span class="small" id="count"></span>
     </div>
-    <div class="tscroll"><table><thead><tr><th scope="col">SIC</th><th scope="col">行业（SEC 英文名称）</th><th scope="col" class="n">家数</th><th scope="col" class="n">加权增速</th><th scope="col" class="n">增速中位数</th><th scope="col" class="n">增速 ≥20% 占比</th><th scope="col" class="n">加速占比</th><th scope="col" class="n">毛利率变化</th><th scope="col">高增长公司（同比 ≥20%）</th><th scope="col">配置判断</th><th scope="col">已覆盖</th></tr></thead><tbody id="hmInd"></tbody></table></div>
-    <p class="note" id="hmRule"></p>
-    <p class="note">口径：所有在 SEC XBRL 报送可比季度营收的公司，上年同季营收 ≥ 500 万美元；单家同比封顶在 −90% ~ +300%，避免个别公司扭曲结果。每组至少 8 家公司才显示。加权增速 = 组内营收合计的同比，由大公司主导；增速中位数代表典型公司。加速占比 = 本季同比高于上季同比的公司比例。毛利率 / 营业利润率变化为同比百分点的中位数。热度只说明增长在哪里，不区分周期反弹和结构性增长，需要结合行业知识判断。</p>
+    <div class="tscroll"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
+    <h3>评估卡</h3>
+    <div id="cards"></div>
   </section>
 
-  <!-- PEG screen (cross-sector) -->
-  <section id="sPeg">
-    <h2><span class="step-tag">PEG</span>PEG 筛选（美股，跨行业）</h2>
-    <p class="lead" id="pgLead"></p>
-    <div class="toolbar">
-      <label>范围 <select id="pgTier"><option value="pass">通过：前瞻与历史一致</option><option value="watch">待核实：前瞻低，但历史不支持或有背离</option><option value="all">两者都显示</option></select></label>
-      <label>类型 <select id="pgKind"><option value="">全部</option><option value="emerging">新兴</option><option value="leader">龙头</option></select></label>
-      <span class="small" id="pgCount"></span>
-    </div>
-    <div class="tscroll"><table><thead><tr id="pgHead"></tr></thead><tbody id="pgBody"></tbody></table></div>
-    <p class="note" id="pgNote"></p>
+  <!-- ③ -->
+  <section id="s3">
+    <h2><span class="step-tag">1.2</span>龙头分析 · <span id="ldSegName"></span></h2>
+    <p class="lead">每个环节手动挑选的龙头（只含美国上市公司，TSM 等在美上市的 ADR 计入）。看它们的增长、利润率、估值、财报与预期，以及一年走势是否跑赢行业 ETF。</p>
+    <div class="grid g4" id="leaders"></div>
+    <h3>龙头评估卡</h3>
+    <div id="ldCards"></div>
   </section>
 
-  <!-- 价值通道 (value channel: long-run quality + valuation yields; display only) -->
-  <section id="sVc" aria-labelledby="vcTitle">
-    <h2 id="vcTitle"><span class="step-tag">价</span>价值通道 · 长期质量 + 估值收益率（美股）</h2>
-    <p class="lead" id="vcLead"></p>
-    <p class="small warn">价值通道是和行业成长筛选并列的第二个入口：不要求营收高增长，看过去 5 个财年的 ROE、自由现金流、现金转化和负债，再按质量和估值收益率在通道内排序。排序只表示“按这六个维度先看谁”，没有回测，不是买卖建议；不进入评分、因子、结论、PEG 分层和对比池评分。</p>
-    <div class="toolbar" role="group" aria-label="价值通道筛选">
-      <label class="small" for="vcGrp">口径</label><select id="vcGrp"><option value="std">标准（非金融）</option><option value="fin">金融（银行、保险、券商、资管）</option></select>
-      <label class="small" for="vcQ">搜索</label><input type="search" id="vcQ" placeholder="代码或名称" autocomplete="off">
-      <label class="small" for="vcSic">行业（SIC）</label><select id="vcSic"><option value="">全部</option></select>
-      <label class="small"><input type="checkbox" id="vcNotIn"> 只看不在行业筛选里的</label>
-      <label class="small"><input type="checkbox" id="vcCyc"> 包含周期行业（不排名）</label>
-      <span class="small" id="vcCnt" role="status" aria-live="polite"></span>
-    </div>
-    <div class="tscroll vc-t"><table><thead><tr id="vcHead"></tr></thead><tbody id="vcBody"></tbody></table></div>
-    <div class="toolbar"><button type="button" class="btn" id="vcMore">显示更多</button></div>
-    <p class="note" id="vcNote"></p>
-  </section>
+  <div class="grp-band" id="g2"><span class="gb-n">二</span><h2 class="gb-t">低估筛选</h2><span class="gb-s">现价低于现金流估值，或现价隐含的增长 / ROE 明显低于历史</span></div>
 
   <!-- 交集: in the sector growth screen AND the value channel AND price below the base valuation (live parameters) -->
   <section id="sX" aria-labelledby="xTitle">
-    <h2 id="xTitle"><span class="step-tag">∩</span>交集 · 成长 × 价值 × 现价低于估值</h2>
+    <h2 id="xTitle"><span class="step-tag">2.1</span>成长 × 低估 · 行业成长筛选 × 价值通道 × 现价低于估值</h2>
     <p class="lead" id="xLead"></p>
     <div class="toolbar" role="group" aria-label="交集筛选">
       <label class="small" for="xThr">基准估值高于现价至少</label><select id="xThr"><option value="0">0%</option><option value="15" selected>15%</option><option value="30">30%</option><option value="50">50%</option></select>
@@ -490,7 +487,7 @@
 
   <!-- 价值 × 低估: value channel rows whose price implies clearly less growth (financial: lower ROE) than history; no sector screen -->
   <section id="sVu" aria-labelledby="vuTitle">
-    <h2 id="vuTitle"><span class="step-tag">V</span>价值 × 低估 · 不要求行业筛选</h2>
+    <h2 id="vuTitle"><span class="step-tag">2.2</span>价值 × 低估 · 不要求行业筛选</h2>
     <p class="lead" id="vuLead"></p>
     <p class="dcf-disc">交集要求公司先在 14 个配置行业的成长筛选里，增长慢或不在这些行业的公司进不去。这里只看价值通道和现价包含的假设：标准口径看“现价隐含增速”比过去 4 年营收增速低多少，金融口径看“现价隐含 ROE”比 5 年 ROE 中位数低多少。差距大可能是被低估，也可能是市场看到了历史数据看不到的问题（价值陷阱），每家都要先看原因。只缩小研究范围，不是推荐，规则没有回测。</p>
     <div class="toolbar" role="group" aria-label="价值 × 低估筛选">
@@ -506,15 +503,16 @@
     <p class="note" id="vuNote"></p>
   </section>
 
-  <!-- 海外对照: fixed watch list outside the US screen (radar/overseas.py), display only -->
-  <section id="sOv" aria-labelledby="ovTitle">
-    <h2 id="ovTitle"><span class="step-tag">🌏</span>海外对照 · 韩国内存</h2>
-    <p class="lead" id="ovLead"></p>
-    <p class="dcf-disc">固定观察名单，不进入美股筛选、因子、结论、台账和对比池评分；价格是上市地货币。内存是强周期行业：盈利最高时市盈率最低，前瞻市盈率低不等于便宜。不是买卖建议。</p>
-    <div class="tscroll"><table><thead><tr><th scope="col">名称</th><th scope="col">类型</th><th scope="col" class="n">最新价</th><th scope="col" class="n">1 周</th><th scope="col" class="n">1 个月</th>
-      <th scope="col" class="n">3 个月</th><th scope="col" class="n">1 年</th><th scope="col" class="n">距 52 周高点</th><th scope="col">近一年走势（周收盘）</th><th scope="col">52 周位置</th>
-      <th scope="col" class="n">前瞻市盈率（本年 / 下年）</th><th scope="col" class="n">一致预期 EPS 增速</th><th scope="col" class="n">目标价中位数（隐含空间）</th><th scope="col">下次财报</th></tr></thead><tbody id="ovBody"></tbody></table></div>
-    <p class="note" id="ovNote"></p>
+  <div class="grp-band tools" id="gT"><span class="gb-n">工</span><h2 class="gb-t">工具</h2><span class="gb-s">速查 · 估值参数 · 对比 · 台账 · 海外对照 · 方法</span></div>
+
+  <!-- 全市场速查 (any SEC filer: why it is / is not in the screens) -->
+  <section id="sLk" aria-labelledby="lkTitle">
+    <h2 id="lkTitle"><span class="step-tag">查</span>全市场速查（美股）</h2>
+    <p class="lead" id="lkLead"></p>
+    <div class="toolbar" role="search"><label for="lkQ" class="small">代码或公司名</label>
+      <input type="search" id="lkQ" placeholder="例如 KO 或 Coca-Cola" autocomplete="off" aria-controls="lkRes"></div>
+    <div id="lkRes" aria-live="polite"></div>
+    <div id="lkOne"></div>
   </section>
 
   <!-- 现金流估值参数 (cash-flow valuation reference; display only, computed in this page) -->
@@ -524,17 +522,6 @@
     <div class="dcf-form" id="dcfForm" role="group" aria-label="估值参数"></div>
     <div class="toolbar"><button type="button" class="btn ghost" id="dcfReset">恢复默认</button><button type="button" class="btn ghost" id="dcfOvClear">清除全部单独设定</button><span class="small" id="dcfMsg" role="status" aria-live="polite"></span></div>
     <p class="note" id="dcfCov"></p>
-  </section>
-
-  <!-- 估值台账 (valuation ledger: default-parameter records over time; display only) -->
-  <section id="sLdg" aria-labelledby="ldgTitle">
-    <h2 id="ldgTitle"><span class="step-tag">台账</span>估值台账 · 本期变化</h2>
-    <p class="lead">每周更新后按<b>默认参数</b>给每家公司记一笔（股价、Bear / Base / Bull、隐含增速、FCF 利润率与口径、起始增速、一致预期），只追加不改写，用来看“这一期数据变了什么、估值因此变了多少”。基准估值的变化按 营收基数 R0 → FCF 利润率路径（m0 / 口径 / 爬坡起点）→ 起始增速 g0 → 净现金与股数 → 参数（rf / ERP / gT / 爬坡 N、T）的固定顺序依次替换做归因，各项相加等于总变化；顺序不同拆分会不同。</p>
-    <p class="small warn">台账记录的是模型在默认参数下的输出，用来对比数据变化带来的估值变化；不是目标价，不是买卖建议；方法未回测。</p>
-    <div id="ldgFilt"></div>
-    <div id="ldgBody"></div>
-    <div id="ldgFwd" class="ldg-fwd"></div>
-    <span class="small" id="ldgMsg" role="status" aria-live="polite"></span>
   </section>
 
   <!-- 对比池 (comparison basket, cross-sector; stored in this browser only) -->
@@ -564,84 +551,26 @@
     <p class="note">池内相对排序：只反映所选这几家在下列口径上的相对位置，换一批公司分数就会变。不是买卖建议，不预测股价；PEG 与分析师目标价只展示、不计分。</p>
   </section>
 
-  <div class="sticky">
-    <div class="tabs" role="tablist" id="tabs"></div>
-    <nav class="steps" aria-label="分析步骤">
-      <a href="#sLk">速查</a><a href="#s0">⓪ 全市场热度</a><a href="#sPeg">PEG 筛选</a><a href="#sVc">价值通道</a><a href="#sX">交集</a><a href="#sVu">价值 × 低估</a><a href="#sOv">海外对照</a><a href="#sDcf">估值参数</a><a href="#sLdg">估值台账</a><a href="#sBk">对比池</a><a href="#s1">① 行业总览</a><a href="#s2">② 细分拆解</a><a href="#s3">③ 龙头分析</a><a href="#s4">④ 新兴机会</a><a href="#s5">⑤ 机会清单</a><a href="#s6">数据与方法</a>
-    </nav>
-  </div>
-
-  <!-- ① -->
-  <section id="s1">
-    <h2><span class="step-tag">①</span>行业总览</h2>
-    <p class="lead" id="thesis"></p>
-    <div class="grid g4" id="kpis"></div>
-    <div class="grid g2" style="margin-top:12px">
-      <div><h3 id="benchTitle"></h3><svg id="benchChart" viewBox="0 0 620 230" width="100%" role="img" aria-label="行业 ETF 与大盘一年走势"></svg></div>
-      <div><h3>需求证据</h3><div id="demand"></div><p class="note" id="lynch"></p></div>
-    </div>
-    <h3>细分环节规模（颜色 = 营收增速中位数；点击进入细分）
-      <span class="seg-pick" style="display:inline-flex;margin:0 0 0 10px" role="group" aria-label="面积口径"><button type="button" data-area="mcap" aria-pressed="true">面积 = 覆盖市值</button><button type="button" data-area="count" aria-pressed="false">面积 = 公司家数</button></span></h3>
-    <svg id="segTree" viewBox="0 0 1300 260" width="100%" role="img" aria-label="细分环节市值树图"></svg>
-    <div class="legend"><span>增速</span><span>−20%</span><span class="grad"></span><span>+80%</span><span>带橙色边框的是周期性环节</span></div>
+  <!-- 估值台账 (valuation ledger: default-parameter records over time; display only) -->
+  <section id="sLdg" aria-labelledby="ldgTitle">
+    <h2 id="ldgTitle"><span class="step-tag">账</span>估值台账 · 本期变化</h2>
+    <p class="lead">每周更新后按<b>默认参数</b>给每家公司记一笔（股价、Bear / Base / Bull、隐含增速、FCF 利润率与口径、起始增速、一致预期），只追加不改写，用来看“这一期数据变了什么、估值因此变了多少”。基准估值的变化按 营收基数 R0 → FCF 利润率路径（m0 / 口径 / 爬坡起点）→ 起始增速 g0 → 净现金与股数 → 参数（rf / ERP / gT / 爬坡 N、T）的固定顺序依次替换做归因，各项相加等于总变化；顺序不同拆分会不同。</p>
+    <p class="small warn">台账记录的是模型在默认参数下的输出，用来对比数据变化带来的估值变化；不是目标价，不是买卖建议；方法未回测。</p>
+    <div id="ldgFilt"></div>
+    <div id="ldgBody"></div>
+    <div id="ldgFwd" class="ldg-fwd"></div>
+    <span class="small" id="ldgMsg" role="status" aria-live="polite"></span>
   </section>
 
-  <!-- ② -->
-  <section id="s2">
-    <h2><span class="step-tag">②</span>细分领域拆解</h2>
-    <p class="lead">先看每个细分环节在"增长 × 估值"上的位置，再挑一个环节看里面谁占多大分量。</p>
-    <div class="grid g2">
-      <div><h3 id="quadTitle">增长 × 估值（气泡大小 = 覆盖市值，横轴 = 营收增速中位数，纵轴 = 市销率中位数）</h3>
-        <svg id="segQuad" viewBox="0 0 620 330" width="100%" role="img" aria-label="细分环节的增长与估值象限图"></svg></div>
-      <div><h3>环节一览</h3><table><thead><tr><th scope="col">环节</th><th scope="col" class="n">龙头 / 新兴 / 优先</th><th scope="col" class="n">增速中位数<br>龙头 · 新兴</th><th scope="col" class="n" id="segThM">毛利率</th><th scope="col" class="n" id="segThV">市销率</th><th scope="col">数据判断</th></tr></thead><tbody id="segTbl"></tbody></table></div>
-    </div>
-    <h3>选择细分环节</h3>
-    <div class="seg-pick" id="segPick" role="group" aria-label="细分环节"></div>
-    <div class="grid g2">
-      <div><h3 id="coTreeTitle"></h3><svg id="coTree" viewBox="0 0 640 320" width="100%" role="img" aria-label="环节内公司市值占比树图"></svg>
-        <div class="legend"><span><span class="dot" style="border:2px solid #a78bfa"></span>紫框 = 龙头</span><span>面积 = 在本工具覆盖公司中的市值占比，不是市场份额</span></div></div>
-      <div><h3>环节需求证据</h3><div id="segDemand"></div><h3>环节判断（数据面）</h3><div class="concl" id="segJudge"></div></div>
-    </div>
-  </section>
-
-  <!-- ③ -->
-  <section id="s3">
-    <h2><span class="step-tag">③</span>龙头分析 · <span id="ldSegName"></span></h2>
-    <p class="lead">每个环节手动挑选的龙头（只含美国上市公司，TSM 等在美上市的 ADR 计入）。看它们的增长、利润率、估值、财报与预期，以及一年走势是否跑赢行业 ETF。</p>
-    <div class="grid g4" id="leaders"></div>
-    <h3>龙头评估卡</h3>
-    <div id="ldCards"></div>
-  </section>
-
-  <!-- ④ -->
-  <section id="s4">
-    <h2><span class="step-tag">④</span>新兴机会筛选</h2>
-    <p class="lead" id="poolHow"></p>
-    <h3 id="bubTitle">增速 × 毛利率（气泡大小 = 市值；实心 = 新兴公司，按结论着色；空心紫圈 = 龙头，作参照）</h3>
-    <svg id="bubble" viewBox="0 0 1300 360" width="100%" role="img" aria-label="新兴公司增速与毛利率散点图"></svg>
-    <div class="legend"><span><span class="dot" style="background:#37c6e0"></span>优先研究</span><span><span class="dot" style="background:#3fbf7f"></span>可以观察</span><span><span class="dot" style="background:#5b636e"></span>暂不优先</span><span><span class="dot" style="border:2px solid #a78bfa"></span>龙头</span><span>横轴超过 150% 的放在最右侧</span></div>
-    <h3>研究优先池 · Top <span id="poolN"></span></h3>
-    <div class="grid g5" id="pool"></div>
-    <div class="toolbar">
-      <label>环节 <select id="fSeg"><option value="">全部</option></select></label>
-      <label>市场 <select id="fMkt"><option value="">全部</option></select></label>
-      <label>股价（美元） <select id="fPx"><option value="">全部</option><option value="0-50">50 以下</option><option value="50-100">50 ~ 100</option><option value="100-200">100 ~ 200</option><option value="200-">200 以上</option></select></label>
-      <label>结论 <select id="fLv"><option value="">全部</option><option>优先研究</option><option>可以观察</option><option>暂不优先</option></select></label>
-      <label><input type="checkbox" id="fHideCyc"> 隐藏周期性环节</label>
-      <span class="small" id="count"></span>
-    </div>
-    <div class="tscroll"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
-    <h3>评估卡</h3>
-    <div id="cards"></div>
-  </section>
-
-  <!-- ⑤ -->
-  <section id="s5">
-    <h2><span class="step-tag">⑤</span>机会清单</h2>
-    <p class="lead">把前面四步合在一起：哪些细分环节值得看，每个环节里先研究谁，各自的机会和风险是什么。</p>
-    <div id="oppSeg"></div>
-    <h3>全部行业的研究优先池 <button class="btn" id="csv" type="button">导出 CSV</button></h3>
-    <div class="tscroll"><table><thead><tr><th scope="col">行业</th><th scope="col">环节</th><th scope="col">代码</th><th scope="col">一句话</th><th scope="col">机会</th><th scope="col">风险</th><th scope="col" class="n">下次财报</th></tr></thead><tbody id="oppAll"></tbody></table></div>
+  <!-- 海外对照: fixed watch list outside the US screen (radar/overseas.py), display only -->
+  <section id="sOv" aria-labelledby="ovTitle">
+    <h2 id="ovTitle"><span class="step-tag">🌏</span>海外对照 · 韩国内存</h2>
+    <p class="lead" id="ovLead"></p>
+    <p class="dcf-disc">固定观察名单，不进入美股筛选、因子、结论、台账和对比池评分；价格是上市地货币。内存是强周期行业：盈利最高时市盈率最低，前瞻市盈率低不等于便宜。不是买卖建议。</p>
+    <div class="tscroll"><table><thead><tr><th scope="col">名称</th><th scope="col">类型</th><th scope="col" class="n">最新价</th><th scope="col" class="n">1 周</th><th scope="col" class="n">1 个月</th>
+      <th scope="col" class="n">3 个月</th><th scope="col" class="n">1 年</th><th scope="col" class="n">距 52 周高点</th><th scope="col">近一年走势（周收盘）</th><th scope="col">52 周位置</th>
+      <th scope="col" class="n">前瞻市盈率（本年 / 下年）</th><th scope="col" class="n">一致预期 EPS 增速</th><th scope="col" class="n">目标价中位数（隐含空间）</th><th scope="col">下次财报</th></tr></thead><tbody id="ovBody"></tbody></table></div>
+    <p class="note" id="ovNote"></p>
   </section>
 
   <!-- data & method -->
@@ -670,6 +599,105 @@
       </div>
     </div>
   </section>
+
+  <details class="appx" id="gA"><summary><span class="gb-n">附</span><b>附录</b><span class="small">全市场热度 · PEG 筛选 · 价值通道 · 行业总览 · 细分拆解 · 机会清单：上面几块的数据来源和补充视图，默认收起</span></summary>
+
+  <!-- ⓪ market-wide heat -->
+  <section id="s0">
+    <h2><span class="step-tag">附1</span>全市场行业热度（美股）</h2>
+    <p class="lead" id="hmLead"></p>
+    <div class="grid g5" id="hmKpis"></div>
+    <h3>按 SIC 大类（面积 = 最新季度营收合计；颜色 = 公司营收同比中位数；点击筛选下方细分行业）</h3>
+    <svg id="hmTree" viewBox="0 0 1300 300" width="100%" role="img" aria-label="全市场行业大类营收树图"></svg>
+    <div class="legend"><span>增速中位数</span><span>−20%</span><span class="grad"></span><span>+80%</span><span>白框 = 本工具已覆盖的大类</span></div>
+    <h3>大类排行</h3>
+    <div class="tscroll"><table><thead><tr id="hmHead"></tr></thead><tbody id="hmTbl"></tbody></table></div>
+    <h3>细分行业（4 位 SIC）<span id="hmFilt" class="small"></span></h3>
+    <div class="toolbar">
+      <label><input type="checkbox" id="hmUncov"> 只看本工具还没覆盖的行业</label>
+      <button class="btn" type="button" id="hmClear">清除大类筛选</button>
+      <span class="small" id="hmCount"></span>
+    </div>
+    <div class="tscroll"><table><thead><tr><th scope="col">SIC</th><th scope="col">行业（SEC 英文名称）</th><th scope="col" class="n">家数</th><th scope="col" class="n">加权增速</th><th scope="col" class="n">增速中位数</th><th scope="col" class="n">增速 ≥20% 占比</th><th scope="col" class="n">加速占比</th><th scope="col" class="n">毛利率变化</th><th scope="col">高增长公司（同比 ≥20%）</th><th scope="col">配置判断</th><th scope="col">已覆盖</th></tr></thead><tbody id="hmInd"></tbody></table></div>
+    <p class="note" id="hmRule"></p>
+    <p class="note">口径：所有在 SEC XBRL 报送可比季度营收的公司，上年同季营收 ≥ 500 万美元；单家同比封顶在 −90% ~ +300%，避免个别公司扭曲结果。每组至少 8 家公司才显示。加权增速 = 组内营收合计的同比，由大公司主导；增速中位数代表典型公司。加速占比 = 本季同比高于上季同比的公司比例。毛利率 / 营业利润率变化为同比百分点的中位数。热度只说明增长在哪里，不区分周期反弹和结构性增长，需要结合行业知识判断。</p>
+  </section>
+
+  <!-- PEG screen (cross-sector) -->
+  <section id="sPeg">
+    <h2><span class="step-tag">附2</span>PEG 筛选（美股，跨行业）</h2>
+    <p class="lead" id="pgLead"></p>
+    <div class="toolbar">
+      <label>范围 <select id="pgTier"><option value="pass">通过：前瞻与历史一致</option><option value="watch">待核实：前瞻低，但历史不支持或有背离</option><option value="all">两者都显示</option></select></label>
+      <label>类型 <select id="pgKind"><option value="">全部</option><option value="emerging">新兴</option><option value="leader">龙头</option></select></label>
+      <span class="small" id="pgCount"></span>
+    </div>
+    <div class="tscroll"><table><thead><tr id="pgHead"></tr></thead><tbody id="pgBody"></tbody></table></div>
+    <p class="note" id="pgNote"></p>
+  </section>
+
+  <!-- 价值通道 (value channel: long-run quality + valuation yields; display only) -->
+  <section id="sVc" aria-labelledby="vcTitle">
+    <h2 id="vcTitle"><span class="step-tag">附3</span>价值通道 · 长期质量 + 估值收益率（美股）</h2>
+    <p class="lead" id="vcLead"></p>
+    <p class="small warn">价值通道是和行业成长筛选并列的第二个入口：不要求营收高增长，看过去 5 个财年的 ROE、自由现金流、现金转化和负债，再按质量和估值收益率在通道内排序。排序只表示“按这六个维度先看谁”，没有回测，不是买卖建议；不进入评分、因子、结论、PEG 分层和对比池评分。</p>
+    <div class="toolbar" role="group" aria-label="价值通道筛选">
+      <label class="small" for="vcGrp">口径</label><select id="vcGrp"><option value="std">标准（非金融）</option><option value="fin">金融（银行、保险、券商、资管）</option></select>
+      <label class="small" for="vcQ">搜索</label><input type="search" id="vcQ" placeholder="代码或名称" autocomplete="off">
+      <label class="small" for="vcSic">行业（SIC）</label><select id="vcSic"><option value="">全部</option></select>
+      <label class="small"><input type="checkbox" id="vcNotIn"> 只看不在行业筛选里的</label>
+      <label class="small"><input type="checkbox" id="vcCyc"> 包含周期行业（不排名）</label>
+      <span class="small" id="vcCnt" role="status" aria-live="polite"></span>
+    </div>
+    <div class="tscroll vc-t"><table><thead><tr id="vcHead"></tr></thead><tbody id="vcBody"></tbody></table></div>
+    <div class="toolbar"><button type="button" class="btn" id="vcMore">显示更多</button></div>
+    <p class="note" id="vcNote"></p>
+  </section>
+
+  <!-- ① -->
+  <section id="s1">
+    <h2><span class="step-tag">附4</span>行业总览</h2>
+    <p class="lead" id="thesis"></p>
+    <div class="grid g4" id="kpis"></div>
+    <div class="grid g2" style="margin-top:12px">
+      <div><h3 id="benchTitle"></h3><svg id="benchChart" viewBox="0 0 620 230" width="100%" role="img" aria-label="行业 ETF 与大盘一年走势"></svg></div>
+      <div><h3>需求证据</h3><div id="demand"></div><p class="note" id="lynch"></p></div>
+    </div>
+    <h3>细分环节规模（颜色 = 营收增速中位数；点击进入细分）
+      <span class="seg-pick" style="display:inline-flex;margin:0 0 0 10px" role="group" aria-label="面积口径"><button type="button" data-area="mcap" aria-pressed="true">面积 = 覆盖市值</button><button type="button" data-area="count" aria-pressed="false">面积 = 公司家数</button></span></h3>
+    <svg id="segTree" viewBox="0 0 1300 260" width="100%" role="img" aria-label="细分环节市值树图"></svg>
+    <div class="legend"><span>增速</span><span>−20%</span><span class="grad"></span><span>+80%</span><span>带橙色边框的是周期性环节</span></div>
+  </section>
+
+  <!-- ② -->
+  <section id="s2">
+    <h2><span class="step-tag">附5</span>细分领域拆解</h2>
+    <p class="lead">先看每个细分环节在"增长 × 估值"上的位置，再挑一个环节看里面谁占多大分量。</p>
+    <div class="grid g2">
+      <div><h3 id="quadTitle">增长 × 估值（气泡大小 = 覆盖市值，横轴 = 营收增速中位数，纵轴 = 市销率中位数）</h3>
+        <svg id="segQuad" viewBox="0 0 620 330" width="100%" role="img" aria-label="细分环节的增长与估值象限图"></svg></div>
+      <div><h3>环节一览</h3><table><thead><tr><th scope="col">环节</th><th scope="col" class="n">龙头 / 新兴 / 优先</th><th scope="col" class="n">增速中位数<br>龙头 · 新兴</th><th scope="col" class="n" id="segThM">毛利率</th><th scope="col" class="n" id="segThV">市销率</th><th scope="col">数据判断</th></tr></thead><tbody id="segTbl"></tbody></table></div>
+    </div>
+    <h3>选择细分环节</h3>
+    <div class="seg-pick" id="segPick" role="group" aria-label="细分环节"></div>
+    <div class="grid g2">
+      <div><h3 id="coTreeTitle"></h3><svg id="coTree" viewBox="0 0 640 320" width="100%" role="img" aria-label="环节内公司市值占比树图"></svg>
+        <div class="legend"><span><span class="dot" style="border:2px solid #a78bfa"></span>紫框 = 龙头</span><span>面积 = 在本工具覆盖公司中的市值占比，不是市场份额</span></div></div>
+      <div><h3>环节需求证据</h3><div id="segDemand"></div><h3>环节判断（数据面）</h3><div class="concl" id="segJudge"></div></div>
+    </div>
+  </section>
+
+  <!-- ⑤ -->
+  <section id="s5">
+    <h2><span class="step-tag">附6</span>机会清单</h2>
+    <p class="lead">把前面四步合在一起：哪些细分环节值得看，每个环节里先研究谁，各自的机会和风险是什么。</p>
+    <div id="oppSeg"></div>
+    <h3>全部行业的研究优先池 <button class="btn" id="csv" type="button">导出 CSV</button></h3>
+    <div class="tscroll"><table><thead><tr><th scope="col">行业</th><th scope="col">环节</th><th scope="col">代码</th><th scope="col">一句话</th><th scope="col">机会</th><th scope="col">风险</th><th scope="col" class="n">下次财报</th></tr></thead><tbody id="oppAll"></tbody></table></div>
+  </section>
+
+  </details>
+
   <footer id="foot"></footer>
 </main>
 <div class="tip" id="tip" role="tooltip"></div>
@@ -713,6 +741,18 @@
 
 <script>
 const D = /*__DATA__*/null;
+// ---- collapsed appendix: open it before scrolling to (or following a link into) anything inside it
+(function () {
+  const openAnc = el => { let d = el && el.closest ? el.closest("details.appx") : null; while (d) { d.open = true; d = d.parentElement && d.parentElement.closest("details.appx"); } };
+  const siv = Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView = function (...a) { openAnc(this); return siv.apply(this, a); };
+  document.addEventListener("click", ev => { const a = ev.target.closest && ev.target.closest('a[href^="#"]'); const h = a && a.getAttribute("href");
+    if (h && h.length > 1) openAnc(document.getElementById(decodeURIComponent(h.slice(1)))); }, true);
+  addEventListener("hashchange", () => { const el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    const d = el && el.closest && el.closest("details.appx"); if (d && !d.open) { openAnc(el); siv.call(el, {block: "start"}); } });
+  if (location.hash.length > 1) openAnc(document.getElementById(decodeURIComponent(location.hash.slice(1))));
+})();
+
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const yi = v => v == null ? "—" : (v / 1e8).toLocaleString("zh-CN", {maximumFractionDigits: v >= 1e10 ? 0 : 1});
@@ -804,10 +844,11 @@ function jumpCompany(sector, ticker, kind) {
 }
 
 // ---------- left sidebar: sections, sectors (with counts) and the step links of the active sector
-const SECTS = [["sChg", "本周变化", 0], ["sLk", "全市场速查", 0], ["s0", "⓪ 全市场热度", 0], ["sPeg", "PEG 筛选", 0], ["sVc", "价值通道", 0], ["sX", "交集", 0], ["sVu", "价值 × 低估", 0], ["sOv", "海外对照", 0], ["sDcf", "估值参数", 0], ["sLdg", "估值台账", 0], ["sBk", "对比池", 0], ["s1", "① 行业总览", 1], ["s2", "② 细分拆解", 1], ["s3", "③ 龙头分析", 1],
-  ["s4", "④ 新兴机会", 1], ["s5", "⑤ 机会清单", 1], ["s6", "数据与方法", 1]];
+const SECTS = [["sChg", "本周变化", 0], ["s4", "1.1 新兴机会", 1], ["s3", "1.2 龙头分析", 1], ["sX", "2.1 成长 × 低估", 0], ["sVu", "2.2 价值 × 低估", 0],
+  ["sLk", "全市场速查", 0], ["sDcf", "估值参数", 0], ["sBk", "对比池", 0], ["sLdg", "估值台账", 0], ["sOv", "海外对照", 0], ["s6", "数据与方法", 1],
+  ["s0", "附录 · 全市场热度", 0], ["sPeg", "附录 · PEG 筛选", 0], ["sVc", "附录 · 价值通道", 0], ["s1", "附录 · 行业总览", 1], ["s2", "附录 · 细分拆解", 1], ["s5", "附录 · 机会清单", 1]];
 const SCNT = D.entries.reduce((a, e) => (a[e.sector] = (a[e.sector] || 0) + 1, a), {});
-let curSec = "sLk";
+let curSec = "sChg";
 function renderSide() {
   $("sideSecs").innerHTML = D.sectors.map(s => { const on = s.id === state.sector;
     return `<li><button type="button" class="sl ${on ? "cur" : ""}" data-side-s="${esc(s.id)}" aria-current="${on ? "true" : "false"}"><span>${esc(s.name)}</span><span class="cnt">${SCNT[s.id] || 0}</span></button>
@@ -816,12 +857,12 @@ function renderSide() {
   markSec();
 }
 function markSec() {
-  document.querySelectorAll("#side a[data-sec], .steps a").forEach(a => { const on = (a.dataset.sec || a.getAttribute("href").slice(1)) === curSec;
+  document.querySelectorAll("#side a[data-sec], .steps a").forEach(a => { const on = (a.dataset.sec || a.getAttribute("href").slice(1)) === curSec || (a.dataset.grp || "").split(",").includes(curSec);
     a.classList.toggle("on", on); if (on) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current"); });
 }
 $("side").addEventListener("click", ev => {
   const b = ev.target.closest("[data-side-s]");
-  if (b) { switchSector(b.dataset.sideS); $("s1").scrollIntoView({behavior: "smooth", block: "start"}); if (narrow()) sideClose(false); return; }
+  if (b) { switchSector(b.dataset.sideS); $("s4").scrollIntoView({behavior: "smooth", block: "start"}); if (narrow()) sideClose(false); return; }
   if (ev.target.closest("a[href^='#']") && narrow()) sideClose(false);
 });
 function sideOpen() { document.body.classList.add("side-open"); $("sideBtn").setAttribute("aria-expanded", "true"); requestAnimationFrame(() => $("qs").focus()); }
@@ -1157,7 +1198,7 @@ function renderVu() {
   const L = VCR.filter(r => pass(r) && (!grp || (r.group || "std") === grp) && (cyc || !r.cyclical) && (!drop || !((LK_BY[r.ticker] || {}).yoy <= -10)) && (!notIn || !ent(r.ticker)))
     .sort((a, b) => (gap(a) ?? -999) - (gap(b) ?? -999));
   const nAll = VCR.filter(r => !r.cyclical && pass(r)).length;
-  $("vuLead").innerHTML = `价值通道 ${VCR.length} 家中，非周期且差距达到条件的有 <b>${nAll}</b> 家；按当前条件列出 <b>${L.length}</b> 家，其中 <b>${L.filter(r => !ent(r.ticker)).length}</b> 家不在行业成长筛选里（交集看不到它们）。按差距从大到小排列。`;
+  $("vuLead").innerHTML = `价值通道 ${VCR.length} 家中，非周期且差距达到条件的有 <b>${nAll}</b> 家；按当前条件列出 <b>${L.length}</b> 家，其中 <b>${L.filter(r => !ent(r.ticker)).length}</b> 家不在行业成长筛选里（成长 × 低估看不到它们）。按差距从大到小排列。`;
   const flags = r => { const f = [], lk = LK_BY[r.ticker] || {};
     if (r.cyclical) f.push(["t-cyc", "周期：盈利高点时估值显得便宜"]);
     if (lk.yoy != null && lk.yoy <= -10) f.push(["t-warn", `最新季度营收同比 ${num(lk.yoy)}%`]);
@@ -1188,7 +1229,7 @@ function renderChg() {
   if (!C) { $("chgLead").textContent = "还没有记录：重新构建后生成。"; $("chgBody").innerHTML = ""; return; }
   const chip = (x, cls) => `<button type="button" class="chg-co ${cls}" data-chg="${esc(x[0])}" title="${cls ? "已退出：" : "打开 "}${esc(x[0])} ${esc(x[1])}"><b>${esc(x[0])}</b>${esc((x[1] || "").slice(0, 22))}</button>`;
   const many = (a, cls) => a.slice(0, 40).map(x => chip(x, cls)).join("") + (a.length > 40 ? `<span class="small">… 另 ${a.length - 40} 家</span>` : "");
-  $("chgLead").innerHTML = C.prev ? `数据日期 <b>${esc(C.cur)}</b> 与上一次 <b>${esc(C.prev)}</b> 相比，各个视图新进入和退出的公司。交集按默认估值参数（估值台账）计算，可能和你调过参数后的交集表不同。点代码打开评估卡或价值通道简化卡，没有的打开全市场速查。只描述名单变化，不是买卖信号。`
+  $("chgLead").innerHTML = C.prev ? `数据日期 <b>${esc(C.cur)}</b> 与上一次 <b>${esc(C.prev)}</b> 相比，各个视图新进入和退出的公司。成长 × 低估按默认估值参数（估值台账）计算，可能和你调过参数后的交集表不同。点代码打开评估卡或价值通道简化卡，没有的打开全市场速查。只描述名单变化，不是买卖信号。`
     : `已记录 <b>${esc(C.cur)}</b> 的名单。下次数据更新后，这里会列出每个视图新进入和退出的公司。`;
   $("chgBody").innerHTML = CHG_ORDER.filter(k => C.views[k]).map(k => { const v = C.views[k], d = v.n_prev == null ? "" : v.n - v.n_prev;
     return `<div class="card chg"><h4><a href="#${CHG_SEC[k]}">${esc(C.labels[k] || k)}</a> <span class="small">${v.n} 家${d === "" ? "" : `（${d > 0 ? "+" : ""}${d}）`}</span></h4>

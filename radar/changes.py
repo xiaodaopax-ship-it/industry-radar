@@ -18,7 +18,7 @@ from .paths import DATA
 
 # 价值 × 低估 thresholds (also the page defaults, embedded as D.vu_rules)
 VU_RULES = {"ig_gap_max": -5.0, "iroe_gap_max": -3.0, "x_gap_min": 0.15, "drop_yoy": -10.0}
-LABELS = {"x": "交集（成长 × 价值 × 低估）", "vu": "价值 × 低估", "vc": "价值通道"}
+LABELS = {"x": "成长 × 低估", "vu": "价值 × 低估", "vc": "价值通道"}
 PATH = os.path.join(DATA, "membership_us.json")
 KEEP = 26
 
