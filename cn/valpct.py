@@ -1,8 +1,10 @@
-"""5-year PE(TTM) / PB percentiles for the 价值通道, 红利筛选 and 长期红利 rows (display only; never used by ranks, labels,
-⚠ counts or the 对比池 score).
+"""5-year PE(TTM) / PB percentiles for the 价值通道, 红利筛选 and 长期红利 rows (display there) and for every 新兴筛选 row
+outside the snapshot's 估值短名单. For the 新兴筛选 rows the percentile feeds the 估值分位 gate and therefore the
+基本面支撑 / 交易驱动 label (cn/build.valpct_fallback, only when this file has the snapshot's quote date); it never enters
+the research-priority score, the ⚠ count or the 对比池 score.
 
-    python -m cn valpct   em.valuation_history (RPT_VALUEANALYSIS_DET, 5 years daily) for every code of those three views
-                          that has no evaluation card -> data/cn/valpct_<ts>.json
+    python -m cn valpct   em.valuation_history (RPT_VALUEANALYSIS_DET, 5 years daily) for every code of those views
+                          (evaluation-card percentiles are copied, not fetched) -> data/cn/valpct_<ts>.json
 
 Same method as the evaluation cards (em.valuation_percentiles): share of the last 5 years of daily values (> 0) that are
 <= the latest value. Items of the previous file are reused when they were computed for the same quote date.
@@ -71,7 +73,8 @@ def history(code, as_of):
 
 
 def view_codes(snap, res):
-    """Codes of the value channel, dividend screen and long-term dividend view (same inputs as cn build)."""
+    """Codes of the value channel, dividend screen and long-term dividend view (same inputs as cn build), then every
+    新兴筛选 row without a snapshot valuation (its 估值分位 gate and 基本面支撑 label use this file, see build.valpct_fallback)."""
     from . import quality as qmod, dividend as dmod, valuation as vmod
     qdoc, _ = qmod.load_latest()
     vdoc, _ = vmod.load_latest()
@@ -81,6 +84,8 @@ def view_codes(snap, res):
         out += [r["code"] for r in qmod.channel(snap, res, qdoc, rf).get("rows") or []]
         out += [r["code"] for r in dmod.panel(snap, res, qdoc, rf).get("rows") or []]
         out += [r["code"] for r in dmod.long_term(snap, res, qdoc, rf).get("rows") or []]
+    sv = snap.get("valuation") or {}
+    out += [r["code"] for r in res["screen"] if r["code"] not in sv]
     return list(dict.fromkeys(out))
 
 
@@ -92,15 +97,21 @@ def fetch():
         snap = json.load(f)
     res = with_extras(snap, analyze(snap))
     qd = next((q.get("as_of") for q in snap["quotes"] if q.get("as_of")), snap.get("today"))[:10]
-    carded = set()
+    carded = {}
     cp = latest_cards()
     if cp:
         with open(cp, encoding="utf-8") as f:
-            carded = {c for c, x in (json.load(f).get("cards") or {}).items() if x.get("val_pct")}
-    codes = [c for c in view_codes(snap, res) if c not in carded]
+            carded = {c: x["val_pct"] for c, x in (json.load(f).get("cards") or {}).items() if x.get("val_pct")}
+    codes = view_codes(snap, res)
     prev = latest() or {}
-    reuse = prev.get("items") or {} if prev.get("as_of") == qd else {}
-    log(f"valpct: {len(codes)} codes without a card percentile, quote date {qd}, reusable {sum(1 for c in codes if c in reuse)}")
+    reuse = dict(prev.get("items") or {}) if prev.get("as_of") == qd else {}
+    # evaluation cards already computed the same percentile for this snapshot: copy it instead of fetching again
+    for c in codes:
+        if c in carded and c not in reuse:
+            vp = carded[c]
+            reuse[c] = {"pe_pct": (vp.get("pe_ttm") or {}).get("percentile"), "pb_pct": (vp.get("pb") or {}).get("percentile"),
+                        "n": (vp.get("pb") or {}).get("n"), "first": None, "last": None, "src": "card"}
+    log(f"valpct: {len(codes)} codes, quote date {qd}, reusable (previous file or card) {sum(1 for c in codes if c in reuse)}")
     items, fails, consec = {}, [], 0
     for i, c in enumerate(codes, 1):
         if c in reuse:

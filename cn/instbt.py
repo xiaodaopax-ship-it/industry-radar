@@ -18,7 +18,13 @@ Benchmarks: equal-weight mean of the universe (market) and of the same total-mca
 北向 prefers large caps. Excess = stock return - benchmark.
 Pools (point-in-time proxies, the real 新兴筛选 / 成长 × 低估 need data we do not have for past dates):
   growth = YTD revenue YoY >= 20% and revenue >= 1亿 per quarter at P (the 新兴筛选 entry rule, cn/build.RULES);
-  growth x cheap = growth and 0 < PE(TTM) <= the median positive PE(TTM) of its Eastmoney industry at entry.
+  growth x cheap = growth and 0 < PE(TTM) <= the median positive PE(TTM) of its Eastmoney industry at entry;
+  基本面 proxy = YTD parent NP > 0, YTD OCF / NP >= 0.8, not a cyclical industry (the page label also needs a 5-year PE
+      percentile <= 50% and no unlock / selling / regulatory trigger; those have no point-in-time history here);
+  价值通道 = cn/quality.channel rules on the 5 fiscal years published before the signal date (FY y-5 .. y-1 from the
+      latest quality file, i.e. as restated today), YTD revenue / NP of P, price and total shares (mcap / price) at entry;
+  价值 × 低估 = channel, not cyclical, YTD NP YoY > -30%, reverse-DCF implied growth (China 10y at entry + 5%) at least
+      5pt below the 4-year revenue CAGR (cn/changes.VU_RULES), same engine as the page.
 Sources (Eastmoney datacenter-web, market-wide paged queries, cached 30 days): RPT_F10_EH_FREEHOLDERS (per rule x
 END_DATE, plus HOLDER_RANK=1 for disclosure coverage), RPT_VALUEANALYSIS_DET (per TRADE_DATE), RPT_LICO_FN_CPD (per
 REPORTDATE), RPT_SHAREBONUS_DET. stdout is English only.
@@ -115,16 +121,57 @@ def holders_period(p):
 
 
 def growth_period(p):
-    """{code: (revenue_yoy_pct, revenue, notice_date)} from 业绩报表 at report date p."""
-    rows, ok = em.dc_report("RPT_LICO_FN_CPD", "SECURITY_CODE,REPORTDATE,NOTICE_DATE,YSTZ,TOTAL_OPERATE_INCOME",
+    """{code: (revenue_yoy_pct, revenue, notice_date, parent_np, np_yoy_pct, ocf)} at report date p (YTD):
+    业绩报表 RPT_LICO_FN_CPD + 现金流量表摘要 RPT_DMSK_FN_CASHFLOW (NETCASH_OPERATE)."""
+    rows, ok = em.dc_report("RPT_LICO_FN_CPD", "SECURITY_CODE,REPORTDATE,NOTICE_DATE,YSTZ,TOTAL_OPERATE_INCOME,PARENT_NETPROFIT,SJLTZ",
                             f"(REPORTDATE='{p}')(SECURITY_TYPE_CODE=\"058001001\")", "SECURITY_CODE", "1", ttl=BT_RULES["ttl"],
                             label=f"instbt/cpd {p}")
+    cf, ok2 = em.dc_report("RPT_DMSK_FN_CASHFLOW", "SECURITY_CODE,REPORT_DATE,NETCASH_OPERATE", f"(REPORT_DATE='{p}')",
+                           "SECURITY_CODE", "1", ttl=BT_RULES["ttl"], label=f"instbt/cf {p}")
+    ocf = {}
+    for r in cf:
+        if em.is_a_code(r.get("SECURITY_CODE")):
+            ocf[r["SECURITY_CODE"]] = em.num(r.get("NETCASH_OPERATE"))
     out = {}
     for r in rows:
         c = r.get("SECURITY_CODE")
         if em.is_a_code(c):
-            out[c] = (em.num(r.get("YSTZ")), em.num(r.get("TOTAL_OPERATE_INCOME")), em.day(r.get("NOTICE_DATE")))
-    return out, ok
+            out[c] = (em.num(r.get("YSTZ")), em.num(r.get("TOTAL_OPERATE_INCOME")), em.day(r.get("NOTICE_DATE")),
+                      em.num(r.get("PARENT_NETPROFIT")), em.num(r.get("SJLTZ")), ocf.get(c))
+    return out, ok and ok2
+
+
+def rf_at(d):
+    """China 10-year government bond yield % on the last date <= d (RPTA_WEB_TREASURYYIELD EMM00166466)."""
+    rows, _ = em.dc_report("RPTA_WEB_TREASURYYIELD", "SOLAR_DATE,EMM00166466", f"(SOLAR_DATE<='{d}')", "SOLAR_DATE", "-1",
+                           page_size=10, max_pages=1, ttl=BT_RULES["ttl"], label=f"instbt/rf {d}", warn_truncated=False)
+    r = next((x for x in rows if em.num(x.get("EMM00166466")) is not None), None)
+    return em.num(r.get("EMM00166466")) if r else None
+
+
+def value_flags(q, g, it, years, rf, floor):
+    """Point-in-time 价值通道 / 价值 × 低估 for one company (cn/quality.channel rules on the 5 fiscal years published
+    before the signal date; latest YTD figures at the signal period). Returns (in_channel, vu, ig_gap)."""
+    from .quality import metrics, implied_growth, VALUE_RULES as VR
+    from .build import FIN_INDUSTRY_WORDS
+    from .changes import VU_RULES
+    if not it or not g or any(w in (q.get("ind") or "") for w in FIN_INDUSTRY_WORDS):
+        return False, False, None
+    if (g[1] or 0) < floor or (g[3] or 0) <= 0:
+        return False, False, None
+    m = metrics(it, years)
+    ok = (m["n_roe"] >= VR["roe_years_min"] and m["roe_med"] >= VR["roe_median_min"] and m["roe_min"] >= VR["roe_min_min"]
+          and m["n_fcf"] >= VR["fcf_pos_min"] and m["fcf_pos"] >= VR["fcf_pos_min"] and m["conv"] is not None
+          and m["conv"] >= VR["conv_min"] and m["cagr"] is not None and m["cagr"] >= 0 and m["de"] is not None
+          and m["de"] <= VR["de_max"] and not (m["gw_pct"] is not None and m["gw_pct"] > VR["goodwill_max_pct"]))
+    if not ok:
+        return False, False, None
+    shares = q["mcap"] / q["p"] if q.get("mcap") and q.get("p") else None
+    ig, igs = implied_growth(m, {"total_shares": shares, "price": q["p"]}, rf)
+    gap = ig - m["cagr"] if ig is not None else None
+    recent_drop = g[4] is not None and g[4] <= VR["recent_np_drop"]
+    low = gap <= VU_RULES["ig_gap_max"] if gap is not None else igs == "below"
+    return True, bool(low and not recent_drop), gap
 
 
 # ----------------------------------------------------------------------------- pure helpers
@@ -194,9 +241,18 @@ def run():
             log(f"  prices {d}: {len(px_cache[d])} ok={ok}")
         return px_cache[d]
 
+    from .quality import load_latest as q_latest
+    from .build import RULES as BR
+    qdoc, _ = q_latest()
+    QI = (qdoc or {}).get("items") or {}
+    CYC = set(BR["cyclical_industries"])
     GROUPS = ["all", "hk_up1", "hk_new", "hk_add", "hk_up2", "hk_up3", "hk_down1", "ss_up1", "ss_new", "ss_add", "ss_up2",
               "ss_up3", "ss_down1", "any_up2", "g", "g_nosig", "g_hk_up1", "g_hk_up2", "g_ss_up1", "g_ss_up2", "g_any_up2",
-              "gv", "gv_nosig", "gv_any_up1", "gv_any_up2", "nog_any_up2"]
+              "gv", "gv_nosig", "gv_any_up1", "gv_any_up2", "nog_any_up2",
+              # strict growth funnel: g -> 基本面 proxy -> 价值通道 -> 低估 -> 机构
+              "g_f", "g_f_nosig", "g_f_up2", "g_f_vc", "g_f_vc_low", "g_f_vc_low_up2",
+              # value track: 价值通道 -> 价值 × 低估 -> 基本面 proxy -> 机构
+              "vc", "vc_up2", "vu", "vu_nosig", "vu_up2", "vu_f", "vu_f_nosig", "vu_f_up1", "vu_f_up2"]
     obs = {g: [] for g in GROUPS}          # stock-level rows: (period, code, {h: (ex_mkt, ex_size)}, pre_ex)
     per_date = []
     for P in sig:
@@ -210,6 +266,10 @@ def run():
         steps = [prev_q(P, 3), prev_q(P, 2), prev_q(P, 1), P]
         G, _ = growth_period(P)
         nq = int(P[5:7]) // 3
+        y = int(P[:4])
+        fyears = [str(x) for x in range(y - 5, y)]       # 5 fiscal years published by the signal date (FY y-1 by 04-30)
+        rf = rf_at(E)
+        floor = R["revenue_floor_per_quarter"] * nq
         # universe and per-stock signal flags
         U, flags = [], {}
         for c, q in p0.items():
@@ -225,6 +285,12 @@ def run():
             g = G.get(c)
             f["g"] = bool(g and g[0] is not None and g[0] >= R["growth_yoy_min"] and (g[1] or 0) >= R["revenue_floor_per_quarter"] * nq
                           and (g[2] or "9999") <= E)
+            cyc = q.get("ind") in CYC
+            # 基本面 proxy (the page label also needs a 5-year PE percentile and no unlock / selling / regulatory trigger,
+            # which have no point-in-time history here): YTD parent NP > 0, YTD OCF / NP >= 0.8, not cyclical
+            f["fund"] = bool(g and (g[3] or 0) > 0 and g[5] is not None and g[5] / g[3] >= BR["value_ocf_np_min"] and not cyc)
+            vc_, vu_, gap = value_flags(q, g, QI.get(c), fyears, rf, floor)
+            f["vc"], f["vu"], f["gap"] = vc_, vu_ and not cyc, gap   # cyclical: in the channel, never in 价值 × 低估
             U.append(c)
             flags[c] = f
         # industry median positive PE at entry, size quintiles
@@ -266,6 +332,14 @@ def run():
                  "g_hk_up2": f["g"] and up(hk, 2), "g_ss_up1": f["g"] and up(ss, 1), "g_ss_up2": f["g"] and up(ss, 2),
                  "g_any_up2": f["g"] and any2, "gv": bool(gv), "gv_nosig": bool(gv) and not any1,
                  "gv_any_up1": bool(gv) and any1, "gv_any_up2": bool(gv) and any2, "nog_any_up2": (not f["g"]) and any2}
+            gf = f["g"] and f["fund"]
+            gfv = gf and f["vc"]
+            gfl = gfv and f["vu"]
+            vuf = f["vu"] and f["fund"]
+            m.update({"g_f": gf, "g_f_nosig": gf and not any1, "g_f_up2": gf and any2, "g_f_vc": gfv, "g_f_vc_low": gfl,
+                      "g_f_vc_low_up2": gfl and any2, "vc": f["vc"], "vc_up2": f["vc"] and any2, "vu": f["vu"],
+                      "vu_nosig": f["vu"] and not any1, "vu_up2": f["vu"] and any2, "vu_f": vuf, "vu_f_nosig": vuf and not any1,
+                      "vu_f_up1": vuf and any1, "vu_f_up2": vuf and any2})
             return [g for g in GROUPS if m[g]]
 
         cnt = {g: 0 for g in GROUPS}
@@ -280,8 +354,9 @@ def run():
                 obs[g].append((P, c, ex, pe_))
         per_date.append({"period": P, "entry": E, "exits": exits, "pre": pre, "universe": len(U), "n": cnt,
                          "mkt": {h: bm[h]["mkt"] for h in exits}})
-        log(f"  {P} entry {E} universe={len(U)} hk_up1={cnt['hk_up1']} hk_up2={cnt['hk_up2']} ss_up1={cnt['ss_up1']} "
-            f"g={cnt['g']} gv={cnt['gv']} mkt3m={bm.get(91, {}).get('mkt')}")
+        log(f"  {P} entry {E} rf={rf} universe={len(U)} hk_up1={cnt['hk_up1']} hk_up2={cnt['hk_up2']} ss_up1={cnt['ss_up1']} "
+            f"g={cnt['g']} gv={cnt['gv']} g_f={cnt['g_f']} g_f_vc={cnt['g_f_vc']} g_f_vc_low={cnt['g_f_vc_low']} "
+            f"vc={cnt['vc']} vu={cnt['vu']} vu_f={cnt['vu_f']} vu_f_up2={cnt['vu_f_up2']} mkt3m={bm.get(91, {}).get('mkt')}")
 
     # summary per group x horizon x benchmark
     summ = {}
@@ -311,7 +386,10 @@ def run():
         return {p: statistics.mean(v) for p, v in byd.items()}
     PAIRS = [("hk_add", "hk_down1"), ("hk_up2", "hk_down1"), ("ss_up1", "ss_down1"), ("g_any_up2", "g_nosig"),
              ("g_hk_up2", "g_nosig"), ("gv_any_up2", "gv_nosig"), ("gv_any_up1", "gv_nosig"), ("g", "all"), ("gv", "g"),
-             ("g_any_up2", "nog_any_up2")]
+             ("g_any_up2", "nog_any_up2"),
+             ("g_f", "g"), ("g_f_up2", "g_f_nosig"), ("g_f_vc", "g_f"), ("g_f_vc_low", "g_f"),
+             ("vc", "all"), ("vu", "vc"), ("vu", "all"), ("vu_up2", "vu_nosig"), ("vu_f", "vu"), ("vu_f_up2", "vu_f_nosig"),
+             ("vu_f_up1", "vu_f_nosig"), ("vc_up2", "vc")]
     pairs = {}
     for a, b in PAIRS:
         for h in R["horizons"]:
@@ -321,7 +399,7 @@ def run():
                                                         "dates": len(d), "t": None if tstat(d) is None else round(tstat(d), 2)}
     doc = {"pairs": pairs,"generated_at": t0.strftime("%Y-%m-%d %H:%M"), "rules": {k: list(v) if isinstance(v, tuple) else v for k, v in R.items()},
            "signal_periods": sig, "per_date": per_date, "summary": summ, "events_ok": ev_ok, "http": dict(em.STATS),
-           "obs": {g: [[o[0], o[1]] for o in obs[g]] for g in ("gv_any_up2", "g_any_up2")}}
+           "obs": {g: [[o[0], o[1]] for o in obs[g]] for g in ("gv_any_up2", "g_any_up2", "vu_f_up2", "g_f_vc_low", "g_f_vc_low_up2")}}
     path = os.path.join(DATA_DIR, f"instbt_{t0.strftime('%Y%m%d_%H%M%S')}.json")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False)

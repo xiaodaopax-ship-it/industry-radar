@@ -184,11 +184,26 @@ def derive(hist, full, reported, events, bonus_ok=True, partial=None):
             sg = 0 if dpp is None or abs(dpp) <= HOLDER_FETCH["flat_pp"] else (1 if dpp > 0 else -1)
         return sg, sb - sa, dpp, fa
 
+    steps = []
     for a, b in zip(full, full[1:]):
         if a in H and b in H:
             sg = cmp(H[a], a, H[b], b)[0]
             out["n_up"] += sg > 0
             out["n_down"] += sg < 0
+            steps.append(sg)
+        elif a in reported and b in reported:
+            steps.append(1 if b in H else (-1 if a in H else None))   # entered / left the top 10; None = not in it
+        else:
+            steps.append(None)                                          # a list is missing: not measurable
+    # streak: quarter steps in a row ending at the latest full period where the holder entered the top 10 or added shares
+    # (same definition as the cn/instbt.py event study); display only
+    k = 0
+    for s in reversed(steps):
+        if s == 1:
+            k += 1
+        else:
+            break
+    out["streak"] = k
     if rep:
         ib, il = base in H, last in H
         if ib and il and base != last:
@@ -364,7 +379,7 @@ def compact(d):
     h = lambda e: [e["period"], e.get("shares"), e.get("float_pct"), e.get("change_shares"), e.get("status"), e.get("n", 1)]
     p = d.get("partial")
     return {"s": d["status"], "il": d["in_latest"], "fs": d["first_seen"], "b": d["base"], "l": d["latest"],
-            "ns": d["net_shares"], "np": d["net_pp"], "nu": d["n_up"], "nd": d["n_down"], "adj": d["adj"],
+            "ns": d["net_shares"], "np": d["net_pp"], "nu": d["n_up"], "nd": d["n_down"], "adj": d["adj"], "sk": d.get("streak", 0),
             "h": [h(e) for e in d["hist"]],
             "q": None if not p else {"p": p["period"], "s": p["status"], "e": h(p["entry"]) if p["entry"] else None}}
 

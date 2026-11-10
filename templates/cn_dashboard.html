@@ -125,6 +125,19 @@
   /* 机构动向 badges (tracked top-10 float holders, display only) */
   .ib { margin:1px 3px 1px 0; font-size:11.5px; line-height:18px; padding:0 6px; }
   .ib.up { color:var(--pos); border-color:rgba(80,190,130,.4); } .ib.down { color:var(--neg); border-color:rgba(230,100,90,.4); }
+  .ib.sk { font-weight:700; border-width:2px; }
+  /* 逐层筛选 funnel */
+  .fn-tracks { display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:12px; }
+  .fn-track { border:1px solid var(--line); border-radius:var(--r2); padding:10px 12px; }
+  .fn-track h3 { margin:0 0 6px; font-size:15px; }
+  .fn-steps { display:flex; flex-wrap:wrap; align-items:stretch; gap:4px; }
+  .fn-step { display:flex; flex-direction:column; align-items:flex-start; min-width:84px; padding:6px 8px; border-radius:8px; border:1px solid var(--line);
+             background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+  .fn-step[aria-pressed="true"] { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset; }
+  .fn-step[disabled] { cursor:default; opacity:.85; }
+  .fn-step b { font-size:17px; } .fn-step span { font-size:11.5px; opacity:.85; }
+  .fn-arrow { align-self:center; opacity:.6; }
+  .fn-final { margin-top:8px; font-size:12.5px; line-height:1.9; }
   table.ih td, table.ih th { font-size:12px; } table.ih td.n { white-space:nowrap; }
   .chk { display:grid; grid-template-columns:18px 120px 1fr; gap:4px; font-size:12.5px; padding:3px 0; border-bottom:1px solid var(--line); }
 
@@ -421,6 +434,7 @@
       <li><a class="sl gp" href="#g2" data-grp="s2,s4">二、新兴筛选</a><div class="gp-sub"><a class="sl" href="#s2" data-sec="s2">2.1 新兴公司筛选</a><a class="sl" href="#s4" data-sec="s4">2.2 研究优先级</a><a class="sl" href="#s4cy">　· 周期行业单列</a></div></li>
       <li><a class="sl gp" href="#g3" data-grp="sX,sVu">三、低估筛选</a><div class="gp-sub"><a class="sl" href="#sX" data-sec="sX">3.1 成长 × 低估</a><a class="sl" href="#sVu" data-sec="sVu">3.2 价值 × 低估</a></div></li>
       <li><a class="sl gp" href="#g4" data-grp="s3">四、基本面 / 交易标签</a><div class="gp-sub"><a class="sl" href="#s3" data-sec="s3">4.1 标签 · 机构动向</a></div></li>
+      <li><a class="sl gp" href="#g5" data-grp="sFn">五、逐层筛选</a><div class="gp-sub"><a class="sl" href="#sFn" data-sec="sFn">5.1 成长线 / 价值线</a></div></li>
       <li><a class="sl gp" href="#gT">工具</a><div class="gp-sub"><a class="sl" href="#sLk" data-sec="sLk">全市场速查</a><a class="sl" href="#sBk" data-sec="sBk"><span>对比池</span><span class="cnt" id="bkSideN" aria-label="对比池公司数">0</span></a><a class="sl" href="#sLg" data-sec="sLg">估值台账</a><a class="sl" href="#s6" data-sec="s6">个股评估卡</a></div></li>
       <li><a class="sl gp" href="#gA" data-grp="sDv">附录（默认收起）</a><div class="gp-sub"><a class="sl" href="#sDv" data-sec="sDv">红利筛选（5 年）</a></div></li>
       <li><a class="sl" href="#s5" data-sec="s5">数据与方法</a></li>
@@ -445,7 +459,7 @@
 
   <div class="sticky">
     <nav class="steps" aria-label="页面分节">
-      <a href="#s1">行业热度</a><a href="#g1" data-grp="sLt">一 长期红利</a><a href="#g2" data-grp="s2,s4">二 新兴筛选</a><a href="#g3" data-grp="sX,sVu">三 低估筛选</a><a href="#g4" data-grp="s3">四 基本面 / 交易标签</a><a href="#sLk">速查</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">评估卡</a><a href="#s5">数据与方法</a>
+      <a href="#s1">行业热度</a><a href="#g1" data-grp="sLt">一 长期红利</a><a href="#g2" data-grp="s2,s4">二 新兴筛选</a><a href="#g3" data-grp="sX,sVu">三 低估筛选</a><a href="#g4" data-grp="s3">四 基本面 / 交易标签</a><a href="#g5" data-grp="sFn">五 逐层筛选</a><a href="#sLk">速查</a><a href="#sBk">对比池 <span id="bkStepN">0</span></a><a href="#sLg">估值台账</a><a href="#s6">评估卡</a><a href="#s5">数据与方法</a>
     </nav>
   </div>
 
@@ -522,6 +536,8 @@
       <label class="small"><input type="checkbox" id="xTrade" checked> 排除“交易驱动”</label>
       <label class="small"><input type="checkbox" id="xDrop" checked> 排除“近期下滑”</label>
       <label class="small"><input type="checkbox" id="xHide"> 隐藏差距 &gt; 200% 的</label>
+      <label class="small" for="xLb">标签</label><select id="xLb"><option value="">不限</option><option value="偏价值">基本面支撑</option><option value="中性">中性</option></select>
+      <label class="small" title="北向或社保在前十大流通股东里连续 ≥ 2 季新进或增持"><input type="checkbox" id="xSig"> 只看机构连续 ≥ 2 季加仓</label>
       <label class="small" for="xSort">排序</label><select id="xSort"><option value="gap">估值差距</option><option value="vc">价值通道排名</option><option value="roe">ROE 中位数</option></select>
       <span class="small" id="xCnt" role="status" aria-live="polite"></span>
     </div>
@@ -541,6 +557,8 @@
       <label class="small" for="vuQ">搜索</label><input type="search" id="vuQ" placeholder="代码或名称" autocomplete="off">
       <label class="small"><input type="checkbox" id="vuDrop" checked> 隐藏近期净利下滑</label>
       <label class="small"><input type="checkbox" id="vuNotIn"> 只看不在新兴筛选里的</label>
+      <label class="small" for="vuLb">标签</label><select id="vuLb"><option value="">不限</option><option value="偏价值">基本面支撑</option><option value="中性">中性</option><option value="偏博弈">交易驱动</option></select>
+      <label class="small" title="北向或社保在前十大流通股东里连续 ≥ 2 季新进或增持"><input type="checkbox" id="vuSig"> 只看机构连续 ≥ 2 季加仓</label>
       <span class="small" id="vuCnt" role="status" aria-live="polite"></span>
     </div>
     <div class="tscroll vc-t"><table><thead><tr><th scope="col">代码 · 名称</th><th scope="col">行业</th><th scope="col" class="n">通道排名</th><th scope="col" class="n">ROE 中位数</th>
@@ -557,6 +575,19 @@
     <div class="grid g3" id="lbKpis"></div>
     <div class="rule" id="lbRule"></div>
     <div id="instX" style="margin-top:14px"></div>
+  </section>
+
+  <div class="grp-band" id="g5"><span class="gb-n">五</span><h2 class="gb-t">逐层筛选</h2><span class="gb-s">把上面的筛选按顺序串起来：成长线和价值线各自逐层缩小，最后一层看北向 / 社保是否连续加仓</span></div>
+
+  <section id="sFn" aria-labelledby="fnTitle">
+    <h2 id="fnTitle"><span class="step-tag">5.1</span>逐层筛选 · 成长线 / 价值线</h2>
+    <p class="lead" id="fnLead"></p>
+    <div class="fn-tracks" id="fnTracks"></div>
+    <h3 id="fnCap" style="margin:14px 0 6px;font-size:15px"></h3>
+    <div class="tscroll"><table><thead><tr><th scope="col">代码 · 名称</th><th scope="col">行业 · 标签</th><th scope="col" class="n">营收同比</th><th scope="col" class="n">ROE 中位数 · 通道排名</th>
+      <th scope="col" class="n">低估依据</th><th scope="col">机构动向</th><th scope="col">下一层</th><th scope="col">对比</th></tr></thead><tbody id="fnBody"></tbody></table></div>
+    <div id="fnBt" style="margin-top:14px"></div>
+    <p class="note" id="fnNote"></p>
   </section>
 
   <div class="grp-band tools" id="gT"><span class="gb-n">工</span><h2 class="gb-t">工具</h2><span class="gb-s">速查 · 对比 · 台账 · 评估卡</span></div>
@@ -917,7 +948,7 @@ function renderLabels() {
   $("lbRule").innerHTML = `<b>规则（按顺序判断）</b><ul>
     <li><span class="tag lb-偏博弈">交易驱动</span>：满足任一条——年初至今归母净利润 ≤ 0；PE 分位 ≥ ${esc(R.pe_pct_high)}%；未来 ${esc(R.unlock_days)} 天解禁 > 流通股 ${esc(R.unlock_float_warn)}%；近 ${esc(R.holder_months)} 个月净减持 ≥ 总股本 ${esc(R.net_sell_warn)}%；近 ${esc(R.reg_months)} 个月有监管类公告标题命中。</li>
     <li><span class="tag lb-偏价值">基本面支撑</span>：不满足上面任何一条，且同时满足——盈利；经营现金流 / 归母净利润 ≥ ${esc(R.value_ocf_np_min)}；PE 分位 ≤ ${esc(R.value_pe_pct_max)}%（需要有估值历史）；无监管类标题命中。</li>
-    <li><span class="tag lb-中性">中性</span>：其余情况。没有估值历史的公司（不在短名单）最多只能是"中性"，原因里会写明。</li>
+    <li><span class="tag lb-中性">中性</span>：其余情况。PE 分位用近 5 年日度 PE(TTM)：估值短名单随快照抓取，其余新兴筛选公司来自每周的 python -m cn valpct（同一方法）；仍没有估值历史的公司（例如 PE ≤ 0）最多只能是"中性"，原因里会写明。</li>
     <li><span class="tag t-cyc">周期</span>：东财行业属于 ${esc(R.cyclical_industries.join("、"))} 的公司，盈利主要随商品价格或产能周期变化，周期高点时利润高、PE 反而低。它们不标"基本面支撑"（最多"中性"，触发上面任一条时仍为"交易驱动"），也不参与 研究优先级排序，单独列在 研究优先级下方。名单在 cn/build.py 的 RULES 里，可调整。</li></ul>
     <span class="small">"基本面 / 交易"只是对数据特征的描述性分组，不包含任何买卖含义。</span>`;
 }
@@ -972,6 +1003,7 @@ function renderMethod() {
     ["监管类公告（全部抓取 / 计入命中）", `${c.regulatory_rows} / ${c.reg_hit_rows}`],
     ["解禁窗口", (D.unlock_window || []).join(" ~ ")],
     ["监管标题检索窗口", (D.reg_window || []).join(" ~ ")],
+    ["5 年 PE / PB 分位覆盖（新兴筛选，用于估值分位门禁和标签）", `${D.screen.filter(r => r.pe_pct != null || r.pb_pct != null).length} / ${D.screen.length}（估值短名单随快照抓取，其余来自 python -m cn valpct，只在和快照同一行情日时使用）`],
     ["股价 / 52 周区间覆盖（新兴筛选）", RM.file ? `${RM.n_price} / ${RM.n_range} / ${RM.n_screen}（${RM.file}，${RM.window_start} ~ ${RM.as_of}${RM.complete === false ? "，未抓完" : ""}）` : `${RM.n_price ?? 0} / 0 / ${RM.n_screen ?? 0}（未抓取区间）`],
     ["机构动向（新兴筛选中 " + instLast + " 有前十大流通股东名单 / 北向在前十）", IM.file ? `${IM.n_reported_screen} / ${D.screen.filter(r => r.inst && r.inst.hkscc && r.inst.hkscc.il).length} / ${D.screen.length}（${IM.file}）` : "未抓取"],
     ["评估卡机构目标价中位数（≥ " + (CR.target_min_org ?? "—") + " 家）", `${(D.cards || []).filter(c => c.target && c.target.median != null).length} / ${(D.cards || []).length}`],
@@ -1084,6 +1116,7 @@ function instSum(x) {
   if (x.np != null) parts.push(`占流通 ${ppTxt(x.np)}`);
   if (x.ns != null) parts.push(`${x.ns > 0 ? "+" : ""}${wan(x.ns)} 万股${x.adj && x.adj !== 1 ? `（期初股数 × ${num(x.adj, 3)} 送转调整）` : ""}`);
   if (x.nu || x.nd) parts.push(`环比增 ${x.nu} 季 / 减 ${x.nd} 季`);
+  if ((x.sk || 0) >= 2) parts.push(`截至 ${instLast} 连续 ${x.sk} 季新进或增持`);
   if (x.b && x.b !== IPER[0]) parts.push(`以 ${x.b} 为起点（之前无定期报告）`);
   return parts.join("，");
 }
@@ -1095,8 +1128,13 @@ function instTip(k, x) {
 function instBadge(k, x) {
   const R0 = IRK[k] || {}, st = INST_S[x.s] || (x.il ? "在前十" : x.q && x.q.s ? `${x.q.p.slice(0, 7)} ${INST_S[x.q.s]}` : "—");
   const pp = ["up", "down", "flat"].includes(x.s) && x.np != null ? " " + ppTxt(x.np) : "";
-  return `<span class="tag ib ${instCls(x.s)}" data-tip="${esc(instTip(k, x))}">${esc(R0.short || k)} ${esc(st)}${esc(pp)}</span>`;
+  const sk = (x.sk || 0) >= 2 ? ` · 连${x.sk}季` : "";
+  return `<span class="tag ib ${instCls(x.s)}${sk ? " sk" : ""}" data-tip="${esc(instTip(k, x))}">${esc(R0.short || k)} ${esc(st)}${esc(pp)}${esc(sk)}</span>`;
 }
+// consecutive quarters (ending at the latest full period) in which 北向 or 社保 entered the top 10 or added shares
+// (holders.derive "streak", same definition as the cn/instbt.py event study); display only
+const SIG_KEYS = ["hkscc", "ssf"], SIG_MIN = 2;
+const instSk = r => Math.max(0, ...SIG_KEYS.map(k => (((r && r.inst) || {})[k] || {}).sk || 0));
 function instBadges(r, max = 3) {
   const xs = IRULES.map(q => [q.key, (r.inst || {})[q.key]]).filter(([, x]) => x && (x.s || x.il || x.q));
   if (!xs.length) return '<span class="na">—</span>';
@@ -2173,6 +2211,7 @@ function dcfFill() {
 function dcfRefresh() {
   DCF_CACHE = {};
   if ($("xBody")) renderX();
+  if ($("fnBody") && typeof renderFn === "function") renderFn();
   document.querySelectorAll("[data-dcfc]").forEach(el => { const c = CARDS[el.dataset.dcfc]; if (c) el.innerHTML = dcfCardInner(c); });
   renderBk();
 }
@@ -2946,9 +2985,11 @@ if ($("vcMore")) $("vcMore").onclick = () => { vcS.n += 50; renderVc(); };
 // ---------- 交集: 新兴筛选growth screen ∩ value channel ∩ base valuation above the price (live 估值参数, same numbers as the cards / 对比池)
 function renderX() {
   const thr = +$("xThr").value, cyc = $("xCyc").checked, tr = $("xTrade").checked, dr = $("xDrop").checked, hide = $("xHide").checked, srt = $("xSort").value;
+  const xlb = $("xLb").value, xsig = $("xSig").checked;
   const all = VCR.filter(v => v.in2 && BYCODE[v.code]).map(v => { const s = BYCODE[v.code], o = dcfOf(v.code);
     return {v, s, o, gap: o.status === "ok" ? o.sc.base.vs : null, cy: !!(v.cyclical || s.cyclical)}; });
-  const L = all.filter(x => x.gap != null && isFinite(x.gap) && x.gap >= thr && (cyc || !x.cy) && (!tr || x.s.label !== "偏博弈") && (!dr || !x.v.recent_drop) && (!hide || x.gap <= 200))
+  const L = all.filter(x => x.gap != null && isFinite(x.gap) && x.gap >= thr && (cyc || !x.cy) && (!tr || x.s.label !== "偏博弈") && (!dr || !x.v.recent_drop) && (!hide || x.gap <= 200)
+      && (!xlb || x.s.label === xlb) && (!xsig || instSk(x.s) >= SIG_MIN))
     .sort((a, b) => srt === "vc" ? (a.v.rank ?? 9999) - (b.v.rank ?? 9999) : srt === "roe" ? (b.v.roe_med ?? -1) - (a.v.roe_med ?? -1) : b.gap - a.gap);
   $("xLead").innerHTML = `同时满足三条：① 在新兴筛选里（营收同比 ≥ ${num(R.growth_yoy_min, 0)}% 等）；② 在价值通道里（5 个财年 ROE、自由现金流、现金转化、负债、商誉门槛都通过）；③ 按当前“估值参数”算出的基准每股价值高于现价至少所选比例。
     两个通道都在的公司 <b>${all.length}</b> 家，其中基准估值高于现价的 <b>${all.filter(x => x.gap != null && x.gap >= 0).length}</b> 家。数字和评估卡、对比池里的现金流估值一致，改“估值参数”后自动重算。`;
@@ -2972,7 +3013,7 @@ function renderX() {
   $("xNote").innerHTML = `“Base 估值”是情景参考，不是目标价：对折现率、永续增速和利润率口径很敏感，换参数结论就会变；差距越大越要先查原因。点代码打开评估卡或在新兴筛选中定位。三者交集只是缩小研究范围，规则没有回测，不是买卖建议；不进入 研究优先级排序、标签、⚠ 数和对比池评分。`;
   bkSync();
 }
-["xThr", "xCyc", "xTrade", "xDrop", "xHide", "xSort"].forEach(id => $(id).addEventListener("change", renderX));
+["xThr", "xCyc", "xTrade", "xDrop", "xHide", "xSort", "xLb", "xSig"].forEach(id => $(id).addEventListener("change", renderX));
 // ---------- 红利筛选 (cn/dividend.py panel(): rows already filtered; ranked inside each group)
 const DV = D.dividend || {}, DVR = DV.rows || [], DV_BY = Object.fromEntries(DVR.map(r => [r.code, r]));
 const DV_GRP = {stable: "稳定行业", fin: "金融", cyc: "周期行业"};
@@ -3107,8 +3148,10 @@ $("ltQ").addEventListener("input", debounce(renderLt, 120));
 function renderVu() {
   if (!VC.file) { $("vuLead").innerHTML = '<span class="warn">还没有价值通道数据：运行 <code>python -m cn quality</code> 后重新构建。</span>'; $("vuBody").innerHTML = ""; return; }
   const all_ = $("vuThr").value === "all", q = $("vuQ").value.trim().toLowerCase(), thr = all_ ? 0 : +$("vuThr").value, pmax = $("vuPct").value === "" ? null : +$("vuPct").value, cyc = $("vuCyc").checked, drop = $("vuDrop").checked, notIn = $("vuNotIn").checked;
+  const vlb = $("vuLb").value, vsig = $("vuSig").checked;
   const pass = r => all_ || (r.ig_gap != null ? r.ig_gap <= -thr : r.igs === "below");
-  const L = VCR.filter(r => pass(r) && (cyc || !r.cyclical) && (!drop || !r.recent_drop) && (!notIn || !r.in2) && (!q || (r.code + " " + r.name).toLowerCase().includes(q)) && (pmax == null || (vpKey(r) != null && vpKey(r) <= pmax)))
+  const L = VCR.filter(r => pass(r) && (cyc || !r.cyclical) && (!drop || !r.recent_drop) && (!notIn || !r.in2) && (!q || (r.code + " " + r.name).toLowerCase().includes(q)) && (pmax == null || (vpKey(r) != null && vpKey(r) <= pmax))
+      && (!vlb || (rowOf(r.code) || {}).label === vlb) && (!vsig || instSk(instRow(r.code)) >= SIG_MIN))
     .sort((a, b) => all_ ? (a.rank ?? 9999) - (b.rank ?? 9999) : (a.ig_gap ?? -999) - (b.ig_gap ?? -999));
   const all = VCR.filter(r => !r.cyclical && pass(r)).length;
   $("vuLead").innerHTML = `价值通道 ${VCR.length} 家中，非周期且现价隐含增速比过去 4 年营收增速低至少 ${thr}pt 的有 <b>${all}</b> 家；按当前条件列出 <b>${L.length}</b> 家，其中 <b>${L.filter(r => !r.in2).length}</b> 家不在新兴筛选里（成长 × 低估看不到它们）。按差距从大到小排列。`;
@@ -3133,12 +3176,93 @@ function renderVu() {
 }
 // "不限（价值通道全部）" also shows cyclical and recent-drop companies (the user can switch them off again)
 $("vuThr").addEventListener("change", () => { if ($("vuThr").value === "all") { $("vuCyc").checked = true; $("vuDrop").checked = false; } });
-["vuThr", "vuPct", "vuCyc", "vuDrop", "vuNotIn"].forEach(id => $(id).addEventListener("change", renderVu));
+["vuThr", "vuPct", "vuCyc", "vuDrop", "vuNotIn", "vuLb", "vuSig"].forEach(id => $(id).addEventListener("change", renderVu));
 $("vuQ").addEventListener("input", debounce(renderVu, 120));
 $("vuBody").addEventListener("click", ev => { const b = ev.target.closest("[data-vulk]"); if (b) lkShow(b.dataset.vulk, true); });
 // show one value-channel company in 3.2 (used by the lookup's "价值通道" link): all thresholds off, search = its code
-function vuShow(code) { const r = VC_BY[code]; $("vuThr").value = "all"; $("vuPct").value = ""; $("vuDrop").checked = false; $("vuNotIn").checked = false;
+function vuShow(code) { const r = VC_BY[code]; $("vuThr").value = "all"; $("vuPct").value = ""; $("vuDrop").checked = false; $("vuNotIn").checked = false; $("vuLb").value = ""; $("vuSig").checked = false;
   $("vuCyc").checked = !!(r && r.cyclical); $("vuQ").value = code; renderVu(); $("sVu").scrollIntoView({behavior: "smooth", block: "start"}); }
+// ---------- 逐层筛选: the page's own screens chained in order (成长线 / 价值线). Display only: every layer reuses an
+// existing rule (新兴筛选, label, value channel, 3.1 / 3.2 defaults, holder streak); nothing here feeds a score or label
+const VU_R = D.vu_rules || {ig_gap_max: -5, x_gap_min: 0.15};
+const isVu = r => !!r && !r.cyclical && !r.recent_drop && (r.ig_gap != null ? r.ig_gap <= VU_R.ig_gap_max : r.igs === "below");
+const instRow = c => BYCODE[c] || XROW[c] || VC_BY[c];
+const baseGap = c => { if (!BYCODE[c] || !VC_BY[c]) return null; const o = dcfOf(c); return o && o.status === "ok" && isFinite(o.sc.base.vs) ? o.sc.base.vs : null; };
+const lowWhy = c => { const g = baseGap(c), v = VC_BY[c], w = [];
+  if (g != null && g >= VU_R.x_gap_min * 100 && !(v && v.recent_drop)) w.push(`Base 估值高于现价 ${num(g, 0)}%`);
+  if (isVu(v)) w.push(v.ig_gap != null ? `隐含增速比历史低 ${num(-v.ig_gap, 1)}pt` : "隐含增速 < −30%");
+  return w; };
+const FN_TRACKS = {
+  g: {t: "成长线", d: "先要增长，再看基本面、价值和估值", base: () => D.screen.map(r => r.code), layers: [
+    {k: "em", t: "新兴筛选", d: `营收同比 ≥ ${num(R.growth_yoy_min, 0)}%、非 ST / 金融、营收达标`, f: c => !!BYCODE[c], sec: "s2"},
+    {k: "fund", t: "基本面支撑", d: "盈利、现金流/净利 ≥ 0.8、PE 5 年分位 ≤ 50%、无交易驱动触发、非周期", f: c => BYCODE[c].label === "偏价值", sec: "s3"},
+    {k: "vc", t: "价值通道", d: "5 年 ROE、自由现金流、现金转化、负债、商誉都过关", f: c => !!VC_BY[c], sec: "sX"},
+    {k: "low", t: "低估", d: `Base 估值高于现价 ≥ ${num(VU_R.x_gap_min * 100, 0)}%（3.1），或隐含增速比历史低 ≥ ${num(-VU_R.ig_gap_max, 0)}pt（3.2）`, f: c => lowWhy(c).length > 0, sec: "sX"},
+    {k: "sig", t: "机构连续加仓", d: `北向或社保连续 ≥ ${SIG_MIN} 季新进或增持（前十大流通股东）`, f: c => instSk(instRow(c)) >= SIG_MIN, sec: "s3"}]},
+  v: {t: "价值线", d: "不要求增长，先看长期质量和估值", base: () => VCR.map(r => r.code), layers: [
+    {k: "vc", t: "价值通道", d: "5 年 ROE、自由现金流、现金转化、负债、商誉都过关", f: c => !!VC_BY[c], sec: "sVu"},
+    {k: "vu", t: "价值 × 低估", d: `非周期、无近期净利下滑、隐含增速比历史低 ≥ ${num(-VU_R.ig_gap_max, 0)}pt（3.2 默认）`, f: c => isVu(VC_BY[c]), sec: "sVu"},
+    {k: "fund", t: "基本面支撑", d: "同一套标签规则（新兴筛选外的公司按评估卡数据计算）", f: c => (rowOf(c) || {}).label === "偏价值", sec: "sVu"},
+    {k: "sig", t: "机构连续加仓", d: `北向或社保连续 ≥ ${SIG_MIN} 季新进或增持（前十大流通股东）`, f: c => instSk(instRow(c)) >= SIG_MIN, sec: "s3"}]},
+};
+const fnS = {t: "g", i: 3};
+function fnLayers(T) {   // [[codes passing layer 0], [.. layer 1], ...]
+  const out = []; let cur = T.base();
+  T.layers.forEach(L => { cur = cur.filter(c => { try { return L.f(c); } catch (e) { return false; } }); out.push(cur); });
+  return out;
+}
+function renderFn() {
+  if (!$("fnTracks")) return;
+  const nAll = (D.counts || {}).quotes;
+  const res = Object.fromEntries(Object.entries(FN_TRACKS).map(([k, T]) => [k, fnLayers(T)]));
+  const finalNames = (k) => { const L = res[k][res[k].length - 1];
+    return L.length ? L.map(c => { const r = instRow(c) || {}; return `${CARDS[c] ? codeCell(c) : esc(c)} ${esc(r.name || "")}`; }).join("、") : "（今天没有公司走到最后一层）"; };
+  $("fnTracks").innerHTML = Object.entries(FN_TRACKS).map(([k, T]) => `<div class="fn-track"><h3>${esc(T.t)} <span class="small muted">${esc(T.d)}</span></h3>
+    <div class="fn-steps"><button type="button" class="fn-step" disabled><b>${esc(nAll ?? "—")}</b><span>全市场</span></button>
+    ${T.layers.map((L, i) => `<span class="fn-arrow" aria-hidden="true">→</span><button type="button" class="fn-step" data-fn="${k}|${i}" aria-pressed="${fnS.t === k && fnS.i === i}" title="${esc(L.d)}"><b>${res[k][i].length}</b><span>${esc(L.t)}</span></button>`).join("")}</div>
+    <div class="fn-final"><b>走到最后一层：</b>${finalNames(k)}</div></div>`).join("");
+  $("fnTracks").querySelectorAll("[data-fn]").forEach(b => b.onclick = () => { const [t, i] = b.dataset.fn.split("|"); Object.assign(fnS, {t, i: +i}); renderFn(); });
+  const T = FN_TRACKS[fnS.t], L = T.layers[fnS.i], nxt = T.layers[fnS.i + 1], codes = res[fnS.t][fnS.i];
+  $("fnLead").innerHTML = `每一层只保留上一层通过、并满足这一层规则的公司。规则都来自上面已有的面板，这里不新增打分。点任一层的数字，在下表列出这一层的公司（“下一层”一列说明它是否通过下一层）。
+    成长线：新兴筛选 → 基本面支撑 → 价值通道 → 低估 → 机构；价值线：价值通道 → 价值 × 低估 → 基本面支撑 → 机构。两条线分开，因为价值线的公司大多增长低于 ${num(R.growth_yoy_min, 0)}%，放进新兴筛选之后会全部被筛掉。`;
+  $("fnCap").innerHTML = `${esc(T.t)} · 第 ${fnS.i + 1} 层「${esc(L.t)}」${codes.length} 家 <span class="small muted">${esc(L.d)}</span>`;
+  const rows = codes.map(c => ({c, r: instRow(c) || {}, s: BYCODE[c], v: VC_BY[c], x: rowOf(c), ok: nxt ? (() => { try { return nxt.f(c); } catch (e) { return false; } })() : null, sk: instSk(instRow(c))}))
+    .sort((a, b) => (b.ok === true) - (a.ok === true) || b.sk - a.sk || ((a.v || {}).rank ?? 9999) - ((b.v || {}).rank ?? 9999) || ((b.s || {}).rev_yoy ?? -999) - ((a.s || {}).rev_yoy ?? -999));
+  $("fnBody").innerHTML = rows.slice(0, 200).map(({c, r, s, v, x, ok, sk}) => { const lb = (x || {}).label, lw = lowWhy(c);
+    return `<tr><td class="nw">${coName(CARDS[c] ? codeCell(c) : s ? `<a href="#s2" data-lgjump="${esc(c)}">${esc(c)}</a>` : `<button type="button" class="linkbtn" data-vulk="${esc(c)}" title="没有评估卡：打开全市场速查">${esc(c)}</button>`, r.name || "")}</td>
+      <td class="small">${esc((v || s || r).industry || "")}${lb ? `<div><span class="tag lb-${esc(lb)}">${esc(lbT(lb))}</span></div>` : ""}</td>
+      <td class="n">${pc((s || x || v || {}).rev_yoy, 1)}</td><td class="n">${v ? `${vcP(v.roe_med)}<div class="small">${v.rank ? `第 ${v.rank}` : "周期不排名"}</div>` : "—"}</td>
+      <td class="small">${lw.length ? esc(lw.join("；")) : '<span class="na">—</span>'}</td>
+      <td class="nw">${instBadges(instRow(c) || {}, 2)}</td>
+      <td class="small">${ok === null ? "最后一层" : ok ? `<span class="pos">通过「${esc(nxt.t)}」</span>` : `<span class="muted">未过「${esc(nxt.t)}」</span>`}</td>
+      <td>${BYCODE[c] || LT_BY[c] ? bkCtl(c) : '<span class="small" title="对比池只收 新兴筛选内和长期红利公司">—</span>'}</td></tr>`; }).join("")
+    || `<tr><td colspan="8" class="small">这一层没有公司</td></tr>`;
+  renderFnBt();
+  bkSync();
+}
+$("fnBody")?.addEventListener("click", ev => { const b = ev.target.closest("[data-vulk]"); if (b) lkShow(b.dataset.vulk, true); });
+// 历史检验 (cn/instbt.py, embedded by cn build): size-adjusted excess return of the funnel layers on 16 past signal dates
+function renderFnBt() {
+  const B = D.instbt;
+  if (!B || !B.summary) { $("fnBt").innerHTML = `<div class="small muted">还没有历史检验结果（python -m cn instbt）。</div>`; $("fnNote").innerHTML = ""; return; }
+  const S = B.summary, P = B.pairs || {};
+  const pct = x => x == null ? "—" : `${x > 0 ? "+" : x < 0 ? "−" : ""}${Math.abs(x * 100).toFixed(1)}%`;
+  const one = (g, t) => { const s = S[g]; if (!s) return ""; const a = s["91_size"] || {}, b = s["182_size"] || {};
+    return `<tr><td>${esc(t)}</td><td class="n">${esc(num(s.n_per_date, 0))}</td><td class="n">${pct(a.mean)}</td><td class="n">${pct(b.mean)}</td><td class="n">${b.dates_pos ?? "—"} / ${b.dates ?? "—"}</td><td class="n">${b.t ?? "—"}</td><td class="n">${b.hit != null ? num(b.hit * 100, 0) + "%" : "—"}</td></tr>`; };
+  const pr = (k, t) => { const a = P[k + "@91"], b = P[k + "@182"]; if (!a && !b) return "";
+    return `<tr><td>${esc(t)}</td><td class="n">${pct((a || {}).mean)}</td><td class="n">${(a || {}).pos ?? "—"} / ${(a || {}).dates ?? "—"}</td><td class="n">${pct((b || {}).mean)}</td><td class="n">${(b || {}).pos ?? "—"} / ${(b || {}).dates ?? "—"}</td><td class="n">${(b || {}).t ?? "—"}</td></tr>`; };
+  const per = B.signal_periods || [];
+  $("fnBt").innerHTML = `<h3 style="margin:0 0 6px;font-size:15px">历史检验 <span class="tier">${esc(per[0] || "")} ~ ${esc(per[per.length - 1] || "")} 共 ${per.length} 期，季报截止日次日买入；和同一市值五分位的股票比；只展示</span></h3>
+    <div class="tscroll"><table class="ih"><thead><tr><th scope="col">层级（历史近似口径）</th><th scope="col" class="n">每期家数</th><th scope="col" class="n">3 个月超额</th><th scope="col" class="n">6 个月超额</th><th scope="col" class="n">6 个月为正的期数</th><th scope="col" class="n">t 值</th><th scope="col" class="n">个股跑赢比例</th></tr></thead><tbody>
+    ${one("all", "全市场（基准）")}${one("g", "成长线 · 新兴筛选（营收同比 ≥ 20%）")}${one("g_f", "成长线 · + 基本面（近似）")}${one("g_f_vc", "成长线 · + 价值通道")}${one("g_f_vc_low", "成长线 · + 低估")}${one("g_f_vc_low_up2", "成长线 · + 机构连续 ≥ 2 季")}
+    ${one("vc", "价值线 · 价值通道")}${one("vu", "价值线 · 价值 × 低估")}${one("vu_f", "价值线 · + 基本面（近似）")}${one("vu_f_up2", "价值线 · + 机构连续 ≥ 2 季")}
+    ${one("hk_up2", "只看北向连续 ≥ 2 季（不看基本面）")}${one("ss_up2", "只看社保连续 ≥ 2 季（不看基本面）")}</tbody></table></div>
+    <div class="tscroll" style="margin-top:8px"><table class="ih"><thead><tr><th scope="col">同一层里有 / 没有机构信号（逐期相减）</th><th scope="col" class="n">3 个月差</th><th scope="col" class="n">3 个月为正</th><th scope="col" class="n">6 个月差</th><th scope="col" class="n">6 个月为正</th><th scope="col" class="n">t 值</th></tr></thead><tbody>
+    ${pr("g_f_up2-g_f_nosig", "成长线（基本面层）：连续 ≥ 2 季 − 无信号")}${pr("vu_f_up2-vu_f_nosig", "价值线（基本面层）：连续 ≥ 2 季 − 无信号")}${pr("vu_f_up1-vu_f_nosig", "价值线（基本面层）：任意 1 季 − 无信号")}${pr("vu_up2-vu_nosig", "价值 × 低估：连续 ≥ 2 季 − 无信号")}${pr("hk_add-hk_down1", "北向增持 − 北向减持（全市场）")}</tbody></table></div>`;
+  $("fnNote").innerHTML = `历史检验用的是近似口径：过去的新兴筛选按“营收同比 ≥ 20% 且营收达标”重建；“基本面（近似）”= 盈利、现金流/净利 ≥ 0.8、非周期（页面标签还要求 PE 5 年分位 ≤ 50% 且没有解禁 / 减持 / 监管触发，这些没有历史数据）；
+    价值通道和价值 × 低估按同一套规则用信号日之前已披露的 5 个财年重算（财务数据为今天的口径，含追溯调整）；低估层用隐含增速口径（3.1 的 Base 估值依赖页面参数，没有回测）。
+    t 值 &lt; 2 说明差异可能只是偶然；6 个月的持有期互相重叠，t 值偏高；退市股缺卖出价被剔除；未扣交易成本。只是对历史的统计描述，不是买卖建议，也不进入任何评分。生成时间 ${esc(B.generated_at || "")}。`;
+}
 // ---------- 本周变化 (cn/changes.py): view members at this quote date vs the previous one; display only
 const CHG_ORDER = ["x", "vu", "lt", "dv", "vc"], CHG_SEC = {x: "sX", vu: "sVu", lt: "sLt", dv: "sDv", vc: "sVu"};
 function renderChg() {
@@ -3154,7 +3278,7 @@ function renderChg() {
       <div class="lbl">退出 ${v.out.length}</div><div>${many(v.out, "out") || '<span class="small">没有</span>'}</div>` : ""}</div>`; }).join("");
 }
 $("chgBody").addEventListener("click", ev => { const b = ev.target.closest("[data-chg]"); if (!b) return; const c = b.dataset.chg; if (!jumpCN(c)) lkShow(c, true); });
-function render() { renderHeat(); renderScreen(); renderPriority(); renderVc(); renderX(); renderVu(); renderDv(); renderLt(); renderBk(); renderLg(); renderLgFwd(); }
+function render() { renderHeat(); renderScreen(); renderPriority(); renderVc(); renderX(); renderVu(); renderFn(); renderDv(); renderLt(); renderBk(); renderLg(); renderLgFwd(); }
 function init() {
   renderHeader();
   const inds = [...new Set(D.screen.map(r => r.industry).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));

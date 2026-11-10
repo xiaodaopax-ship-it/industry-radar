@@ -254,6 +254,10 @@ def growth(cur, old):
     return None if cur is None or old is None or old <= 0 else (cur / old - 1) * 100
 
 
+def num1(x):
+    return "—" if x is None else f"{x:.1f}"
+
+
 def r1(x, d=1):
     return None if x is None else round(x, d)
 
@@ -263,10 +267,35 @@ def quarters_in(period):
 
 
 # ----------------------------------------------------------------------------- analysis
+def valpct_fallback(snap, Q):
+    """snap["valuation"] (估值短名单, fetched with the snapshot) plus, for every other code, the 5-year PE / PB percentile
+    of `python -m cn valpct` (same method: em.valuation_percentiles over 5 years of daily RPT_VALUEANALYSIS_DET values).
+    The valpct file is used only when it was computed for this snapshot's quote date, so a stale file never labels
+    a newer snapshot. Feeds the 估值分位 gate and therefore the 基本面支撑 / 交易驱动 label; the research-priority shortlist
+    is chosen before valuation and its valuation factor still uses the snapshot's own values."""
+    val = dict(snap.get("valuation") or {})
+    try:
+        from .valpct import latest as vp_latest
+        doc = vp_latest()
+    except Exception:  # noqa: BLE001 - no valpct file: snapshot valuation only
+        doc = None
+    qd = next((q.get("as_of") for q in Q.values() if q.get("as_of")), snap.get("today")) or ""
+    if not doc or (doc.get("as_of") or "")[:10] != qd[:10]:
+        return val
+    for c, it in (doc.get("items") or {}).items():
+        if c in val or c not in Q or (it.get("pe_pct") is None and it.get("pb_pct") is None):
+            continue
+        val[c] = {"n_days": it.get("n"), "first": it.get("first"), "last": it.get("last"), "src": "valpct",
+                  "pe": {"percentile": it["pe_pct"], "latest": Q[c].get("pe_ttm")} if it.get("pe_pct") is not None else {},
+                  "pb": {"percentile": it.get("pb_pct"), "latest": Q[c].get("pb")} if it.get("pb_pct") is not None else {}}
+    return val
+
+
 def analyze(snap, valuation=None):
-    valuation = snap.get("valuation", {}) if valuation is None else valuation
     P = snap["periods"]
     Q = {r["code"]: r for r in snap["quotes"]}
+    if valuation is None:
+        valuation = valpct_fallback(snap, Q)
     F = {k: {r["code"]: r for r in snap["fin"][k]} for k in ("latest", "prev", "year_ago")}
     fl, fp, fy = F["latest"], F["prev"], F["year_ago"]
 
@@ -440,7 +469,7 @@ def analyze(snap, valuation=None):
         else:
             pe, pb = vv.get("pe") or {}, vv.get("pb") or {}
             pe_pct, pb_pct = pe.get("percentile"), pb.get("percentile")
-            txt = (f"PE {pe.get('latest'):.1f} 分位 {pe_pct:.0f}%" if pe_pct is not None else "PE≤0 无分位")
+            txt = (f"PE {num1(pe.get('latest'))} 分位 {pe_pct:.0f}%" if pe_pct is not None else "PE≤0 无分位")
             txt += f"；PB 分位 {pb_pct:.0f}%" if pb_pct is not None else ""
             txt += f"（{vv.get('first')}~{vv.get('last')}）"
             g["val"] = ("na", txt, "PE≤0") if pe_pct is None else ("warn" if pe_pct >= RULES["pe_pct_high"] else "ok", txt, f"{pe_pct:.0f}%")
@@ -745,6 +774,16 @@ def build(path=None):
         log(f"changes vs {ch['prev']}: " + ", ".join(f"{k} {v['n']} (+{len(v['in'])}/-{len(v['out'])})" for k, v in ch["views"].items()))
     except Exception as e:  # noqa: BLE001
         log(f"WARNING: changes skipped ({type(e).__name__}: {e})")
+    # 历史检验 of the 逐层筛选 layers (python -m cn instbt): summary only, display only
+    try:
+        ips = sorted(glob.glob(os.path.join(DATA_DIR, "instbt_*.json")))
+        if ips:
+            with open(ips[-1], encoding="utf-8") as f:
+                ib = json.load(f)
+            payload["instbt"] = {k: ib.get(k) for k in ("generated_at", "rules", "signal_periods", "summary", "pairs")}
+            log(f"instbt: {os.path.basename(ips[-1])} groups={len(ib.get('summary') or {})}")
+    except (OSError, ValueError) as e:
+        log(f"WARNING: instbt skipped ({type(e).__name__}: {e})")
     have = set((cdoc or {}).get("cards", {}))
     payload["cards_meta"] = {"file": os.path.basename(cpath) if cpath else None, "fetched_at": (cdoc or {}).get("fetched_at"),
                              "snap": (cdoc or {}).get("snap"), "rules": cardmod.CARD_RULES,

@@ -33,6 +33,9 @@ ROOT = em.ROOT
 LEDGER_DIR = os.path.join(ROOT, "data", "cn", "ledger")
 LEDGER_FILE = os.path.join(LEDGER_DIR, "cn_ledger.jsonl")
 LEDGER_RULES = {"flat_pct": 2.0, "second_share": 1 / 3, "page_keep": 26}
+# label basis version: 1 = PE percentile only for the snapshot shortlist; 2 = every ② row (cn valpct, 2026-11-10).
+# A label "change" across versions is a methodology change and is not reported as a change.
+LABEL_BASIS = 2
 ATTR_BASE = [("r0", "营收基数"), ("m0", "FCF 利润率路径"), ("g0", "起始增速"), ("ncsh", "净现金与股本"),
              ("par", "参数 rf/ERP/gT/爬坡 N,T")]
 ATTR_MREQ = [("price", "股价")] + ATTR_BASE
@@ -117,7 +120,7 @@ def make_record(ctx, r, run_at, d=None, price=None, cons=None, P=None, drop=Fals
            "cons_g": _r(cons_g), "cons_org": cg.get("org") if carded else None,
            "hi52": rng.get("hi52"), "lo52": rng.get("lo52"),
            "gap_base": _r(base / price - 1) if base is not None and price else None,
-           "label": r.get("label"), "warn_n": r.get("warn_n"), "hkscc": hk}
+           "label": r.get("label"), "lbv": LABEL_BASIS, "warn_n": r.get("warn_n"), "hkscc": hk}
     return rec
 
 
@@ -250,7 +253,9 @@ def compute_chg(prev, cur):
          "price_pct": _r(_pct(cur.get("price"), prev.get("price")), 4),
          "base_pct": None, "gap_pp": None, "implied_g_pp": None, "implied_m_pp": None,
          "cons_g_pp": _r(_d(cur.get("cons_g"), prev.get("cons_g")), 4), "cons_org_d": _d(cur.get("cons_org"), prev.get("cons_org")),
-         "label": None if prev.get("label") == cur.get("label") else [prev.get("label"), cur.get("label")],
+         # label basis changed between the records (methodology, not data): no label change is reported
+         "label": None if prev.get("label") == cur.get("label") or prev.get("lbv", 1) != cur.get("lbv", 1)
+         else [prev.get("label"), cur.get("label")],
          "warn_n_d": _d(cur.get("warn_n"), prev.get("warn_n")),
          "basis": None if prev.get("basis") == cur.get("basis") else [prev.get("basis"), cur.get("basis")],
          "attr_of": None, "attr": None, "total": None, "tag": None, "conclusion": ""}
